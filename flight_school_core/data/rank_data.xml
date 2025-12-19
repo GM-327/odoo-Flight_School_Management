@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 
+    Military Rank Data
+    ==================
+    Pre-populated military ranks in hierarchy order.
+    Sequence: 1 = lowest rank, higher numbers = more senior.
+    -->
+
+    <!-- CADETS -->
+    <record id="rank_cadet" model="fs.rank">
+        <field name="name">Cadet</field>
+        <field name="code">CDT</field>
+        <field name="category">cadet</field>
+        <field name="description">Entry-level student pilot in training.</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="rank_officer_cadet" model="fs.rank">
+        <field name="name">Officer Cadet</field>
+        <field name="code">OCDT</field>
+        <field name="category">cadet</field>
+        <field name="description">Student pilot in officer training program.</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <!-- COMMISSIONED OFFICERS -->
+    <record id="rank_2lt" model="fs.rank">
+        <field name="name">2nd Lieutenant</field>
+        <field name="code">2LT</field>
+        <field name="category">officer</field>
+        <field name="description">Entry-level commissioned officer rank.</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="rank_lt" model="fs.rank">
+        <field name="name">Lieutenant</field>
+        <field name="code">LT</field>
+        <field name="category">officer</field>
+        <field name="description">Junior commissioned officer rank.</field>
+        <field name="sequence">20</field>
+    </record>
+
+    <record id="rank_cpt" model="fs.rank">
+        <field name="name">Captain</field>
+        <field name="code">CPT</field>
+        <field name="category">officer</field>
+        <field name="description">Company-grade commissioned officer rank.</field>
+        <field name="sequence">30</field>
+    </record>
+
+    <record id="rank_maj" model="fs.rank">
+        <field name="name">Major</field>
+        <field name="code">MAJ</field>
+        <field name="category">officer</field>
+        <field name="description">Field-grade commissioned officer rank.</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <record id="rank_ltcol" model="fs.rank">
+        <field name="name">Lieutenant Colonel</field>
+        <field name="code">LTCOL</field>
+        <field name="category">officer</field>
+        <field name="description">Senior field-grade commissioned officer rank.</field>
+        <field name="sequence">50</field>
+    </record>
+
+    <record id="rank_col" model="fs.rank">
+        <field name="name">Colonel</field>
+        <field name="code">COL</field>
+        <field name="category">officer</field>
+        <field name="description">Senior commissioned officer rank, typically commands a regiment or wing.</field>
+        <field name="sequence">60</field>
+    </record>
+
+    <!-- NON-COMMISSIONED OFFICERS -->
+    <record id="rank_sgt" model="fs.rank">
+        <field name="name">Sergeant</field>
+        <field name="code">SGT</field>
+        <field name="category">nco</field>
+        <field name="description">Non-commissioned officer rank.</field>
+        <field name="sequence">5</field>
+    </record>
+
+    <record id="rank_ssgt" model="fs.rank">
+        <field name="name">Staff Sergeant</field>
+        <field name="code">SSGT</field>
+        <field name="category">nco</field>
+        <field name="description">Senior non-commissioned officer rank.</field>
+        <field name="sequence">6</field>
+    </record>
+
+    <record id="rank_wo" model="fs.rank">
+        <field name="name">Warrant Officer</field>
+        <field name="code">WO</field>
+        <field name="category">nco</field>
+        <field name="description">Senior non-commissioned officer with warrant.</field>
+        <field name="sequence">8</field>
+    </record>
+
+    <!-- CIVILIAN -->
+    <record id="rank_civilian" model="fs.rank">
+        <field name="name">Civilian</field>
+        <field name="code">CIV</field>
+        <field name="category">civilian</field>
+        <field name="description">Civilian contractor or instructor.</field>
+        <field name="sequence">0</field>
+    </record>
+
+</odoo>

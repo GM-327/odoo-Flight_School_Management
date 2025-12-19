@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Rank Views
+    ==========
+    List, Form, and Search views for fs.rank model.
+    -->
+
+    <!-- ============== ACTIONS ============== -->
+    <record id="action_fs_rank" model="ir.actions.act_window">
+        <field name="name">Military Ranks</field>
+        <field name="res_model">fs.rank</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Military Rank
+            </p>
+            <p>
+                Define military ranks in hierarchy order. Higher sequence numbers
+                indicate more senior ranks.
+            </p>
+        </field>
+    </record>
+
+    <!-- ============== LIST VIEW ============== -->
+    <record id="view_fs_rank_list" model="ir.ui.view">
+        <field name="name">fs.rank.list</field>
+        <field name="model">fs.rank</field>
+        <field name="arch" type="xml">
+            <list string="Military Ranks" multi_edit="1" sample="1" default_order="sequence asc">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="category" widget="badge"
+                       decoration-info="category == 'cadet'"
+                       decoration-success="category == 'officer'"
+                       decoration-warning="category == 'nco'"
+                       decoration-muted="category == 'civilian'"/>
+                <field name="description" optional="hide"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============== FORM VIEW ============== -->
+    <record id="view_fs_rank_form" model="ir.ui.view">
+        <field name="name">fs.rank.form</field>
+        <field name="model">fs.rank</field>
+        <field name="arch" type="xml">
+            <form string="Military Rank">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="insignia" widget="image" class="oe_avatar" options="{'preview_image': 'insignia'}"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Captain"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Identification">
+                            <field name="code" placeholder="e.g., CPT"/>
+                            <field name="category"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Description">
+                            <field name="description" nolabel="1" 
+                                   placeholder="Description of this rank..."/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+</odoo>

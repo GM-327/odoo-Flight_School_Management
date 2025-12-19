@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Flight School Security Groups
+    =============================
+    Defines role-based access control for the flight school module.
+    -->
+
+    <!-- Module Category -->
+    <record id="module_category_flight_school" model="ir.module.category">
+        <field name="name">Flight School</field>
+        <field name="description">Flight School Management System</field>
+        <field name="sequence">100</field>
+    </record>
+
+    <!-- 
+    Privilege Group
+    Required in Odoo 19 to link groups to a category
+    -->
+    <record id="privilege_flight_school" model="res.groups.privilege">
+        <field name="name">Flight School</field>
+        <field name="category_id" ref="module_category_flight_school"/>
+    </record>
+
+    <!-- 
+    Group 1: Flight School User (Basic Access)
+    - View training classes (read only)
+    - View aircraft (read only)
+    - Cannot access configuration
+    -->
+    <record id="group_flight_school_user" model="res.groups">
+        <field name="name">User</field>
+        <field name="comment">Basic read access to flight school data</field>
+        <field name="privilege_id" ref="privilege_flight_school"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- 
+    Group 2: Flight School Instructor
+    - All User permissions
+    - View all students
+    - View assigned training classes (full access)
+    - Update student progress (limited fields)
+    - Cannot delete records
+    - Cannot access configuration
+    -->
+    <record id="group_flight_school_instructor" model="res.groups">
+        <field name="name">Instructor</field>
+        <field name="comment">Instructor access - can view students and update progress</field>
+        <field name="privilege_id" ref="privilege_flight_school"/>
+        <field name="implied_ids" eval="[(4, ref('group_flight_school_user'))]"/>
+    </record>
+
+    <!-- 
+    Group 3: Flight School Manager
+    - All Instructor permissions
+    - Create/edit/delete students
+    - Create/edit/delete instructors
+    - Create/edit/delete training classes
+    - Manage class assignments
+    - Cannot access configuration
+    -->
+    <record id="group_flight_school_manager" model="res.groups">
+        <field name="name">Manager</field>
+        <field name="comment">Manager access - full CRUD on operational data</field>
+        <field name="privilege_id" ref="privilege_flight_school"/>
+        <field name="implied_ids" eval="[(4, ref('group_flight_school_instructor'))]"/>
+    </record>
+
+    <!-- 
+    Group 4: Flight School Administrator (Full Access)
+    - All Manager permissions
+    - Access ALL configuration menus
+    - Create/edit/delete configuration data
+    - Archive/restore records
+    - Access admin notes fields
+    - Full system access
+    -->
+    <record id="group_flight_school_admin" model="res.groups">
+        <field name="name">Administrator</field>
+        <field name="comment">Full administrative access including configuration</field>
+        <field name="privilege_id" ref="privilege_flight_school"/>
+        <field name="implied_ids" eval="[(4, ref('group_flight_school_manager'))]"/>
+    </record>
+
+</odoo>

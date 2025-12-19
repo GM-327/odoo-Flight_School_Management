@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- 
+    Training Class Type Data
+    ========================
+    Pre-populated training types following JAR-FCL/EASA regulations.
+    noupdate="1" means these records won't be overwritten on module update.
+    -->
+
+    <!-- PPL - Private Pilot License -->
+    <record id="class_type_ppl" model="fs.class.type">
+        <field name="name">PPL - Private Pilot License</field>
+        <field name="code">PPL</field>
+        <field name="description">Private Pilot License training following JAR-FCL PPL(A) requirements. Allows holder to act as pilot-in-command of single-engine aircraft for private flights.</field>
+        <field name="sequence">10</field>
+        <field name="estimated_duration">6</field>
+        <field name="min_flight_hours_required">45</field>
+        <field name="regulation_reference">JAR-FCL 1.125</field>
+        <field name="is_military" eval="False"/>
+        <field name="color">2</field>
+    </record>
+
+    <!-- CPL - Commercial Pilot License -->
+    <record id="class_type_cpl" model="fs.class.type">
+        <field name="name">CPL - Commercial Pilot License</field>
+        <field name="code">CPL</field>
+        <field name="description">Commercial Pilot License training following JAR-FCL CPL(A) requirements. Allows holder to act as paid pilot-in-command or co-pilot.</field>
+        <field name="sequence">20</field>
+        <field name="estimated_duration">12</field>
+        <field name="min_flight_hours_required">200</field>
+        <field name="regulation_reference">JAR-FCL 1.155</field>
+        <field name="is_military" eval="False"/>
+        <field name="color">4</field>
+        <field name="prerequisite_type_ids" eval="[(4, ref('class_type_ppl'))]"/>
+    </record>
+
+    <!-- IR - Instrument Rating -->
+    <record id="class_type_ir" model="fs.class.type">
+        <field name="name">IR - Instrument Rating</field>
+        <field name="code">IR</field>
+        <field name="description">Instrument Rating training following JAR-FCL IR(A) requirements. Allows holder to fly under Instrument Flight Rules (IFR).</field>
+        <field name="sequence">30</field>
+        <field name="estimated_duration">4</field>
+        <field name="min_flight_hours_required">50</field>
+        <field name="regulation_reference">JAR-FCL 1.195</field>
+        <field name="is_military" eval="False"/>
+        <field name="color">3</field>
+        <field name="prerequisite_type_ids" eval="[(4, ref('class_type_ppl'))]"/>
+    </record>
+
+    <!-- ME - Multi-Engine Rating -->
+    <record id="class_type_me" model="fs.class.type">
+        <field name="name">ME - Multi-Engine Rating</field>
+        <field name="code">ME</field>
+        <field name="description">Multi-Engine class rating training. Allows holder to fly multi-engine aircraft.</field>
+        <field name="sequence">40</field>
+        <field name="estimated_duration">2</field>
+        <field name="min_flight_hours_required">6</field>
+        <field name="regulation_reference">JAR-FCL 1.225</field>
+        <field name="is_military" eval="False"/>
+        <field name="color">5</field>
+        <field name="prerequisite_type_ids" eval="[(4, ref('class_type_ppl'))]"/>
+    </record>
+
+    <!-- CPL/IR - Combined Commercial + Instrument -->
+    <record id="class_type_cpl_ir" model="fs.class.type">
+        <field name="name">CPL/IR - Commercial with Instrument Rating</field>
+        <field name="code">CPL/IR</field>
+        <field name="description">Combined Commercial Pilot License and Instrument Rating integrated training program.</field>
+        <field name="sequence">50</field>
+        <field name="estimated_duration">18</field>
+        <field name="min_flight_hours_required">200</field>
+        <field name="regulation_reference">JAR-FCL 1.160/1.165</field>
+        <field name="is_military" eval="False"/>
+        <field name="color">6</field>
+        <field name="prerequisite_type_ids" eval="[(4, ref('class_type_ppl'))]"/>
+    </record>
+
+    <!-- Basic Military Flight Training -->
+    <record id="class_type_mil_basic" model="fs.class.type">
+        <field name="name">Basic Military Flight Training</field>
+        <field name="code">BMFT</field>
+        <field name="description">Initial military flight training phase. Covers basic airmanship, flight principles, and foundational military aviation procedures.</field>
+        <field name="sequence">100</field>
+        <field name="estimated_duration">6</field>
+        <field name="min_flight_hours_required">70</field>
+        <field name="regulation_reference">MIL-STD</field>
+        <field name="is_military" eval="True"/>
+        <field name="color">7</field>
+    </record>
+
+    <!-- Advanced Military Flight Training -->
+    <record id="class_type_mil_advanced" model="fs.class.type">
+        <field name="name">Advanced Military Flight Training</field>
+        <field name="code">AMFT</field>
+        <field name="description">Advanced military flight training phase. Covers tactical flying, formation, low-level navigation, and combat procedures.</field>
+        <field name="sequence">110</field>
+        <field name="estimated_duration">12</field>
+        <field name="min_flight_hours_required">120</field>
+        <field name="regulation_reference">MIL-STD</field>
+        <field name="is_military" eval="True"/>
+        <field name="color">8</field>
+        <field name="prerequisite_type_ids" eval="[(4, ref('class_type_mil_basic'))]"/>
+    </record>
+
+    <!-- Flight Instructor Training -->
+    <record id="class_type_fi" model="fs.class.type">
+        <field name="name">FI - Flight Instructor Training</field>
+        <field name="code">FI</field>
+        <field name="description">Flight Instructor rating training following JAR-FCL FI(A) requirements. Prepares candidates to become certified flight instructors.</field>
+        <field name="sequence">200</field>
+        <field name="estimated_duration">3</field>
+        <field name="min_flight_hours_required">25</field>
+        <field name="regulation_reference">JAR-FCL 1.330</field>
+        <field name="is_military" eval="False"/>
+        <field name="color">9</field>
+        <field name="prerequisite_type_ids" eval="[(4, ref('class_type_cpl'))]"/>
+    </record>
+
+</odoo>
