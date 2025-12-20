@@ -3,24 +3,25 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 {
-    'name': 'Flight School Core',
+    'name': 'Flight School Settings',
     'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
-    'summary': 'Core module for Military Flight School Management System',
+    'summary': 'Central settings and configuration for Flight School modules',
     'description': """
-Flight School Core Module
-=========================
+Flight School Settings
+======================
 
-Foundation module for a Military Flight School Management System 
+Central configuration module for the Military Flight School Management System 
 following EU JAR-FCL (EASA) regulations.
 
 This module provides:
 ---------------------
 * Security groups (User, Instructor, Manager, Admin)
-* Base configuration settings
+* Central configuration settings
 * Module category definition
 
-Other fs_* modules depend on this core module.
+Other Flight School modules depend on this for security and settings.
+Available modules: Fleet, People, Training, etc.
     """,
     'author': 'Ghazi Marzouk',
     'website': '',

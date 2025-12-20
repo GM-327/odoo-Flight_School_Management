@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- 
-    Flight School Root Menu
-    =======================
-    Base menu structure for all flight school modules.
+    Flight School Settings Menu
+    ===========================
+    Central settings and configuration app.
     -->
 
     <!-- Action for Settings (must be defined before menu references it) -->
@@ -15,22 +15,22 @@
         <field name="context">{'module': 'fs_core', 'bin_size': False}</field>
     </record>
 
-    <!-- Root Menu: Flight School (main app menu) -->
+    <!-- Root Menu: FS Settings (main app menu) -->
     <menuitem id="menu_flight_school_root"
-              name="Flight School"
+              name="Settings"
               web_icon="fs_core,static/description/icon.png"
-              sequence="100"/>
+              sequence="5"/>
 
-    <!-- Configuration Menu (at Settings level) -->
+    <!-- Configuration Menu -->
     <menuitem id="menu_config_root"
               name="Configuration"
               parent="menu_flight_school_root"
-              sequence="999"
+              sequence="10"
               groups="group_flight_school_admin"/>
 
     <!-- General Settings under Configuration -->
     <menuitem id="menu_config_general"
-              name="Settings"
+              name="General Settings"
               parent="menu_config_root"
               action="action_res_config_settings"
               sequence="1"

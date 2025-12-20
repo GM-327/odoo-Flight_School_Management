@@ -8,8 +8,8 @@
     'category': 'Aviation/Flight School',
     'summary': 'Aircraft fleet management for flight schools',
     'description': """
-Flight School Fleet Module
-==========================
+Flight School Fleet
+===================
 
 Aircraft fleet management for Military Flight School Management System.
 
@@ -22,7 +22,7 @@ This module provides:
 * Hobbs/airframe hours tracking
 * Maintenance scheduling awareness
 
-Depends on fs_core for security groups.
+Depends on Flight School Core for security groups.
     """,
     'author': 'Ghazi Marzouk',
     'website': '',
@@ -47,7 +47,7 @@ Depends on fs_core for security groups.
         'demo/aircraft_demo.xml',
     ],
     'installable': True,
-    'application': False,
-    'auto_install': False,
+    'application': True,
+    'auto_install': True,
     'sequence': 10,
 }
