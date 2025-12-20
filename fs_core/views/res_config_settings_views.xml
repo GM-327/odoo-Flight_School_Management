@@ -14,6 +14,8 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app data-string="Flight School" string="Flight School" name="fs_core" groups="fs_core.group_flight_school_admin">
+                    
+                    <!-- General Settings -->
                     <block title="General Settings" name="fs_general_settings">
                         <setting string="Default Home Base" help="ICAO airport code for new aircraft">
                             <field name="fs_default_home_base"/>
@@ -23,7 +25,8 @@
                         </setting>
                     </block>
 
-                    <block title="Instructor Limits" name="fs_instructor_limits">
+                    <!-- Instructor Configuration -->
+                    <block title="Instructor Configuration" name="fs_instructor_limits">
                         <setting string="Max Students per Instructor" help="Default maximum students assigned to one instructor">
                             <field name="fs_default_max_students"/>
                         </setting>
@@ -35,27 +38,44 @@
                         </setting>
                     </block>
 
-                    <block title="Expiry Warnings" name="fs_expiry_warnings">
-                        <setting string="Medical Warning" help="Days before medical certificate expiry to show warning">
+                    <!-- Personnel Expiry Warnings -->
+                    <block title="Personnel Expiry Warnings" name="fs_personnel_warnings">
+                        <h2>Medical &amp; Certifications</h2>
+                        <setting string="Medical Certificate Warning" help="Days before medical certificate expiry to show warning">
                             <div class="text-muted">
                                 Show warning <field name="fs_medical_warning_days" class="o_field_integer oe_inline"/> days before expiry
                             </div>
                         </setting>
-                        <setting string="License and Qualification Warning" help="Days before license/qualification expiry to show warning">
+                        <setting string="License &amp; Qualification Warning" help="Days before license/qualification expiry to show warning">
                             <div class="text-muted">
                                 Show warning <field name="fs_license_warning_days" class="o_field_integer oe_inline"/> days before expiry
                             </div>
                         </setting>
-                        <setting string="Insurance Warning" help="Days before insurance expiry to show warning (civilians)">
+                        <setting string="English Proficiency Warning" help="Days before English proficiency expiry to show warning">
+                            <div class="text-muted">
+                                Show warning <field name="fs_english_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                            </div>
+                        </setting>
+                        
+                        <h2>Civilian Requirements</h2>
+                        <setting string="Insurance &amp; Security Clearance Warning" help="Days before insurance/security clearance expiry to show warning (civilians)">
                             <div class="text-muted">
                                 Show warning <field name="fs_insurance_warning_days" class="o_field_integer oe_inline"/> days before expiry
                             </div>
                         </setting>
-                        <setting string="Class End Warning" help="Days before training class ends to flag students">
+                    </block>
+
+                    <!-- Training &amp; Operations -->
+                    <block title="Training &amp; Operations" name="fs_training_operations">
+                        <setting string="Training Class End Warning" help="Days before training class ends to flag students">
                             <div class="text-muted">
                                 Show warning <field name="fs_training_class_end_warning_days" class="o_field_integer oe_inline"/> days before end
                             </div>
                         </setting>
+                    </block>
+
+                    <!-- Aircraft Maintenance -->
+                    <block title="Aircraft Maintenance" name="fs_aircraft_maintenance">
                         <setting string="Annual Inspection Warning" help="Days before aircraft annual inspection to show warning">
                             <div class="text-muted">
                                 Show warning <field name="fs_annual_inspection_warning_days" class="o_field_integer oe_inline"/> days before expiry
@@ -67,6 +87,7 @@
                             </div>
                         </setting>
                     </block>
+                    
                 </app>
             </xpath>
         </field>

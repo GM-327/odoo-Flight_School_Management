@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Pilot Demo Data
+        ===============
+        Demo pilots with various statuses for testing.
+        -->
+
+        <!-- Pilot 1: All valid -->
+        <record id="pilot_demo_1" model="fs.pilot">
+            <field name="name">Khalil Mejri</field>
+            <field name="callsign">DELTA</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1975-05-22</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_ppl"/>
+            <field name="license_number">PPL-TN-2015-089</field>
+            <field name="license_issue_date">2015-08-10</field>
+            <field name="english_level_id" ref="fs_people.english_level_4"/>
+            <field name="english_expiry">2026-08-31</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry">2025-08-31</field>
+            <field name="total_flight_hours">450.0</field>
+            <field name="advance_payment">5000.0</field>
+            <field name="security_clearance_expiry">2025-12-31</field>
+            <field name="insurance_expiry">2025-06-30</field>
+            <field name="phone">+216 97 111 222</field>
+        </record>
+
+        <!-- Pilot 2: Medical expiring soon -->
+        <record id="pilot_demo_2" model="fs.pilot">
+            <field name="name">Sami Trabelsi</field>
+            <field name="callsign">ECHO</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1982-12-08</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_first_lieutenant"/>
+            <field name="service_number">MIL-P-003</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2019-034</field>
+            <field name="license_issue_date">2019-04-20</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="english_expiry">2027-04-30</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=25)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">1200.0</field>
+            <field name="phone">+216 97 222 333</field>
+        </record>
+
+        <!-- Pilot 3: Medical expired -->
+        <record id="pilot_demo_3" model="fs.pilot">
+            <field name="name">Leila Bouazizi</field>
+            <field name="callsign">FOXTROT</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1988-07-14</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_ppl"/>
+            <field name="license_number">PPL-TN-2020-156</field>
+            <field name="license_issue_date">2020-11-25</field>
+            <field name="english_level_id" ref="fs_people.english_level_4"/>
+            <field name="english_expiry" eval="(datetime.now() + relativedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() - relativedelta(days=15)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">280.0</field>
+            <field name="advance_payment">2500.0</field>
+            <field name="security_clearance_expiry" eval="(datetime.now() - relativedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="insurance_expiry" eval="(datetime.now() + relativedelta(days=60)).strftime('%Y-%m-%d')"/>
+            <field name="phone">+216 97 333 444</field>
+        </record>
+
+        <!-- Pilot Qualifications -->
+        <!-- Khalil's qualifications -->
+        <record id="qual_pilot1_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_1"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2023-08-10</field>
+            <field name="expiry_date">2025-08-31</field>
+        </record>
+
+        <!-- Sami's qualifications -->
+        <record id="qual_pilot2_ir" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_ir"/>
+            <field name="issue_date">2024-04-01</field>
+            <field name="expiry_date">2025-04-30</field>
+        </record>
+        <record id="qual_pilot2_me" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_me"/>
+            <field name="issue_date">2023-10-15</field>
+            <field name="expiry_date" eval="(datetime.now() + relativedelta(days=18)).strftime('%Y-%m-%d')"/>
+        </record>
+
+        <!-- Leila's qualifications - one expired -->
+        <record id="qual_pilot3_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_3"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2022-11-25</field>
+            <field name="expiry_date" eval="(datetime.now() - relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+        </record>
+
+    </data>
+</odoo>
+

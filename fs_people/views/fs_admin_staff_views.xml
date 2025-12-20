@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Admin Staff Tree View -->
+    <record id="view_fs_admin_staff_tree" model="ir.ui.view">
+        <field name="name">fs.admin.staff.list</field>
+        <field name="model">fs.admin.staff</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="employee_number" optional="show"/>
+                <field name="name"/>
+                <field name="department" optional="show"/>
+                <field name="position" optional="show"/>
+                <field name="phone" optional="show"/>
+                <field name="has_user" widget="boolean" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Admin Staff Form View -->
+    <record id="view_fs_admin_staff_form" model="ir.ui.view">
+        <field name="name">fs.admin.staff.form</field>
+        <field name="model">fs.admin.staff</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_create_user" type="object" 
+                            string="Create User Account" 
+                            class="btn-primary"
+                            invisible="has_user"/>
+                    <button name="action_view_user" type="object" 
+                            string="View User Account" 
+                            invisible="not has_user"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_user" type="object" 
+                                class="oe_stat_button" icon="fa-user"
+                                invisible="not has_user">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">User Account</span>
+                            </div>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Full Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="employee_number"/>
+                            <field name="department"/>
+                            <field name="position"/>
+                        </group>
+                        <group>
+                            <field name="phone"/>
+                            <field name="user_id"/>
+                            <field name="has_user" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Personal" name="personal">
+                            <group>
+                                <group string="Personal Information">
+                                    <field name="gender" widget="radio"/>
+                                    <field name="birth_date"/>
+                                    <field name="nationality_id"/>
+                                    <field name="identification_number"/>
+                                    <field name="phone"/>
+                                </group>
+                            </group>
+                            <group string="Address">
+                                <field name="address" nolabel="1" colspan="2"/>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Additional notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Admin Staff Search View -->
+    <record id="view_fs_admin_staff_search" model="ir.ui.view">
+        <field name="name">fs.admin.staff.search</field>
+        <field name="model">fs.admin.staff</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="employee_number"/>
+                <field name="department"/>
+                <filter name="filter_has_user" string="Has User Account" domain="[('has_user', '=', True)]"/>
+                <separator/>
+                <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="group_department" string="Department" context="{'group_by': 'department'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Admin Staff Action -->
+    <record id="action_fs_admin_staff" model="ir.actions.act_window">
+        <field name="name">Administrative Staff</field>
+        <field name="res_model">fs.admin.staff</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first administrative staff member
+            </p>
+            <p>Administrative staff handle non-aviation operations.</p>
+        </field>
+    </record>
+</odoo>

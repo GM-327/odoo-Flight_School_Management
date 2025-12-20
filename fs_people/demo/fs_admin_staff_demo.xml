@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Admin Staff Demo Data
+        =====================
+        Demo administrative staff for testing.
+        -->
+
+        <!-- Admin Staff 1: School Director -->
+        <record id="admin_staff_demo_1" model="fs.admin.staff">
+            <field name="name">Sarah Bouzid</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1975-04-12</field>
+            <field name="employee_number">ADM-001</field>
+            <field name="department">Management</field>
+            <field name="position">School Director</field>
+            <field name="phone">+216 71 123 456</field>
+            <field name="address">15 Avenue Habib Bourguiba, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 2: Head of Training -->
+        <record id="admin_staff_demo_2" model="fs.admin.staff">
+            <field name="name">Karim Mansour</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1980-09-22</field>
+            <field name="employee_number">ADM-002</field>
+            <field name="department">Training</field>
+            <field name="position">Head of Training Department</field>
+            <field name="phone">+216 71 234 567</field>
+            <field name="address">28 Rue de la Liberté, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 3: Fleet Manager -->
+        <record id="admin_staff_demo_3" model="fs.admin.staff">
+            <field name="name">Nabil Jlassi</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1978-11-30</field>
+            <field name="employee_number">ADM-003</field>
+            <field name="department">Fleet Operations</field>
+            <field name="position">Fleet Manager</field>
+            <field name="phone">+216 71 345 678</field>
+            <field name="address">42 Avenue de Carthage, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 4: Registrar -->
+        <record id="admin_staff_demo_4" model="fs.admin.staff">
+            <field name="name">Amira Hamdi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1985-06-18</field>
+            <field name="employee_number">ADM-004</field>
+            <field name="department">Academic Affairs</field>
+            <field name="position">Registrar</field>
+            <field name="phone">+216 71 456 789</field>
+            <field name="address">89 Rue de Marseille, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 5: HR Manager -->
+        <record id="admin_staff_demo_5" model="fs.admin.staff">
+            <field name="name">Fathi Ben Amor</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1982-03-08</field>
+            <field name="employee_number">ADM-005</field>
+            <field name="department">Human Resources</field>
+            <field name="position">HR Manager</field>
+            <field name="phone">+216 71 567 890</field>
+            <field name="address">12 Avenue Mohamed V, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 6: Safety Officer -->
+        <record id="admin_staff_demo_6" model="fs.admin.staff">
+            <field name="name">Sonia Gharbi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1988-12-15</field>
+            <field name="employee_number">ADM-006</field>
+            <field name="department">Safety &amp; Quality</field>
+            <field name="position">Safety Officer</field>
+            <field name="phone">+216 71 678 901</field>
+            <field name="address">56 Rue Charles de Gaulle, Tunis</field>
+        </record>
+
+    </data>
+</odoo>

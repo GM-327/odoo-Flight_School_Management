@@ -58,6 +58,12 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='flight_school.license_warning_days',
         help="Days before license or qualification expiry to show warnings.",
     )
+    fs_english_warning_days = fields.Integer(
+        string='English Proficiency Expiry Warning (Days)',
+        default=30,
+        config_parameter='flight_school.english_warning_days',
+        help="Days before English proficiency expiry to show warnings.",
+    )
     fs_insurance_warning_days = fields.Integer(
         string='Insurance Expiry Warning (Days)',
         default=30,

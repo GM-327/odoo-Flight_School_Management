@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        License Types Data
+        ==================
+        Standard aviation license types used in flight schools.
+        -->
+
+        <!-- Student License -->
+        <record id="license_type_sc" model="fs.license.type">
+            <field name="name">Student Card</field>
+            <field name="code">SC</field>
+            <field name="sequence">1</field>
+            <field name="has_validity">True</field>
+            <field name="is_student_related">True</field>
+            <field name="validity_months">12</field>
+            <field name="description">Student pilot license/card for flight training.</field>
+        </record>
+
+        <!-- Private Pilot License -->
+        <record id="license_type_ppl" model="fs.license.type">
+            <field name="name">Private Pilot License</field>
+            <field name="code">PPL</field>
+            <field name="sequence">10</field>
+            <field name="has_validity">False</field>
+            <field name="is_student_related">False</field>
+            <field name="description">Private pilot license for non-commercial flying.</field>
+        </record>
+
+        <!-- Commercial Pilot License -->
+        <record id="license_type_cpl" model="fs.license.type">
+            <field name="name">Commercial Pilot License</field>
+            <field name="code">CPL</field>
+            <field name="sequence">20</field>
+            <field name="has_validity">False</field>
+            <field name="is_student_related">False</field>
+            <field name="description">Commercial pilot license for paid flying activities.</field>
+        </record>
+
+    </data>
+</odoo>

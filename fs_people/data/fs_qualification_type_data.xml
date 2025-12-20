@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Qualification Types Data
+        ========================
+        Standard aviation qualifications/ratings.
+        -->
+
+        <!-- Instrument Rating -->
+        <record id="qualification_ir" model="fs.qualification.type">
+            <field name="name">Instrument Rating</field>
+            <field name="code">IR</field>
+            <field name="sequence">10</field>
+            <field name="validity_months">12</field>
+            <field name="description">Rating for flying in instrument meteorological conditions (IMC).</field>
+        </record>
+
+        <!-- Multi-Engine Rating -->
+        <record id="qualification_me" model="fs.qualification.type">
+            <field name="name">Multi-Engine Rating</field>
+            <field name="code">ME</field>
+            <field name="sequence">20</field>
+            <field name="validity_months">12</field>
+            <field name="description">Rating for flying multi-engine aircraft.</field>
+        </record>
+
+        <!-- Single Engine Piston -->
+        <record id="qualification_sep" model="fs.qualification.type">
+            <field name="name">Single Engine Piston</field>
+            <field name="code">SEP</field>
+            <field name="sequence">5</field>
+            <field name="validity_months">24</field>
+            <field name="description">Class rating for single-engine piston aircraft.</field>
+        </record>
+
+        <!-- Flight Instructor -->
+        <record id="qualification_fi" model="fs.qualification.type">
+            <field name="name">Flight Instructor</field>
+            <field name="code">FI</field>
+            <field name="sequence">30</field>
+            <field name="validity_months">36</field>
+            <field name="description">Rating to provide flight instruction.</field>
+        </record>
+
+        <!-- Instrument Rating Instructor -->
+        <record id="qualification_iri" model="fs.qualification.type">
+            <field name="name">Instrument Rating Instructor</field>
+            <field name="code">IRI</field>
+            <field name="sequence">31</field>
+            <field name="validity_months">36</field>
+            <field name="description">Rating to provide instrument rating instruction.</field>
+        </record>
+
+        <!-- Class Rating Instructor -->
+        <record id="qualification_cri" model="fs.qualification.type">
+            <field name="name">Class Rating Instructor</field>
+            <field name="code">CRI</field>
+            <field name="sequence">32</field>
+            <field name="validity_months">36</field>
+            <field name="description">Rating to provide class rating instruction (e.g., MEP).</field>
+        </record>
+
+    </data>
+</odoo>

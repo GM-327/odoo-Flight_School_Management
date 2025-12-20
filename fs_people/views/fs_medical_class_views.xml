@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Medical Class List View -->
+    <record id="view_fs_medical_class_list" model="ir.ui.view">
+        <field name="name">fs.medical.class.list</field>
+        <field name="model">fs.medical.class</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="validity_months"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Medical Class Form View -->
+    <record id="view_fs_medical_class_form" model="ir.ui.view">
+        <field name="name">fs.medical.class.form</field>
+        <field name="model">fs.medical.class</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., Class 1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g., C1"/>
+                        </group>
+                        <group>
+                            <field name="validity_months"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Medical Class Action -->
+    <record id="action_fs_medical_class" model="ir.actions.act_window">
+        <field name="name">Medical Classes</field>
+        <field name="res_model">fs.medical.class</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first medical class
+            </p>
+            <p>Configure medical certificate classes (Class 1, Class 2, etc.).</p>
+        </field>
+    </record>
+</odoo>

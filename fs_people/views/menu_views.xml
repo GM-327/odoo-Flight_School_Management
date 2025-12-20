@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Menu Structure for fs_people
+    ============================
+    Standalone app with its own menu structure.
+    -->
+
+    <!-- Root Menu: People (standalone app menu) -->
+    <menuitem id="menu_people_root"
+              name="People"
+              web_icon="fs_people,static/description/icon.png"
+              sequence="15"/>
+
+    <!-- Personnel submenu items -->
+    <menuitem id="menu_instructors"
+              name="Instructors"
+              parent="menu_people_root"
+              action="action_fs_instructor"
+              sequence="10"/>
+
+    <menuitem id="menu_students"
+              name="Students"
+              parent="menu_people_root"
+              action="action_fs_student"
+              sequence="20"/>
+
+    <menuitem id="menu_pilots"
+              name="Pilots"
+              parent="menu_people_root"
+              action="action_fs_pilot"
+              sequence="30"/>
+
+    <menuitem id="menu_admin_staff"
+              name="Admin Staff"
+              parent="menu_people_root"
+              action="action_fs_admin_staff"
+              sequence="40"/>
+
+    <!-- Configuration submenu -->
+    <menuitem id="menu_config_people"
+              name="Configuration"
+              parent="menu_people_root"
+              sequence="999"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_ranks"
+              name="Military Ranks"
+              parent="menu_config_people"
+              action="action_fs_rank"
+              sequence="10"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_license_types"
+              name="License Types"
+              parent="menu_config_people"
+              action="action_fs_license_type"
+              sequence="20"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_qualification_types"
+              name="Qualification Types"
+              parent="menu_config_people"
+              action="action_fs_qualification_type"
+              sequence="30"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_english_levels"
+              name="English Levels"
+              parent="menu_config_people"
+              action="action_fs_english_level"
+              sequence="40"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_medical_classes"
+              name="Medical Classes"
+              parent="menu_config_people"
+              action="action_fs_medical_class"
+              sequence="50"
+              groups="fs_core.group_flight_school_admin"/>
+
+</odoo>

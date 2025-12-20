@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        ICAO English Proficiency Levels Data
+        =====================================
+        Standard ICAO English proficiency levels (4, 5, 6).
+        -->
+
+        <!-- Level 4 - Operational -->
+        <record id="english_level_4" model="fs.english.level">
+            <field name="name">Level 4 - Operational</field>
+            <field name="level">4</field>
+            <field name="validity_months">36</field>
+            <field name="description">Operational level. Minimum required level for international operations. Valid for 3 years.</field>
+        </record>
+
+        <!-- Level 5 - Extended -->
+        <record id="english_level_5" model="fs.english.level">
+            <field name="name">Level 5 - Extended</field>
+            <field name="level">5</field>
+            <field name="validity_months">72</field>
+            <field name="description">Extended level. Valid for 6 years.</field>
+        </record>
+
+        <!-- Level 6 - Expert -->
+        <record id="english_level_6" model="fs.english.level">
+            <field name="name">Level 6 - Expert</field>
+            <field name="level">6</field>
+            <field name="validity_months">0</field>
+            <field name="description">Expert level. Permanent validity - no retesting required.</field>
+        </record>
+
+    </data>
+</odoo>

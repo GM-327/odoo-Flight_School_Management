@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Medical Class Data
+        ==================
+        Standard aviation medical certificate classes.
+        -->
+
+        <!-- Class 1 Medical -->
+        <record id="medical_class_1" model="fs.medical.class">
+            <field name="name">Class 1 Medical</field>
+            <field name="code">C1</field>
+            <field name="sequence">1</field>
+            <field name="validity_months">12</field>
+            <field name="description">Required for commercial pilots (CPL/ATPL). Most stringent medical requirements. Valid for 12 months (under 40) or 6 months (over 40).</field>
+        </record>
+
+        <!-- Class 2 Medical -->
+        <record id="medical_class_2" model="fs.medical.class">
+            <field name="name">Class 2 Medical</field>
+            <field name="code">C2</field>
+            <field name="sequence">2</field>
+            <field name="validity_months">24</field>
+            <field name="description">Required for private pilots (PPL). Less stringent than Class 1. Valid for 24 months (under 40) or 12 months (over 40).</field>
+        </record>
+
+        <!-- Class 3 Medical (LAPL) -->
+        <record id="medical_class_3" model="fs.medical.class">
+            <field name="name">Class 3 Medical</field>
+            <field name="code">C3</field>
+            <field name="sequence">3</field>
+            <field name="validity_months">60</field>
+            <field name="description">For Light Aircraft Pilot License holders. Least stringent requirements. Valid for 60 months (under 40).</field>
+        </record>
+
+        <!-- Military Medical -->
+        <record id="medical_class_mil" model="fs.medical.class">
+            <field name="name">Military Medical</field>
+            <field name="code">MIL</field>
+            <field name="sequence">0</field>
+            <field name="validity_months">12</field>
+            <field name="description">Military aviation medical certificate. Requirements set by military authorities.</field>
+        </record>
+
+    </data>
+</odoo>

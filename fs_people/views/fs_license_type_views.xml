@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- License Type List View -->
+    <record id="view_fs_license_type_list" model="ir.ui.view">
+        <field name="name">fs.license.type.list</field>
+        <field name="model">fs.license.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="has_validity"/>
+                <field name="is_student_related"/>
+                <field name="validity_months"/>
+
+            </list>
+        </field>
+    </record>
+
+    <!-- License Type Form View -->
+    <record id="view_fs_license_type_form" model="ir.ui.view">
+        <field name="name">fs.license.type.form</field>
+        <field name="model">fs.license.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="e.g., PPL"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="e.g., PPL"/>
+                        </group>
+                        <group>
+                            <field name="has_validity"/>
+                            <field name="is_student_related"/>
+                            <field name="validity_months" invisible="not has_validity"/>
+
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- License Type Action -->
+    <record id="action_fs_license_type" model="ir.actions.act_window">
+        <field name="name">License Types</field>
+        <field name="res_model">fs.license.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first license type
+            </p>
+            <p>Configure pilot license types (PPL, CPL, ATPL, Student Card).</p>
+        </field>
+    </record>
+</odoo>

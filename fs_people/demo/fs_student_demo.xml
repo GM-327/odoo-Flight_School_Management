@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Student Demo Data
+        =================
+        Demo students with various statuses for testing.
+        -->
+
+        <!-- Student 1: All valid -->
+        <record id="student_demo_1" model="fs.student">
+            <field name="name">Youssef Hamdi</field>
+            <field name="gender">male</field>
+            <field name="birth_date">2000-02-18</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-001</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="license_number">SC-TN-2024-001</field>
+            <field name="license_issue_date">2024-01-15</field>
+            <field name="license_expiry">2025-01-31</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry">2025-07-31</field>
+            <field name="total_flight_hours">45.0</field>
+            <field name="solo_hours">5.0</field>
+            <field name="phone">+216 96 111 111</field>
+        </record>
+
+        <!-- Student 2: License expiring soon -->
+        <record id="student_demo_2" model="fs.student">
+            <field name="name">Amel Cherif</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1999-09-25</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-002</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="license_number">SC-TN-2024-002</field>
+            <field name="license_issue_date">2024-03-01</field>
+            <field name="license_expiry" eval="(datetime.now() + relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry">2025-09-30</field>
+            <field name="total_flight_hours">78.0</field>
+            <field name="solo_hours">12.0</field>
+            <field name="phone">+216 96 222 222</field>
+        </record>
+
+        <!-- Student 3: Medical expiring soon -->
+        <record id="student_demo_3" model="fs.student">
+            <field name="name">Omar Ghannouchi</field>
+            <field name="gender">male</field>
+            <field name="birth_date">2001-04-12</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="license_number">SC-TN-2024-045</field>
+            <field name="license_issue_date">2024-05-10</field>
+            <field name="license_expiry">2025-05-31</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=12)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">32.0</field>
+            <field name="solo_hours">0.0</field>
+            <field name="advance_payment">3000.0</field>
+            <field name="security_clearance_expiry">2025-12-31</field>
+            <field name="insurance_expiry">2025-05-31</field>
+            <field name="phone">+216 96 333 333</field>
+        </record>
+
+        <!-- Student 4: License expired -->
+        <record id="student_demo_4" model="fs.student">
+            <field name="name">Rim Mabrouk</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1998-11-30</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="license_number">SC-TN-2023-089</field>
+            <field name="license_issue_date">2023-06-15</field>
+            <field name="license_expiry" eval="(datetime.now() - relativedelta(days=45)).strftime('%Y-%m-%d')"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() - relativedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">95.0</field>
+            <field name="solo_hours">20.0</field>
+            <field name="advance_payment">1500.0</field>
+            <field name="security_clearance_expiry" eval="(datetime.now() - relativedelta(days=60)).strftime('%Y-%m-%d')"/>
+            <field name="insurance_expiry" eval="(datetime.now() - relativedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="phone">+216 96 444 444</field>
+        </record>
+
+        <!-- Student 5: Civilian, all valid -->
+        <record id="student_demo_5" model="fs.student">
+            <field name="name">Nadia Sfar</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1997-06-08</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="license_number">SC-TN-2024-078</field>
+            <field name="license_issue_date">2024-08-01</field>
+            <field name="license_expiry">2025-08-31</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry">2026-02-28</field>
+            <field name="total_flight_hours">18.0</field>
+            <field name="solo_hours">0.0</field>
+            <field name="advance_payment">8000.0</field>
+            <field name="security_clearance_expiry">2025-12-31</field>
+            <field name="insurance_expiry">2025-12-31</field>
+            <field name="phone">+216 96 555 555</field>
+        </record>
+
+    </data>
+</odoo>
+

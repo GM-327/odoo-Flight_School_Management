@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Instructor Demo Data
+        ====================
+        Demo instructors with various statuses for testing.
+        -->
+
+        <!-- Instructor 1: All valid -->
+        <record id="instructor_demo_1" model="fs.instructor">
+            <field name="name">Ahmed Ben Ali</field>
+            <field name="callsign">ALPHA</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1985-03-15</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_captain"/>
+            <field name="service_number">MIL-001</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2020-001</field>
+            <field name="license_issue_date">2020-06-15</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="english_expiry">2028-06-30</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry">2025-12-31</field>
+            <field name="total_flight_hours">2500.0</field>
+            <field name="total_instruction_hours">1200.0</field>
+            <field name="phone">+216 98 123 456</field>
+        </record>
+
+        <!-- Instructor 2: Medical expiring soon -->
+        <record id="instructor_demo_2" model="fs.instructor">
+            <field name="name">Mohamed Salah</field>
+            <field name="callsign">BRAVO</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1980-08-20</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_major"/>
+            <field name="service_number">MIL-002</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2018-045</field>
+            <field name="license_issue_date">2018-03-10</field>
+            <field name="english_level_id" ref="fs_people.english_level_6"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=15)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">3500.0</field>
+            <field name="total_instruction_hours">2000.0</field>
+            <field name="phone">+216 98 234 567</field>
+        </record>
+
+        <!-- Instructor 3: Medical expired -->
+        <record id="instructor_demo_3" model="fs.instructor">
+            <field name="name">Fatma Mansour</field>
+            <field name="callsign">CHARLIE</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1990-11-05</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_ppl"/>
+            <field name="license_number">PPL-TN-2021-078</field>
+            <field name="license_issue_date">2021-09-01</field>
+            <field name="english_level_id" ref="fs_people.english_level_4"/>
+            <field name="english_expiry">2025-09-30</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() - relativedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">800.0</field>
+            <field name="total_instruction_hours">300.0</field>
+            <field name="phone">+216 98 345 678</field>
+        </record>
+
+        <!-- Instructor Qualifications -->
+        <!-- Ahmed's qualifications - all valid -->
+        <record id="qual_instructor1_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_1"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2020-06-15</field>
+            <field name="expiry_date">2026-06-30</field>
+        </record>
+        <record id="qual_instructor1_ir" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_1"/>
+            <field name="qualification_id" ref="fs_people.qualification_ir"/>
+            <field name="issue_date">2024-01-15</field>
+            <field name="expiry_date">2025-01-31</field>
+        </record>
+        <record id="qual_instructor1_sep" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_1"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2023-03-20</field>
+            <field name="expiry_date">2025-03-31</field>
+        </record>
+
+        <!-- Mohamed's qualifications - some expiring -->
+        <record id="qual_instructor2_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2018-03-10</field>
+            <field name="expiry_date" eval="(datetime.now() + relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+        </record>
+        <record id="qual_instructor2_iri" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_iri"/>
+            <field name="issue_date">2022-05-01</field>
+            <field name="expiry_date">2025-05-31</field>
+        </record>
+
+        <!-- Fatma's qualifications - one expired -->
+        <record id="qual_instructor3_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_3"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2021-09-01</field>
+            <field name="expiry_date" eval="(datetime.now() - relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+        </record>
+        <record id="qual_instructor3_sep" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_3"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2023-06-15</field>
+            <field name="expiry_date">2025-06-30</field>
+        </record>
+
+    </data>
+</odoo>
+

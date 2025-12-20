@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default Military Ranks -->
+    <data noupdate="1">
+        
+        <record id="rank_cadet" model="fs.rank">
+            <field name="name">Cadet</field>
+            <field name="code">CDT</field>
+            <field name="sequence">10</field>
+        </record>
+        
+        <record id="rank_second_lieutenant" model="fs.rank">
+            <field name="name">Second Lieutenant</field>
+            <field name="code">2LT</field>
+            <field name="sequence">20</field>
+        </record>
+        
+        <record id="rank_first_lieutenant" model="fs.rank">
+            <field name="name">First Lieutenant</field>
+            <field name="code">1LT</field>
+            <field name="sequence">30</field>
+        </record>
+        
+        <record id="rank_captain" model="fs.rank">
+            <field name="name">Captain</field>
+            <field name="code">CPT</field>
+            <field name="sequence">40</field>
+        </record>
+        
+        <record id="rank_major" model="fs.rank">
+            <field name="name">Major</field>
+            <field name="code">MAJ</field>
+            <field name="sequence">50</field>
+        </record>
+        
+        <record id="rank_lieutenant_colonel" model="fs.rank">
+            <field name="name">Lieutenant Colonel</field>
+            <field name="code">LTC</field>
+            <field name="sequence">60</field>
+        </record>
+        
+        <record id="rank_colonel" model="fs.rank">
+            <field name="name">Colonel</field>
+            <field name="code">COL</field>
+            <field name="sequence">70</field>
+        </record>
+        
+    </data>
+</odoo>
