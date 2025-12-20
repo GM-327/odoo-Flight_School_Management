@@ -3,7 +3,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 {
-    'name': 'Flight School Core',
+    'name': 'Flight School (old)',
     'version': '0.1',
     'category': 'Aviation/Flight School',
     'summary': 'Core module for Military Flight School Management System',

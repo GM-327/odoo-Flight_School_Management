@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Flight School Settings View
+    ===========================
+    Configuration interface for flight school parameters.
+    -->
+
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.fs_core</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority">50</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Flight School" string="Flight School" name="fs_core" groups="fs_core.group_flight_school_admin">
+                    <block title="General Settings" name="fs_general_settings">
+                        <setting string="Default Home Base" help="ICAO airport code for new aircraft">
+                            <field name="fs_default_home_base"/>
+                        </setting>
+                        <setting string="Default Country" help="Default nationality for new personnel">
+                            <field name="fs_default_country_id"/>
+                        </setting>
+                    </block>
+
+                    <block title="Instructor Limits" name="fs_instructor_limits">
+                        <setting string="Max Students per Instructor" help="Default maximum students assigned to one instructor">
+                            <field name="fs_default_max_students"/>
+                        </setting>
+                        <setting string="Monthly Hour Limit" help="Maximum instruction hours per month">
+                            <field name="fs_default_max_hours_per_month"/>
+                        </setting>
+                        <setting string="3-Month Hour Limit" help="Maximum instruction hours per rolling 3 months">
+                            <field name="fs_default_max_hours_per_3months"/>
+                        </setting>
+                    </block>
+
+                    <block title="Expiry Warnings" name="fs_expiry_warnings">
+                        <setting string="Medical Warning" help="Days before medical certificate expiry to show warning">
+                            <div class="text-muted">
+                                Show warning <field name="fs_medical_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                            </div>
+                        </setting>
+                        <setting string="License and Qualification Warning" help="Days before license/qualification expiry to show warning">
+                            <div class="text-muted">
+                                Show warning <field name="fs_license_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                            </div>
+                        </setting>
+                        <setting string="Insurance Warning" help="Days before insurance expiry to show warning (civilians)">
+                            <div class="text-muted">
+                                Show warning <field name="fs_insurance_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                            </div>
+                        </setting>
+                        <setting string="Class End Warning" help="Days before training class ends to flag students">
+                            <div class="text-muted">
+                                Show warning <field name="fs_training_class_end_warning_days" class="o_field_integer oe_inline"/> days before end
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
