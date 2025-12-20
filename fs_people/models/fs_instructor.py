@@ -77,13 +77,14 @@ class FsInstructor(models.Model):
         store=True,
     )
     
-    @api.depends('qualification_ids.expiry_status')
+    @api.depends('qualification_ids.expiry_status', 'medical_status', 'english_status')
     def _compute_has_expired_qualification(self):
-        """Check if any qualification is expired for row decoration."""
+        """Check if any qualification or status is expired for row decoration."""
         for record in self:
-            record.has_expired_qualification = any(
-                qual.expiry_status == 'expired'  # type: ignore
-                for qual in record.qualification_ids
+            record.has_expired_qualification = (
+                any(qual.expiry_status == 'expired' for qual in record.qualification_ids) or  # type: ignore
+                record.medical_status == 'expired' or  # type: ignore
+                record.english_status == 'expired'  # type: ignore
             )
 
     # === English Proficiency ===

@@ -92,8 +92,13 @@
                                     <field name="license_id"/>
                                     <field name="license_number"/>
                                     <field name="license_issue_date"/>
-                                    <field name="license_expiry"/>
-                                    <field name="license_expiry_status" widget="badge" decoration-danger="license_expiry_status == 'expired'" decoration-warning="license_expiry_status == 'expiring'" decoration-success="license_expiry_status == 'valid'" decoration-muted="license_expiry_status == 'no_expiry'"/>
+                                    <label for="license_expiry" string="License Expiry"/>
+                                    <div class="o_row">
+                                        <field name="license_expiry" class="text-danger" invisible="license_expiry_status != 'expired'" nolabel="1"/>
+                                        <field name="license_expiry" class="text-warning" invisible="license_expiry_status != 'expiring'" nolabel="1"/>
+                                        <field name="license_expiry" invisible="license_expiry_status in ['expired', 'expiring']" nolabel="1"/>
+                                        <field name="license_expiry_status" widget="badge" invisible="license_expiry_status == 'valid'" decoration-danger="license_expiry_status == 'expired'" decoration-warning="license_expiry_status == 'expiring'" decoration-success="license_expiry_status == 'valid'" decoration-muted="license_expiry_status == 'no_expiry'" nolabel="1"/>
+                                    </div>
                                 </group>
                             </group>
                         </page>
@@ -101,18 +106,33 @@
                             <group>
                                 <group string="Medical Certificate">
                                     <field name="medical_class_id"/>
-                                    <field name="medical_expiry"/>
-                                    <field name="medical_status" widget="badge" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
+                                    <label for="medical_expiry" string="Medical Expiry"/>
+                                    <div class="o_row">
+                                        <field name="medical_expiry" class="text-danger" invisible="medical_status != 'expired'" nolabel="1"/>
+                                        <field name="medical_expiry" class="text-warning" invisible="medical_status != 'expiring'" nolabel="1"/>
+                                        <field name="medical_expiry" invisible="medical_status in ['expired', 'expiring']" nolabel="1"/>
+                                        <field name="medical_status" widget="badge" invisible="medical_status == 'valid'" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'" nolabel="1"/>
+                                    </div>
                                 </group>
                             </group>
                         </page>
                         <page string="Civilian Requirements" name="civilian" invisible="is_military">
                             <group>
                                 <group string="Clearances &amp; Insurance">
-                                    <field name="security_clearance_expiry"/>
-                                    <field name="security_clearance_status" widget="badge" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'" decoration-success="security_clearance_status == 'valid'" decoration-muted="security_clearance_status == 'no_expiry'"/>
-                                    <field name="insurance_expiry"/>
-                                    <field name="insurance_status" widget="badge" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'"/>
+                                    <label for="security_clearance_expiry" string="Security Clearance Expiry"/>
+                                    <div class="o_row">
+                                        <field name="security_clearance_expiry" class="text-danger" invisible="security_clearance_status != 'expired'" nolabel="1"/>
+                                        <field name="security_clearance_expiry" class="text-warning" invisible="security_clearance_status != 'expiring'" nolabel="1"/>
+                                        <field name="security_clearance_expiry" invisible="security_clearance_status in ['expired', 'expiring']" nolabel="1"/>
+                                        <field name="security_clearance_status" widget="badge" invisible="security_clearance_status == 'valid'" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'" decoration-success="security_clearance_status == 'valid'" decoration-muted="security_clearance_status == 'no_expiry'" nolabel="1"/>
+                                    </div>
+                                    <label for="insurance_expiry" string="Insurance Expiry"/>
+                                    <div class="o_row">
+                                        <field name="insurance_expiry" class="text-danger" invisible="insurance_status != 'expired'" nolabel="1"/>
+                                        <field name="insurance_expiry" class="text-warning" invisible="insurance_status != 'expiring'" nolabel="1"/>
+                                        <field name="insurance_expiry" invisible="insurance_status in ['expired', 'expiring']" nolabel="1"/>
+                                        <field name="insurance_status" widget="badge" invisible="insurance_status == 'valid'" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'" nolabel="1"/>
+                                    </div>
                                 </group>
                                 <group string="Financial">
                                     <field name="advance_payment"/>
