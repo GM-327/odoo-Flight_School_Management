@@ -6,8 +6,9 @@
         <field name="model">fs.admin.staff</field>
         <field name="arch" type="xml">
             <list>
-                <field name="employee_number" optional="show"/>
+                <field name="service_number" optional="show"/>
                 <field name="name"/>
+                <field name="rank_id" optional="show"/>
                 <field name="department" optional="show"/>
                 <field name="position" optional="show"/>
                 <field name="phone" optional="show"/>
@@ -50,7 +51,8 @@
                     </div>
                     <group>
                         <group>
-                            <field name="employee_number"/>
+                            <field name="rank_id"/>
+                            <field name="service_number"/>
                             <field name="department"/>
                             <field name="position"/>
                         </group>
@@ -69,6 +71,10 @@
                                     <field name="nationality_id"/>
                                     <field name="identification_number"/>
                                     <field name="phone"/>
+                                </group>
+                                <group string="Military Information">
+                                    <field name="rank_id"/>
+                                    <field name="service_number"/>
                                 </group>
                             </group>
                             <group string="Address">
@@ -92,7 +98,8 @@
         <field name="arch" type="xml">
             <search>
                 <field name="name"/>
-                <field name="employee_number"/>
+                <field name="service_number"/>
+                <field name="rank_id"/>
                 <field name="department"/>
                 <filter name="filter_has_user" string="Has User Account" domain="[('has_user', '=', True)]"/>
                 <separator/>

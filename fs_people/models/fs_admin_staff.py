@@ -8,7 +8,7 @@ from odoo import api, fields, models
 class FsAdminStaff(models.Model):
     """Administrative personnel in the flight school.
     
-    Administrative staff do not have aviation-related tracking.
+    All administrative staff are military personnel.
     They may have system access for administrative tasks.
     """
     
@@ -45,6 +45,17 @@ class FsAdminStaff(models.Model):
             'flight_school.default_country_id', 0)) or False,
     )
     
+    # === Military Information ===
+    rank_id = fields.Many2one(
+        comodel_name='fs.rank',
+        string='Rank',
+        help="Military rank.",
+    )
+    service_number = fields.Char(
+        string='Service Number',
+        help="Military service number.",
+    )
+    
     # === Contact ===
     phone = fields.Char(
         string='Phone',
@@ -54,9 +65,6 @@ class FsAdminStaff(models.Model):
     )
     
     # === Employment ===
-    employee_number = fields.Char(
-        string='Employee Number',
-    )
     department = fields.Char(
         string='Department',
     )
@@ -125,7 +133,7 @@ class FsAdminStaff(models.Model):
             'target': 'current',
         }
 
-    _employee_number_unique = models.Constraint(
-        'UNIQUE(employee_number)', 
-        'Employee number must be unique!',
+    _service_number_unique = models.Constraint(
+        'UNIQUE(service_number)', 
+        'Service number must be unique!',
     )
