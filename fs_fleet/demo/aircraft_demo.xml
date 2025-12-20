@@ -14,6 +14,8 @@
             <field name="year_manufactured">2018</field>
             <field name="status">available</field>
             <field name="total_hours">2450.5</field>
+            <field name="maintenance_due_at_hours">2500.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(months=2)).strftime('%Y-%m-%d')"/>
             <field name="home_base">DTTI</field>
         </record>
 
@@ -24,6 +26,8 @@
             <field name="year_manufactured">2020</field>
             <field name="status">available</field>
             <field name="total_hours">890.2</field>
+            <field name="maintenance_due_at_hours">895.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(days=15)).strftime('%Y-%m-%d')"/>
             <field name="home_base">DTTI</field>
         </record>
 
@@ -35,6 +39,8 @@
             <field name="status">maintenance</field>
             <field name="status_reason">100-hour inspection</field>
             <field name="total_hours">1875.3</field>
+            <field name="maintenance_due_at_hours">1875.3</field>
+            <field name="last_maintenance_date" eval="(datetime.now() - relativedelta(months=3)).strftime('%Y-%m-%d')"/>
             <field name="home_base">DTTI</field>
         </record>
 
@@ -45,6 +51,8 @@
             <field name="year_manufactured">2021</field>
             <field name="status">available</field>
             <field name="total_hours">445.8</field>
+            <field name="maintenance_due_at_hours">440.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() - relativedelta(days=2)).strftime('%Y-%m-%d')"/>
             <field name="home_base">DTTI</field>
         </record>
 
@@ -55,6 +63,8 @@
             <field name="year_manufactured">2022</field>
             <field name="status">available</field>
             <field name="total_hours">234.1</field>
+            <field name="maintenance_due_at_hours">350.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(days=2)).strftime('%Y-%m-%d')"/>
             <field name="home_base">DTTI</field>
         </record>
 
@@ -64,6 +74,7 @@
             <field name="year_manufactured">2020</field>
             <field name="status">available</field>
             <field name="total_hours">3250.0</field>
+            <field name="maintenance_due_at_hours">3500.0</field>
             <field name="home_base">DTTI</field>
         </record>
 
