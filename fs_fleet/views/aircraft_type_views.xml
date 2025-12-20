@@ -16,7 +16,7 @@
                 <field name="name"/>
                 <field name="code" optional="show"/>
                 <field name="category_id"/>
-                <field name="engine_count"/>
+                <field name="engine_count" optional="hide"/>
                 <field name="engine_type" optional="hide"/>
                 <field name="is_complex" widget="boolean_toggle"/>
                 <field name="aircraft_count" string="Fleet"/>

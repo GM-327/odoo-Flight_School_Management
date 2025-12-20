@@ -72,7 +72,7 @@
                             <field name="category_id"/>
                             <field name="manufacturer"/>
                             <field name="serial_number"/>
-                            <field name="year_manufactured"/>
+                            <field name="year_manufactured" placeholder="YYYY"/>
                         </group>
                         <group string="Status">
                             <field name="is_airworthy" widget="boolean_toggle"/>

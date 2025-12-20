@@ -54,8 +54,10 @@ class Aircraft(models.Model):
         string='Serial Number',
         help="Manufacturer's serial number.",
     )
-    year_manufactured = fields.Integer(
+    year_manufactured = fields.Char(
         string='Year Manufactured',
+        size=4,
+        help="Year the aircraft was manufactured (YYYY).",
     )
     
     # === Status ===
@@ -239,7 +241,7 @@ class Aircraft(models.Model):
     def _compute_maintenance_status(self):
         today = date.today()
         config_param = self.env['ir.config_parameter'].sudo()
-        warning_hours = float(config_param.get_param('flight_school.maintenance_warning_hours', '10.0'))
+        warning_hours = float(config_param.get_param('flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
         
         for record in self:
             status = 'ok'
@@ -284,6 +286,13 @@ class Aircraft(models.Model):
         for record in self:
             if record.registration and not record.registration.replace('-', '').isalnum():
                 raise UserError("Registration must contain only letters, numbers, and hyphens.")
+
+    @api.constrains('year_manufactured')
+    def _check_year_manufactured(self):
+        for record in self:
+            if record.year_manufactured:
+                if not record.year_manufactured.isdigit() or len(record.year_manufactured) != 4:
+                    raise UserError("Year Manufactured must be 4 numeric characters (YYYY).")
 
     def action_set_available(self):
         """Set aircraft status to available."""

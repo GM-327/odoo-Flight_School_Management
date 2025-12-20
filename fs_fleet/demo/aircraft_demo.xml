@@ -37,7 +37,7 @@
             <field name="serial_number">172S12389</field>
             <field name="year_manufactured">2019</field>
             <field name="status">maintenance</field>
-            <field name="status_reason">100-hour inspection</field>
+            <field name="status_reason">Annual inspection in progress.</field>
             <field name="total_hours">1875.3</field>
             <field name="maintenance_due_at_hours">1875.3</field>
             <field name="last_maintenance_date" eval="(datetime.now() - relativedelta(months=3)).strftime('%Y-%m-%d')"/>
@@ -68,13 +68,58 @@
             <field name="home_base">DTTI</field>
         </record>
 
-        <record id="aircraft_demo_sim" model="fs.aircraft">
+        <record id="aircraft_demo_6" model="fs.aircraft">
+            <field name="registration">TS-FLW</field>
+            <field name="aircraft_type_id" ref="aircraft_type_c152"/>
+            <field name="serial_number">152-84562</field>
+            <field name="year_manufactured">1982</field>
+            <field name="status">grounded</field>
+            <field name="status_reason">Waiting for replacement altimeter.</field>
+            <field name="total_hours">8450.2</field>
+            <field name="maintenance_due_at_hours">8500.0</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_7" model="fs.aircraft">
+            <field name="registration">TS-NEW</field>
+            <field name="aircraft_type_id" ref="aircraft_type_da40"/>
+            <field name="serial_number">40.985</field>
+            <field name="year_manufactured">2024</field>
+            <field name="status">available</field>
+            <field name="total_hours">12.5</field>
+            <field name="maintenance_due_at_hours">100.0</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_8" model="fs.aircraft">
+            <field name="registration">TS-SKY</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">28-79450</field>
+            <field name="year_manufactured">2015</field>
+            <field name="status">available</field>
+            <field name="total_hours">3125.7</field>
+            <field name="maintenance_due_at_hours">3120.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(months=4)).strftime('%Y-%m-%d')"/>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_sim_1" model="fs.aircraft">
             <field name="registration">SIM-001</field>
             <field name="aircraft_type_id" ref="aircraft_type_fnpt2"/>
             <field name="year_manufactured">2020</field>
             <field name="status">available</field>
             <field name="total_hours">3250.0</field>
             <field name="maintenance_due_at_hours">3500.0</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_sim_2" model="fs.aircraft">
+            <field name="registration">SIM-002</field>
+            <field name="aircraft_type_id" ref="aircraft_type_fnpt2_mcc"/>
+            <field name="year_manufactured">2022</field>
+            <field name="status">available</field>
+            <field name="total_hours">450.0</field>
+            <field name="maintenance_due_at_hours">1000.0</field>
             <field name="home_base">DTTI</field>
         </record>
 
