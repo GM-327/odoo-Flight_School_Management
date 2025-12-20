@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Menu Structure for fs_fleet
+    ===========================
+    -->
+
+    <!-- Top-level menu: Fleet (under Flight School root) -->
+    <menuitem id="menu_flight_school_fleet_root"
+              name="Fleet"
+              parent="fs_core.menu_flight_school_root"
+              sequence="30"/>
+
+    <!-- Fleet submenu items -->
+    <menuitem id="menu_aircraft"
+              name="Aircraft"
+              parent="menu_flight_school_fleet_root"
+              action="action_aircraft"
+              sequence="10"/>
+
+    <menuitem id="menu_aircraft_available"
+              name="Available"
+              parent="menu_flight_school_fleet_root"
+              action="action_aircraft_available"
+              sequence="20"/>
+
+    <menuitem id="menu_aircraft_maintenance"
+              name="Maintenance Due"
+              parent="menu_flight_school_fleet_root"
+              action="action_aircraft_maintenance_due"
+              sequence="30"/>
+
+    <!-- Configuration submenu (under fs_core config menu) -->
+    <menuitem id="menu_config_fleet"
+              name="Fleet"
+              parent="fs_core.menu_config_root"
+              sequence="20"/>
+
+    <menuitem id="menu_config_aircraft_category"
+              name="Aircraft Categories"
+              parent="menu_config_fleet"
+              action="action_aircraft_category"
+              sequence="10"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_aircraft_type"
+              name="Aircraft Types"
+              parent="menu_config_fleet"
+              action="action_aircraft_type"
+              sequence="20"
+              groups="fs_core.group_flight_school_admin"/>
+
+</odoo>

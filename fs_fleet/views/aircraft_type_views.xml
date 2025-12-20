@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Aircraft Type Views
+    ===================
+    -->
+
+    <!-- Tree View -->
+    <record id="view_aircraft_type_tree" model="ir.ui.view">
+        <field name="name">fs.aircraft.type.tree</field>
+        <field name="model">fs.aircraft.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="manufacturer"/>
+                <field name="name"/>
+                <field name="code" optional="show"/>
+                <field name="category_id"/>
+                <field name="engine_count"/>
+                <field name="engine_type" optional="hide"/>
+                <field name="is_complex" widget="boolean_toggle"/>
+                <field name="aircraft_count" string="Fleet"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_aircraft_type_form" model="ir.ui.view">
+        <field name="name">fs.aircraft.type.form</field>
+        <field name="model">fs.aircraft.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="image" widget="image" class="oe_avatar" options="{'size': [128, 128]}"/>
+                    <div class="oe_title">
+                        <label for="manufacturer"/>
+                        <h1>
+                            <field name="manufacturer" placeholder="e.g., Cessna"/>
+                        </h1>
+                        <label for="name"/>
+                        <h2>
+                            <field name="name" placeholder="e.g., 172S Skyhawk"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Classification">
+                            <field name="category_id"/>
+                            <field name="code" placeholder="ICAO code"/>
+                            <field name="suitable_for_training"/>
+                            <field name="aircraft_count" string="In Fleet"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Engine">
+                            <field name="engine_count"/>
+                            <field name="engine_type"/>
+                            <field name="is_high_performance"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Specifications" name="specs">
+                            <group string="Characteristics">
+                                <field name="seats"/>
+                                <field name="is_complex"/>
+                            </group>
+                        </page>
+                        <page string="Training Notes" name="training">
+                            <field name="training_notes" placeholder="Notes about using this aircraft for training..."/>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Detailed description of this aircraft type..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_aircraft_type_kanban" model="ir.ui.view">
+        <field name="name">fs.aircraft.type.kanban</field>
+        <field name="model">fs.aircraft.type</field>
+        <field name="arch" type="xml">
+            <kanban>
+                <field name="id"/>
+                <field name="full_name"/>
+                <field name="category_id"/>
+                <field name="engine_count"/>
+                <field name="aircraft_count"/>
+                <field name="image"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex">
+                            <field name="image" widget="image" class="o_kanban_image" 
+                                   options="{'size': [80, 80]}"/>
+                            <div class="flex-grow-1 ms-2">
+                                <div class="fw-bold">
+                                    <field name="full_name"/>
+                                </div>
+                                <div class="text-muted small">
+                                    <field name="category_id"/>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="badge bg-secondary">
+                                        <field name="engine_count"/> engine(s)
+                                    </span>
+                                    <span class="badge bg-info ms-1">
+                                        <field name="aircraft_count"/> in fleet
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_aircraft_type_search" model="ir.ui.view">
+        <field name="name">fs.aircraft.type.search</field>
+        <field name="model">fs.aircraft.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="manufacturer"/>
+                <field name="code"/>
+                <field name="category_id"/>
+                <separator/>
+                <filter name="training" string="Training Aircraft" domain="[('suitable_for_training', '=', True)]"/>
+                <filter name="complex" string="Complex" domain="[('is_complex', '=', True)]"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
+                <filter string="Manufacturer" name="group_manufacturer" context="{'group_by': 'manufacturer'}"/>
+                <filter string="Engine Type" name="group_engine" context="{'group_by': 'engine_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_aircraft_type" model="ir.actions.act_window">
+        <field name="name">Aircraft Types</field>
+        <field name="res_model">fs.aircraft.type</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_active': 1, 'search_default_training': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define aircraft types
+            </p>
+            <p>
+                Aircraft types represent specific makes and models (e.g., Cessna 172, Diamond DA40).
+            </p>
+        </field>
+    </record>
+
+</odoo>

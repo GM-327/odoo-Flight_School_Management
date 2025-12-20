@@ -35,6 +35,7 @@ Other fs_* modules depend on this core module.
         'security/ir.model.access.csv',
         # Views
         'views/res_config_settings_views.xml',
+        'views/menu_views.xml',
     ],
     'demo': [],
     'installable': True,

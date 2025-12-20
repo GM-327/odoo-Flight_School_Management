@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Demo Aircraft
+        =============
+        Sample aircraft for testing.
+        -->
+
+        <record id="aircraft_demo_1" model="fs.aircraft">
+            <field name="registration">TS-APR</field>
+            <field name="aircraft_type_id" ref="aircraft_type_c172"/>
+            <field name="serial_number">172S12345</field>
+            <field name="year_manufactured">2018</field>
+            <field name="status">available</field>
+            <field name="total_hours">2450.5</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_2" model="fs.aircraft">
+            <field name="registration">TS-DMK</field>
+            <field name="aircraft_type_id" ref="aircraft_type_da40"/>
+            <field name="serial_number">40.523</field>
+            <field name="year_manufactured">2020</field>
+            <field name="status">available</field>
+            <field name="total_hours">890.2</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_3" model="fs.aircraft">
+            <field name="registration">TS-APX</field>
+            <field name="aircraft_type_id" ref="aircraft_type_c172"/>
+            <field name="serial_number">172S12389</field>
+            <field name="year_manufactured">2019</field>
+            <field name="status">maintenance</field>
+            <field name="status_reason">100-hour inspection</field>
+            <field name="total_hours">1875.3</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_4" model="fs.aircraft">
+            <field name="registration">TS-MET</field>
+            <field name="aircraft_type_id" ref="aircraft_type_tecnam"/>
+            <field name="serial_number">P2006-045</field>
+            <field name="year_manufactured">2021</field>
+            <field name="status">available</field>
+            <field name="total_hours">445.8</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_5" model="fs.aircraft">
+            <field name="registration">TS-TWN</field>
+            <field name="aircraft_type_id" ref="aircraft_type_da42"/>
+            <field name="serial_number">42.356</field>
+            <field name="year_manufactured">2022</field>
+            <field name="status">available</field>
+            <field name="total_hours">234.1</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <record id="aircraft_demo_sim" model="fs.aircraft">
+            <field name="registration">SIM-001</field>
+            <field name="aircraft_type_id" ref="aircraft_type_fnpt2"/>
+            <field name="year_manufactured">2020</field>
+            <field name="status">available</field>
+            <field name="total_hours">3250.0</field>
+            <field name="home_base">DTTI</field>
+        </record>
+
+    </data>
+</odoo>

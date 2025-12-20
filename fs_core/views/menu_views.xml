@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Flight School Root Menu
+    =======================
+    Base menu structure for all flight school modules.
+    -->
+
+    <!-- Action for Settings (must be defined before menu references it) -->
+    <record id="action_res_config_settings" model="ir.actions.act_window">
+        <field name="name">Flight School Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'module': 'fs_core', 'bin_size': False}</field>
+    </record>
+
+    <!-- Root Menu: Flight School (main app menu) -->
+    <menuitem id="menu_flight_school_root"
+              name="Flight School"
+              web_icon="fs_core,static/description/icon.png"
+              sequence="100"/>
+
+    <!-- Configuration Menu (at Settings level) -->
+    <menuitem id="menu_config_root"
+              name="Configuration"
+              parent="menu_flight_school_root"
+              sequence="999"
+              groups="group_flight_school_admin"/>
+
+    <!-- General Settings under Configuration -->
+    <menuitem id="menu_config_general"
+              name="Settings"
+              parent="menu_config_root"
+              action="action_res_config_settings"
+              sequence="1"
+              groups="group_flight_school_admin"/>
+
+</odoo>

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Aircraft Views
+    ==============
+    Individual aircraft in the fleet.
+    -->
+
+    <!-- Tree View -->
+    <record id="view_aircraft_tree" model="ir.ui.view">
+        <field name="name">fs.aircraft.tree</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status == 'available'" 
+                  decoration-info="status == 'in_use'"
+                  decoration-warning="status in ('maintenance', 'reserved')"
+                  decoration-danger="status == 'grounded'"
+                  decoration-muted="not active">
+                <field name="image_128" widget="image" options="{'size': [32, 32]}"/>
+                <field name="registration"/>
+                <field name="aircraft_type_id"/>
+                <field name="category_id"/>
+                <field name="total_hours" widget="float_time" optional="show"/>
+                <field name="status" widget="badge" 
+                       decoration-success="status == 'available'"
+                       decoration-info="status == 'in_use'"
+                       decoration-warning="status in ('maintenance', 'reserved')"
+                       decoration-danger="status == 'grounded'"/>
+                <field name="maintenance_status" widget="badge"
+                       decoration-success="maintenance_status == 'ok'"
+                       decoration-warning="maintenance_status == 'due_soon'"
+                       decoration-danger="maintenance_status == 'overdue'"
+                       optional="show"/>
+                <field name="remaining_maintenance_hours" widget="float_time" optional="show"/>
+                <field name="maintenance_due_at_hours" widget="float_time" optional="hide"/>
+                <field name="annual_inspection_due_soon" column_invisible="1"/>
+                <field name="annual_inspection_date" optional="show"
+                       decoration-danger="annual_inspection_due_soon"/>
+                <field name="home_base" optional="hide"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_aircraft_form" model="ir.ui.view">
+        <field name="name">fs.aircraft.form</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_set_available" string="Set Available" type="object" 
+                            class="btn-primary" invisible="status == 'available'"/>
+                    <button name="action_set_grounded" string="Ground Aircraft" type="object"
+                            class="btn-danger" invisible="status == 'grounded'"
+                            confirm="Are you sure you want to ground this aircraft?"/>
+                    <field name="status" widget="statusbar" statusbar_visible="available,in_use,maintenance,grounded"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Grounded" bg_color="text-bg-warning" invisible="status != 'grounded'"/>
+                    <field name="image" widget="image" class="oe_avatar" options="{'size': [128, 128]}"/>
+                    <div class="oe_title">
+                        <label for="registration"/>
+                        <h1>
+                            <field name="registration" placeholder="e.g., TS-APR"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Aircraft Information">
+                            <field name="aircraft_type_id"/>
+                            <field name="category_id"/>
+                            <field name="manufacturer"/>
+                            <field name="serial_number"/>
+                            <field name="year_manufactured"/>
+                        </group>
+                        <group string="Status">
+                            <field name="is_airworthy" widget="boolean_toggle"/>
+                            <field name="status_reason" invisible="status in ('available', 'in_use')"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Hours &amp; Maintenance" name="hours">
+                            <group>
+                                <group string="Flight Hours">
+                                    <field name="total_hours" widget="float_time"/>
+                                    <field name="hours_since_overhaul" widget="float_time"/>
+                                </group>
+                                <group string="Maintenance">
+                                    <field name="last_maintenance_date"/>
+                                    <field name="next_maintenance_date"/>
+                                    <field name="maintenance_due_at_hours" widget="float_time"/>
+                                    <field name="remaining_maintenance_hours" widget="float_time" readonly="1"/>
+                                    <field name="maintenance_status" widget="badge"
+                                           decoration-success="maintenance_status == 'ok'"
+                                           decoration-warning="maintenance_status == 'due_soon'"
+                                           decoration-danger="maintenance_status == 'overdue'"/>
+                                    <field name="annual_inspection_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Certificates &amp; Insurance" name="certificates">
+                            <group>
+                                <group string="Insurance">
+                                    <field name="insurance_policy"/>
+                                    <field name="insurance_expiry"/>
+                                </group>
+                                <group string="Airworthiness">
+                                    <field name="cof_a_expiry"/>
+                                    <field name="arc_expiry"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Notes" name="notes">
+                            <field name="notes" placeholder="General notes about this aircraft..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_aircraft_kanban" model="ir.ui.view">
+        <field name="name">fs.aircraft.kanban</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status">
+                <field name="id"/>
+                <field name="registration"/>
+                <field name="aircraft_type_id"/>
+                <field name="status"/>
+                <field name="status_color"/>
+                <field name="total_hours"/>
+                <field name="maintenance_status"/>
+                <field name="image_128"/>
+                <progressbar field="maintenance_status" colors='{"ok": "success", "due_soon": "warning", "overdue": "danger"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex">
+                            <field name="image_128" widget="image" class="o_kanban_image" options="{'size': [64, 64]}"/>
+                            <div class="flex-grow-1 ms-2">
+                                <div class="fw-bold fs-5">
+                                    <field name="registration"/>
+                                </div>
+                                <div class="small">
+                                    <field name="aircraft_type_id"/>
+                                </div>
+                                <div class="mt-2">
+                                    <span t-attf-class="badge #{record.maintenance_status.raw_value == 'due_soon' ? 'text-bg-warning' : (record.maintenance_status.raw_value == 'overdue' ? 'text-bg-danger' : 'text-bg-secondary')}">
+                                        <field name="remaining_maintenance_hours" widget="float_time"/> hrs
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_aircraft_search" model="ir.ui.view">
+        <field name="name">fs.aircraft.search</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="registration"/>
+                <field name="aircraft_type_id"/>
+                <field name="serial_number"/>
+                <field name="home_base"/>
+                <separator/>
+                <filter name="available" string="Available" domain="[('status', '=', 'available')]"/>
+                <filter name="in_use" string="In Use" domain="[('status', '=', 'in_use')]"/>
+                <filter name="maintenance" string="In Maintenance" domain="[('status', '=', 'maintenance')]"/>
+                <filter name="grounded" string="Grounded" domain="[('status', '=', 'grounded')]"/>
+                <separator/>
+                <filter name="airworthy" string="Airworthy" domain="[('is_airworthy', '=', True)]"/>
+                <filter name="maintenance_due" string="Maintenance Due" domain="[('maintenance_status', 'in', ['due_soon', 'overdue'])]"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
+                <filter string="Type" name="group_type" context="{'group_by': 'aircraft_type_id'}"/>
+                <filter string="Home Base" name="group_base" context="{'group_by': 'home_base'}"/>
+                <filter string="Maintenance Status" name="group_maint" context="{'group_by': 'maintenance_status'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Calendar View -->
+    <record id="view_aircraft_calendar" model="ir.ui.view">
+        <field name="name">fs.aircraft.calendar</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <calendar string="Maintenance Schedule" date_start="next_maintenance_date" color="status_color" mode="month">
+                <field name="registration"/>
+                <field name="aircraft_type_id"/>
+                <field name="maintenance_status"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_aircraft" model="ir.actions.act_window">
+        <field name="name">Fleet</field>
+        <field name="res_model">fs.aircraft</field>
+        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add your first aircraft
+            </p>
+            <p>
+                Manage your training fleet. Track registration, hours, status, and maintenance.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action: Available Aircraft -->
+    <record id="action_aircraft_available" model="ir.actions.act_window">
+        <field name="name">Available Aircraft</field>
+        <field name="res_model">fs.aircraft</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('status', '=', 'available')]</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <!-- Action: Maintenance Due -->
+    <record id="action_aircraft_maintenance_due" model="ir.actions.act_window">
+        <field name="name">Maintenance Due</field>
+        <field name="res_model">fs.aircraft</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('maintenance_status', 'in', ['due_soon', 'overdue'])]</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+</odoo>

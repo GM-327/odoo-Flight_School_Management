@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Aircraft Categories
+        ===================
+        Standard JAR-FCL aircraft categories for training.
+        -->
+
+        <record id="aircraft_category_sep" model="fs.aircraft.category">
+            <field name="name">Single-Engine Piston</field>
+            <field name="code">SEP</field>
+            <field name="description">Single-engine piston aircraft (land). Standard for PPL and initial CPL training.</field>
+            <field name="sequence">10</field>
+            <field name="color">10</field>
+        </record>
+
+        <record id="aircraft_category_mep" model="fs.aircraft.category">
+            <field name="name">Multi-Engine Piston</field>
+            <field name="code">MEP</field>
+            <field name="description">Multi-engine piston aircraft (land). Required for ME rating.</field>
+            <field name="sequence">20</field>
+            <field name="color">4</field>
+        </record>
+
+        <record id="aircraft_category_set" model="fs.aircraft.category">
+            <field name="name">Single-Engine Turbine</field>
+            <field name="code">SET</field>
+            <field name="description">Single-engine turboprop aircraft.</field>
+            <field name="sequence">30</field>
+            <field name="color">3</field>
+        </record>
+
+        <record id="aircraft_category_met" model="fs.aircraft.category">
+            <field name="name">Multi-Engine Turbine</field>
+            <field name="code">MET</field>
+            <field name="description">Multi-engine turboprop aircraft.</field>
+            <field name="sequence">40</field>
+            <field name="color">2</field>
+        </record>
+
+        <record id="aircraft_category_sim" model="fs.aircraft.category">
+            <field name="name">Flight Simulator</field>
+            <field name="code">SIM</field>
+            <field name="description">Flight training devices and full-flight simulators (FNPT, FTD, FFS).</field>
+            <field name="sequence">50</field>
+            <field name="color">7</field>
+        </record>
+
+        <record id="aircraft_category_heli" model="fs.aircraft.category">
+            <field name="name">Helicopter</field>
+            <field name="code">HELI</field>
+            <field name="description">Rotary-wing aircraft.</field>
+            <field name="sequence">60</field>
+            <field name="color">5</field>
+        </record>
+
+    </data>
+</odoo>

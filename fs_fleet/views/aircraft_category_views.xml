@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Aircraft Category Views
+    =======================
+    -->
+
+    <!-- Tree View -->
+    <record id="view_aircraft_category_tree" model="ir.ui.view">
+        <field name="name">fs.aircraft.category.tree</field>
+        <field name="model">fs.aircraft.category</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="aircraft_type_count" string="Types"/>
+                <field name="active" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_aircraft_category_form" model="ir.ui.view">
+        <field name="name">fs.aircraft.category.form</field>
+        <field name="model">fs.aircraft.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="Basic Information">
+                            <field name="name" placeholder="e.g., Single-Engine Piston"/>
+                            <field name="code" placeholder="e.g., SEP"/>
+                        </group>
+                        <group string="Display">
+                            <field name="color" widget="color_picker"/>
+                            <field name="aircraft_type_count" string="Aircraft Types"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1" placeholder="Detailed description of this aircraft category..." colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_aircraft_category_kanban" model="ir.ui.view">
+        <field name="name">fs.aircraft.category.kanban</field>
+        <field name="model">fs.aircraft.category</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="color"/>
+                <field name="aircraft_type_count"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="d-flex flex-column h-100" t-att-style="'border-left: 4px solid ' + kanban_color(record.color.raw_value)">
+                            <div class="fw-bold fs-5 mb-2">
+                                <field name="name"/>
+                            </div>
+                            <div class="text-muted small mb-2">
+                                Code: <field name="code"/>
+                            </div>
+                            <div class="mt-auto">
+                                <span class="badge bg-primary">
+                                    <field name="aircraft_type_count"/> types
+                                </span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_aircraft_category_search" model="ir.ui.view">
+        <field name="name">fs.aircraft.category.search</field>
+        <field name="model">fs.aircraft.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_aircraft_category" model="ir.actions.act_window">
+        <field name="name">Aircraft Categories</field>
+        <field name="res_model">fs.aircraft.category</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define aircraft categories
+            </p>
+            <p>
+                Categories classify aircraft by type (single-engine, multi-engine, helicopter, etc.).
+            </p>
+        </field>
+    </record>
+
+</odoo>

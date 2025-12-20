@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 
+        Aircraft Types
+        ==============
+        Common training aircraft types.
+        -->
+
+        <!-- Single-Engine Piston (SEP) -->
+        <record id="aircraft_type_c172" model="fs.aircraft.type">
+            <field name="name">172S Skyhawk</field>
+            <field name="manufacturer">Cessna</field>
+            <field name="category_id" ref="aircraft_category_sep"/>
+            <field name="code">C172</field>
+            <field name="description">Most popular training aircraft worldwide. Four-seat, high-wing, single-engine.</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">False</field>
+            <field name="mtow_kg">1157</field>
+            <field name="cruise_speed_kts">124</field>
+            <field name="fuel_capacity_liters">212</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="aircraft_type_c152" model="fs.aircraft.type">
+            <field name="name">152</field>
+            <field name="manufacturer">Cessna</field>
+            <field name="category_id" ref="aircraft_category_sep"/>
+            <field name="code">C152</field>
+            <field name="description">Two-seat trainer. Economical for initial flight training.</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">False</field>
+            <field name="mtow_kg">757</field>
+            <field name="cruise_speed_kts">107</field>
+            <field name="fuel_capacity_liters">98</field>
+            <field name="seats">2</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <record id="aircraft_type_da40" model="fs.aircraft.type">
+            <field name="name">DA40 Diamond Star</field>
+            <field name="manufacturer">Diamond</field>
+            <field name="category_id" ref="aircraft_category_sep"/>
+            <field name="code">DA40</field>
+            <field name="description">Modern composite trainer with glass cockpit option.</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">False</field>
+            <field name="mtow_kg">1150</field>
+            <field name="cruise_speed_kts">147</field>
+            <field name="fuel_capacity_liters">148</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">15</field>
+        </record>
+
+        <record id="aircraft_type_pa28" model="fs.aircraft.type">
+            <field name="name">PA-28 Cherokee</field>
+            <field name="manufacturer">Piper</field>
+            <field name="category_id" ref="aircraft_category_sep"/>
+            <field name="code">P28A</field>
+            <field name="description">Low-wing trainer. Popular alternative to Cessna.</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">False</field>
+            <field name="mtow_kg">1111</field>
+            <field name="cruise_speed_kts">128</field>
+            <field name="fuel_capacity_liters">182</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="aircraft_type_tecnam" model="fs.aircraft.type">
+            <field name="name">P2006T</field>
+            <field name="manufacturer">Tecnam</field>
+            <field name="category_id" ref="aircraft_category_mep"/>
+            <field name="code">P2006</field>
+            <field name="description">Modern twin-engine trainer with Rotax engines.</field>
+            <field name="engine_count">2</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">True</field>
+            <field name="mtow_kg">1230</field>
+            <field name="cruise_speed_kts">155</field>
+            <field name="fuel_capacity_liters">200</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="aircraft_type_da42" model="fs.aircraft.type">
+            <field name="name">DA42 Twin Star</field>
+            <field name="manufacturer">Diamond</field>
+            <field name="category_id" ref="aircraft_category_mep"/>
+            <field name="code">DA42</field>
+            <field name="description">Modern diesel twin for ME training. Glass cockpit standard.</field>
+            <field name="engine_count">2</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">True</field>
+            <field name="mtow_kg">1785</field>
+            <field name="cruise_speed_kts">176</field>
+            <field name="fuel_capacity_liters">222</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">35</field>
+        </record>
+
+        <!-- Flight Simulators -->
+        <record id="aircraft_type_fnpt2" model="fs.aircraft.type">
+            <field name="name">FNPT II (SEP)</field>
+            <field name="manufacturer">Generic</field>
+            <field name="category_id" ref="aircraft_category_sim"/>
+            <field name="code">FNPT</field>
+            <field name="description">Flight Navigation Procedures Trainer Level II for instrument training.</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">False</field>
+            <field name="seats">2</field>
+            <field name="suitable_for_training">True</field>
+            <field name="training_notes">Approved for IR training. Max 25 hours toward IR.</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <record id="aircraft_type_fnpt2_mcc" model="fs.aircraft.type">
+            <field name="name">FNPT II MCC (MET)</field>
+            <field name="manufacturer">Generic</field>
+            <field name="category_id" ref="aircraft_category_sim"/>
+            <field name="code">FNPT</field>
+            <field name="description">FNPT II configured for Multi-Crew Cooperation training.</field>
+            <field name="engine_count">2</field>
+            <field name="engine_type">turboprop</field>
+            <field name="is_complex">True</field>
+            <field name="seats">3</field>
+            <field name="suitable_for_training">True</field>
+            <field name="training_notes">Approved for MCC course.</field>
+            <field name="sequence">110</field>
+        </record>
+
+    </data>
+</odoo>

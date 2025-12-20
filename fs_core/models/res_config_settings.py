@@ -70,3 +70,15 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='flight_school.class_end_warning_days',
         help="Days before training class expected end date to flag students.",
     )
+    fs_annual_inspection_warning_days = fields.Integer(
+        string='Annual Inspection Warning (Days)',
+        default=30,
+        config_parameter='flight_school.annual_inspection_warning_days',
+        help="Days before aircraft annual inspection expiry to show warnings.",
+    )
+    fs_maintenance_warning_hours = fields.Float(
+        string='Maintenance Warning (Hours)',
+        default=10.0,
+        config_parameter='flight_school.maintenance_warning_hours',
+        help="Hours before maintenance is due to show warnings.",
+    )
