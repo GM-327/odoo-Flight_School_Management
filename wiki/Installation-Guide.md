@@ -47,7 +47,7 @@ Best for: Testing, development, and evaluation.
 
 ```bash
 # Step 1: Clone the repository
-git clone https://github.com/your-org/flight-school-management.git
+git clone https://github.com/GM-327/odoo-Flight_School_Management.git
 cd flight-school-management
 
 # Step 2: Create and activate virtual environment
@@ -117,7 +117,7 @@ sudo su - odoo
 
 ```bash
 # Clone repository
-git clone https://github.com/your-org/flight-school-management.git /opt/odoo/flight-school
+git clone https://github.com/GM-327/odoo-Flight_School_Management.git /opt/odoo/flight-school
 
 # Create virtual environment
 python3 -m venv /opt/odoo/venv
@@ -295,7 +295,7 @@ Best for: Development on Windows machines.
 
 ```powershell
 # Clone repository
-git clone https://github.com/your-org/flight-school-management.git
+git clone https://github.com/GM-327/odoo-Flight_School_Management.git
 cd flight-school-management
 
 # Create virtual environment
@@ -458,8 +458,8 @@ psql -U odoo -d flight_school -c "SELECT version();"
 ### Getting Help
 
 1. Check [Troubleshooting](Troubleshooting) wiki page
-2. Search [GitHub Issues](https://github.com/your-org/flight-school-management/issues)
-3. Ask in [Discussions](https://github.com/your-org/flight-school-management/discussions)
+2. Search [GitHub Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues)
+3. Ask in [Discussions](https://github.com/GM-327/odoo-Flight_School_Management/discussions)
 
 ---
 

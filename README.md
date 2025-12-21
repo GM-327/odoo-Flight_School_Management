@@ -133,7 +133,7 @@ All dependencies are listed in `requirements.txt`. Key packages include:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/flight-school-management.git
+git clone https://github.com/GM-327/odoo-Flight_School_Management.git
 cd flight-school-management
 
 # 2. Create virtual environment
@@ -158,7 +158,7 @@ cp odoo.conf.example odoo.conf
 
 ### Option 2: Production Deployment
 
-See the [Deployment Guide](https://github.com/your-org/flight-school-management/wiki/Deployment-Guide) in our wiki for detailed production setup instructions.
+See the [Deployment Guide](https://github.com/GM-327/odoo-Flight_School_Management/wiki/Deployment-Guide) in our wiki for detailed production setup instructions.
 
 ### Option 3: Docker (Coming Soon)
 
@@ -227,7 +227,7 @@ Here you can configure:
 | Add Instructor | Flight School → People → Instructors → Create |
 | View Dashboard | Flight School → Dashboard |
 
-For detailed documentation, see our [User Guide](https://github.com/your-org/flight-school-management/wiki/User-Guide).
+For detailed documentation, see our [User Guide](https://github.com/GM-327/odoo-Flight_School_Management/wiki/User-Guide).
 
 ---
 
@@ -237,7 +237,7 @@ For detailed documentation, see our [User Guide](https://github.com/your-org/fli
 
 ```bash
 # Clone with development tools
-git clone --recurse-submodules https://github.com/your-org/flight-school-management.git
+git clone --recurse-submodules https://github.com/GM-327/odoo-Flight_School_Management.git
 
 # Install development dependencies
 pip install -r requirements.txt
@@ -333,16 +333,16 @@ the Free Software Foundation, either version 3 of the License, or
 
 ### Community Support
 
-- 📋 [GitHub Issues](https://github.com/your-org/flight-school-management/issues) - Bug reports and feature requests
-- 💬 [GitHub Discussions](https://github.com/your-org/flight-school-management/discussions) - Questions and community help
-- 📖 [Wiki](https://github.com/your-org/flight-school-management/wiki) - Documentation and guides
+- 📋 [GitHub Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues) - Bug reports and feature requests
+- 💬 [GitHub Discussions](https://github.com/GM-327/odoo-Flight_School_Management/discussions) - Questions and community help
+- 📖 [Wiki](https://github.com/GM-327/odoo-Flight_School_Management/wiki) - Documentation and guides
 
 
 ## 🙏 Acknowledgments
 
 - [Odoo S.A.](https://www.odoo.com/) - For the amazing ERP framework
 - [EASA](https://www.easa.europa.eu/) - For aviation safety standards
-- All [contributors](https://github.com/your-org/flight-school-management/graphs/contributors) who help improve this project
+- All [contributors](https://github.com/GM-327/odoo-Flight_School_Management/graphs/contributors) who help improve this project
 
 ---
 

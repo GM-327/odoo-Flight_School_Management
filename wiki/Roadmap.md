@@ -60,8 +60,8 @@ Resource scheduling:
 Have ideas? We'd love to hear them!
 
 1. Check if it's already planned above
-2. Search [existing feature requests](https://github.com/your-org/flight-school-management/issues?q=label%3Aenhancement)
-3. Submit a [new feature request](https://github.com/your-org/flight-school-management/issues/new?labels=enhancement)
+2. Search [existing feature requests](https://github.com/GM-327/odoo-Flight_School_Management/issues?q=label%3Aenhancement)
+3. Submit a [new feature request](https://github.com/GM-327/odoo-Flight_School_Management/issues/new?labels=enhancement)
 
 ---
 

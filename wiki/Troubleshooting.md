@@ -99,8 +99,8 @@ pg_restore -U odoo -d flight_school_new backup.dump
 
 1. Check log files: `tail -f /var/log/odoo/odoo.log`
 2. Enable debug mode: `?debug=1` in URL
-3. Search [GitHub Issues](https://github.com/your-org/flight-school-management/issues)
-4. Open a [Discussion](https://github.com/your-org/flight-school-management/discussions)
+3. Search [GitHub Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues)
+4. Open a [Discussion](https://github.com/GM-327/odoo-Flight_School_Management/discussions)
 
 ---
 

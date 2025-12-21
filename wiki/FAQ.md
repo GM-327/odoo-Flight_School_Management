@@ -94,5 +94,5 @@ Default: `/var/log/odoo/odoo.log` (or as configured in odoo.conf)
 ## Getting More Help
 
 1. 📖 Check the [Wiki](Home)
-2. 🔍 Search [Issues](https://github.com/your-org/flight-school-management/issues)
-3. 💬 Ask in [Discussions](https://github.com/your-org/flight-school-management/discussions)
+2. 🔍 Search [Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues)
+3. 💬 Ask in [Discussions](https://github.com/GM-327/odoo-Flight_School_Management/discussions)

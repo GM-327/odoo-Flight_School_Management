@@ -399,8 +399,8 @@ Set up automatic report delivery:
 
 - 📖 [Wiki Documentation](Home)
 - ❓ [FAQ](FAQ)
-- 🐛 [Report Issues](https://github.com/your-org/flight-school-management/issues)
-- 💬 [Community Forum](https://github.com/your-org/flight-school-management/discussions)
+- 🐛 [Report Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues)
+- 💬 [Community Forum](https://github.com/GM-327/odoo-Flight_School_Management/discussions)
 
 ---
 

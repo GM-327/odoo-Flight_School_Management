@@ -282,9 +282,9 @@ Use the bug report template and include:
 ### Questions
 
 For general questions:
-- Check the [Wiki](https://github.com/your-org/flight-school-management/wiki) first
+- Check the [Wiki](https://github.com/GM-327/odoo-Flight_School_Management/wiki) first
 - Search existing issues and discussions
-- Use [GitHub Discussions](https://github.com/your-org/flight-school-management/discussions) for Q&A
+- Use [GitHub Discussions](https://github.com/GM-327/odoo-Flight_School_Management/discussions) for Q&A
 
 ---
 
@@ -318,7 +318,7 @@ For significant contributions, you may be asked to sign a formal CLA. See [doc/c
 ## Questions?
 
 If you have questions about contributing:
-- Open a [Discussion](https://github.com/your-org/flight-school-management/discussions)
+- Open a [Discussion](https://github.com/GM-327/odoo-Flight_School_Management/discussions)
 - Review existing documentation
 - Contact the maintainers
 

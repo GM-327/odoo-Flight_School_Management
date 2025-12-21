@@ -1,19 +1,19 @@
 blank_issues_enabled: false
 contact_links:
   - name: "📖 Documentation / Wiki"
-    url: https://github.com/your-org/flight-school-management/wiki
+    url: https://github.com/GM-327/odoo-Flight_School_Management/wiki
     about: "Check our wiki for documentation and guides before opening an issue."
     
   - name: "💬 Community Discussions"
-    url: https://github.com/your-org/flight-school-management/discussions
+    url: https://github.com/GM-327/odoo-Flight_School_Management/discussions
     about: "Ask questions and get help from the community."
     
   - name: "🔒 Security Vulnerability"
-    url: https://github.com/your-org/flight-school-management/security/policy
+    url: https://github.com/GM-327/odoo-Flight_School_Management/security/policy
     about: "Report security issues privately - do not open a public issue."
     
   - name: "📝 Documentation Feedback"
-    url: https://github.com/your-org/flight-school-management/discussions/categories/documentation
+    url: https://github.com/GM-327/odoo-Flight_School_Management/discussions/categories/documentation
     about: "Suggest improvements to our documentation."
     
   - name: "🌐 Odoo Community Help"
