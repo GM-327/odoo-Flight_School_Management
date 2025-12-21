@@ -1,0 +1,94 @@
+name: 🐛 Bug Report
+description: Report a bug in the Flight School Management System
+title: '[BUG] '
+labels: ['bug', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for reporting a bug! 🐛
+        
+        Please fill out the form below to help us understand and fix the issue.
+        
+        Before submitting:
+        - [ ] I searched existing issues to ensure this isn't a duplicate
+        - [ ] I tested on the latest version of the module
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Affected Module
+      description: Which module is affected?
+      options:
+        - fs_core (Core Settings)
+        - fs_fleet (Fleet Management)
+        - fs_people (Personnel Management)
+        - Multiple modules
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: Odoo Version
+      description: Which Odoo version are you using?
+      options:
+        - "19.0"
+        - "18.0"
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: module-version
+    attributes:
+      label: Module Version
+      description: Check in __manifest__.py
+      placeholder: "19.0.1.0.0"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear and concise description of the bug
+      placeholder: |
+        What happened?
+        What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step by step instructions to reproduce
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Log / Traceback
+      description: Paste any error messages or traceback
+      render: shell
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add screenshots if helpful
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmation
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I am using a supported version
+          required: true

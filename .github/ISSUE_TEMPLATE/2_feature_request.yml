@@ -1,0 +1,67 @@
+name: ✨ Feature Request
+description: Suggest a new feature for the Flight School Management System
+title: '[FEATURE] '
+labels: ['enhancement', 'needs-triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for your feature suggestion! ✨
+        
+        We value community input to make the Flight School Management System better.
+
+  - type: dropdown
+    id: module
+    attributes:
+      label: Related Module
+      description: Which module would this feature belong to?
+      options:
+        - fs_core (Core Settings)
+        - fs_fleet (Fleet Management)
+        - fs_people (Personnel Management)
+        - New module
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution
+      placeholder: I would like to be able to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative solutions you've considered?
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this to your workflow?
+      options:
+        - Nice to have
+        - Would improve workflow
+        - Critical for my use case
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I would be willing to help implement this feature
+        - label: I can provide more details or mockups if needed
