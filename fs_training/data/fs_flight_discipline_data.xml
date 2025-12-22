@@ -1,40 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Flight Disciplines -->
-    <record id="discipline_man" model="fs.flight.discipline">
-        <field name="name">Maneuvering</field>
-        <field name="code">MAN</field>
-        <field name="default_flight_duration">1.0</field>
-        <field name="sequence">10</field>
-    </record>
-    <record id="discipline_nav" model="fs.flight.discipline">
-        <field name="name">Navigation</field>
-        <field name="code">NAV</field>
-        <field name="default_flight_duration">1.5</field>
-        <field name="sequence">20</field>
-    </record>
-    <record id="discipline_ifr" model="fs.flight.discipline">
-        <field name="name">Instrument Flight</field>
-        <field name="code">IFR</field>
-        <field name="default_flight_duration">1.5</field>
-        <field name="sequence">30</field>
-    </record>
-    <record id="discipline_vsv" model="fs.flight.discipline">
-        <field name="name">Visual Flight</field>
-        <field name="code">VSV</field>
-        <field name="default_flight_duration">1.0</field>
-        <field name="sequence">40</field>
-    </record>
-    <record id="discipline_xc" model="fs.flight.discipline">
-        <field name="name">Cross-Country</field>
-        <field name="code">XC</field>
-        <field name="default_flight_duration">2.0</field>
-        <field name="sequence">50</field>
-    </record>
-    <record id="discipline_night" model="fs.flight.discipline">
-        <field name="name">Night Flight</field>
-        <field name="code">NIGHT</field>
-        <field name="default_flight_duration">1.0</field>
-        <field name="sequence">60</field>
-    </record>
+    <data noupdate="1">
+        <!-- Flight Disciplines -->
+        <record id="discipline_man" model="fs.flight.discipline">
+            <field name="name">Maneuvering</field>
+            <field name="code">MAN</field>
+            <field name="default_flight_duration">1.0</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="discipline_nav" model="fs.flight.discipline">
+            <field name="name">Navigation</field>
+            <field name="code">NAV</field>
+            <field name="default_flight_duration">1.5</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="discipline_ifr" model="fs.flight.discipline">
+            <field name="name">Instrument Flight</field>
+            <field name="code">IFR</field>
+            <field name="default_flight_duration">1.5</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="discipline_vsv" model="fs.flight.discipline">
+            <field name="name">Non Visual Flight</field>
+            <field name="code">VSV</field>
+            <field name="default_flight_duration">1.0</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="discipline_night" model="fs.flight.discipline">
+            <field name="name">Night Flight</field>
+            <field name="code">NIGHT</field>
+            <field name="default_flight_duration">1.0</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
 </odoo>

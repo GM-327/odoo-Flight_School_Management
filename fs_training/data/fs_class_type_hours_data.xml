@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <data noupdate="1">
         <!-- Hour Requirements for PPL Course - Force load -->
         <record id="ppl_hours_man_dual" model="fs.class.type.hours" forcecreate="1">
             <field name="class_type_id" ref="class_type_ppl"/>

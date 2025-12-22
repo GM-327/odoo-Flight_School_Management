@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <!-- New Students -->
         <record id="student_demo_new_1" model="fs.student">
             <field name="name">Malek Ben Salem</field>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <!-- New Aircraft -->
         <record id="aircraft_demo_new_1" model="fs.aircraft">
             <field name="registration">TS-TOP</field>
@@ -11,17 +11,6 @@
             <field name="total_hours">150.5</field>
             <field name="maintenance_due_at_hours">250.0</field>
             <field name="home_base">DTTI</field>
-        </record>
-
-        <record id="aircraft_demo_new_2" model="fs.aircraft">
-            <field name="registration">TS-ACE</field>
-            <field name="aircraft_type_id" ref="fs_fleet.aircraft_type_c172"/>
-            <field name="serial_number">172-2023-ACE</field>
-            <field name="year_manufactured">2023</field>
-            <field name="status">available</field>
-            <field name="total_hours">85.0</field>
-            <field name="maintenance_due_at_hours">200.0</field>
-            <field name="home_base">DTTG</field>
         </record>
 
         <record id="aircraft_demo_new_3" model="fs.aircraft">

@@ -8,33 +8,6 @@
         -->
 
         <!-- Single-Engine Piston (SEP) -->
-        <record id="aircraft_type_c172" model="fs.aircraft.type">
-            <field name="name">172S Skyhawk</field>
-            <field name="manufacturer">Cessna</field>
-            <field name="category_id" ref="aircraft_category_sep"/>
-            <field name="code">C172</field>
-            <field name="description">Most popular training aircraft worldwide. Four-seat, high-wing, single-engine.</field>
-            <field name="engine_count">1</field>
-            <field name="engine_type">piston</field>
-            <field name="is_complex">False</field>
-            <field name="seats">4</field>
-            <field name="suitable_for_training">True</field>
-            <field name="sequence">10</field>
-        </record>
-
-        <record id="aircraft_type_c152" model="fs.aircraft.type">
-            <field name="name">152</field>
-            <field name="manufacturer">Cessna</field>
-            <field name="category_id" ref="aircraft_category_sep"/>
-            <field name="code">C152</field>
-            <field name="description">Two-seat trainer. Economical for initial flight training.</field>
-            <field name="engine_count">1</field>
-            <field name="engine_type">piston</field>
-            <field name="is_complex">False</field>
-            <field name="seats">2</field>
-            <field name="suitable_for_training">True</field>
-            <field name="sequence">5</field>
-        </record>
 
         <record id="aircraft_type_da40" model="fs.aircraft.type">
             <field name="name">DA40 Diamond Star</field>
@@ -51,7 +24,7 @@
         </record>
 
         <record id="aircraft_type_pa28" model="fs.aircraft.type">
-            <field name="name">PA-28 Cherokee</field>
+            <field name="name">Warrior 3</field>
             <field name="manufacturer">Piper</field>
             <field name="category_id" ref="aircraft_category_sep"/>
             <field name="code">P28A</field>
@@ -62,6 +35,34 @@
             <field name="seats">4</field>
             <field name="suitable_for_training">True</field>
             <field name="sequence">20</field>
+        </record>
+
+        <record id="aircraft_type_p28r" model="fs.aircraft.type">
+            <field name="name">Arrow 3</field>
+            <field name="manufacturer">Piper</field>
+            <field name="category_id" ref="aircraft_category_sep"/>
+            <field name="code">P28R</field>
+            <field name="description">Low-wing trainer. Popular alternative to Cessna.</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">True</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">25</field>
+        </record>
+
+        <record id="aircraft_type_pa34" model="fs.aircraft.type">
+            <field name="name">Seneca 5</field>
+            <field name="manufacturer">Piper</field>
+            <field name="category_id" ref="aircraft_category_mep"/>
+            <field name="code">PA34</field>
+            <field name="description">Low-wing trainer. Popular alternative to Cessna.</field>
+            <field name="engine_count">2</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">True</field>
+            <field name="seats">6</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">30</field>
         </record>
 
         <record id="aircraft_type_tecnam" model="fs.aircraft.type">
@@ -75,7 +76,7 @@
             <field name="is_complex">True</field>
             <field name="seats">4</field>
             <field name="suitable_for_training">True</field>
-            <field name="sequence">30</field>
+            <field name="sequence">35</field>
         </record>
 
         <record id="aircraft_type_da42" model="fs.aircraft.type">
@@ -89,13 +90,13 @@
             <field name="is_complex">True</field>
             <field name="seats">4</field>
             <field name="suitable_for_training">True</field>
-            <field name="sequence">35</field>
+            <field name="sequence">40</field>
         </record>
 
         <!-- Flight Simulators -->
         <record id="aircraft_type_fnpt2" model="fs.aircraft.type">
             <field name="name">FNPT II (SEP)</field>
-            <field name="manufacturer">Generic</field>
+            <field name="manufacturer">Alsim</field>
             <field name="category_id" ref="aircraft_category_sim"/>
             <field name="code">FNPT</field>
             <field name="description">Flight Navigation Procedures Trainer Level II for instrument training.</field>
@@ -109,13 +110,13 @@
         </record>
 
         <record id="aircraft_type_fnpt2_mcc" model="fs.aircraft.type">
-            <field name="name">FNPT II MCC (MET)</field>
-            <field name="manufacturer">Generic</field>
+            <field name="name">FNPT II MCC (MEP)</field>
+            <field name="manufacturer">Entroll</field>
             <field name="category_id" ref="aircraft_category_sim"/>
             <field name="code">FNPT</field>
             <field name="description">FNPT II configured for Multi-Crew Cooperation training.</field>
             <field name="engine_count">2</field>
-            <field name="engine_type">turboprop</field>
+            <field name="engine_type">piston</field>
             <field name="is_complex">True</field>
             <field name="seats">3</field>
             <field name="suitable_for_training">True</field>

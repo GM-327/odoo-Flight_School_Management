@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Flight Types -->
-    <record id="flight_type_solo" model="fs.flight.type">
-        <field name="name">Solo</field>
-        <field name="code">SOLO</field>
-        <field name="sequence">10</field>
-    </record>
-    <record id="flight_type_dual" model="fs.flight.type">
-        <field name="name">Dual</field>
-        <field name="code">DUAL</field>
-        <field name="sequence">20</field>
-    </record>
+    <data noupdate="1">
+        <!-- Flight Types -->
+        <record id="flight_type_dual" model="fs.flight.type">
+            <field name="name">Dual</field>
+            <field name="code">DUAL</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="flight_type_solo" model="fs.flight.type">
+            <field name="name">Solo</field>
+            <field name="code">SOLO</field>
+            <field name="sequence">20</field>
+        </record>
+    </data>
 </odoo>

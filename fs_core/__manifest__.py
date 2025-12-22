@@ -34,6 +34,8 @@ Available modules: Fleet, People, Training, etc.
         # Security (must be loaded first)
         'security/security_groups.xml',
         'security/ir.model.access.csv',
+        # Data
+        'data/fs_core_data.xml',
         # Views
         'views/res_config_settings_views.xml',
         'views/menu_views.xml',

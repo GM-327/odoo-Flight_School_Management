@@ -1,48 +1,170 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
-        <!-- Demo Classes -->
-        <record id="training_class_demo_1" model="fs.training.class">
-            <field name="name">CPL Class 25A</field>
-            <field name="code">CPL25A</field>
+    <data noupdate="0">
+        <!-- Class Requirements -->
+        <record id="req_medical_1" model="fs.class.requirement">
+            <field name="name">Medical Class 1</field>
+            <field name="is_military">True</field>
+            <field name="is_civilian">True</field>
+            <field name="is_default">True</field>
+        </record>
+
+        <record id="req_security_l1" model="fs.class.requirement">
+            <field name="name">Security Clearance Level 1</field>
+            <field name="is_military">True</field>
+            <field name="is_civilian">False</field>
+        </record>
+
+        <record id="req_elp_4" model="fs.class.requirement">
+            <field name="name">ELP Level 4</field>
+            <field name="is_military">True</field>
+            <field name="is_civilian">True</field>
+        </record>
+
+        <!-- Admin Task Templates -->
+        <record id="task_template_docs" model="fs.admin.task.template">
+            <field name="name">Collect Student Documents</field>
+            <field name="sequence">10</field>
+            <field name="description">Collect copy of ID, License, and Medical certificate for all students.</field>
+        </record>
+
+        <record id="task_template_briefing" model="fs.admin.task.template">
+            <field name="name">Safety Induction Briefing</field>
+            <field name="sequence">20</field>
+            <field name="description">Conduct safety induction and facility tour.</field>
+        </record>
+
+        <record id="task_template_open_req_send" model="fs.admin.task.template">
+            <field name="name">Sending opening request</field>
+            <field name="sequence">30</field>
+            <field name="description">Send class opening request to HQ for approval.</field>
+        </record>
+
+        <record id="task_template_open_req_recv" model="fs.admin.task.template">
+            <field name="name">Receiving opening request</field>
+            <field name="sequence">40</field>
+            <field name="description">Receive and file the signed opening authorization.</field>
+        </record>
+
+        <record id="task_template_close_req_send" model="fs.admin.task.template">
+            <field name="name">Sending closing request</field>
+            <field name="sequence">500</field>
+            <field name="description">Submit graduation files and closing request.</field>
+        </record>
+
+        <record id="task_template_close_req_recv" model="fs.admin.task.template">
+            <field name="name">Receiving closing request</field>
+            <field name="sequence">510</field>
+            <field name="description">Receive final class closure certificate.</field>
+        </record>
+
+        <!-- Link Templates to Class Types (Basic Training) -->
+        <record id="link_basic_docs" model="fs.class.type.admin.task">
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="template_id" ref="task_template_docs"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="link_basic_briefing" model="fs.class.type.admin.task">
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="template_id" ref="task_template_briefing"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="link_basic_open_send" model="fs.class.type.admin.task">
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="template_id" ref="task_template_open_req_send"/>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- Link Templates to Class Types (CPL Course) -->
+        <record id="link_cpl_open_send" model="fs.class.type.admin.task">
             <field name="class_type_id" ref="fs_training.class_type_cpl"/>
-            <field name="start_date" eval="(datetime.now() - relativedelta(weeks=4)).strftime('%Y-%m-%d')"/>
+            <field name="template_id" ref="task_template_open_req_send"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="link_cpl_close_send" model="fs.class.type.admin.task">
+            <field name="class_type_id" ref="fs_training.class_type_cpl"/>
+            <field name="template_id" ref="task_template_close_req_send"/>
+            <field name="sequence">100</field>
+        </record>
+
+        <!-- Training Classes -->
+        <record id="class_promo_2024_a" model="fs.training.class">
+            <field name="name">Promo 2024-Alpha</field>
+            <field name="code">B24A</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(months=1)).strftime('%Y-%m-%d')"/>
             <field name="status">in_progress</field>
-            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da40')), (4, ref('fs_fleet.aircraft_type_c172'))]"/>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da40'))]"/>
+            <field name="admin_task_ids" eval="[
+                (0, 0, {'name': 'Collect Student Documents', 'sequence': 10, 'is_done': True, 'done_date': (datetime.now() - relativedelta(days=25)).strftime('%Y-%m-%d')}),
+                (0, 0, {'name': 'Safety Induction Briefing', 'sequence': 20, 'is_done': True, 'done_date': (datetime.now() - relativedelta(days=20)).strftime('%Y-%m-%d')}),
+                (0, 0, {'name': 'Sending opening request', 'sequence': 30, 'is_done': False})
+            ]"/>
         </record>
 
-        <record id="training_class_demo_2" model="fs.training.class">
-            <field name="name">Advanced Pilot Course 25-1</field>
-            <field name="code">ADV25-1</field>
-            <field name="class_type_id" ref="fs_training.class_type_advanced"/>
-            <field name="start_date" eval="(datetime.now() + relativedelta(weeks=1)).strftime('%Y-%m-%d')"/>
+        <record id="class_ppl_winter" model="fs.training.class">
+            <field name="name">PPL Winter 2024</field>
+            <field name="code">PPL24W</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="start_date" eval="(datetime.now() + relativedelta(days=15)).strftime('%Y-%m-%d')"/>
             <field name="status">draft</field>
-            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da42')), (4, ref('fs_fleet.aircraft_type_fnpt2'))]"/>
         </record>
 
-        <!-- Enrollments for Demo 1 (In Progress) -->
-        <record id="enrollment_demo_new_1" model="fs.student.enrollment">
-            <field name="student_id" ref="fs_people.student_demo_new_1"/>
-            <field name="training_class_id" ref="training_class_demo_1"/>
-            <field name="callsign">CPL25A-01</field>
-            <field name="instructor_id" ref="fs_people.instructor_demo_new_2"/>
+        <record id="class_cpl_summer" model="fs.training.class">
+            <field name="name">CPL Summer 2024</field>
+            <field name="code">CPL24S</field>
+            <field name="class_type_id" ref="fs_training.class_type_cpl"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(months=3)).strftime('%Y-%m-%d')"/>
+            <field name="status">in_progress</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da42'))]"/>
+            <field name="admin_task_ids" eval="[
+                (0, 0, {'name': 'Sending opening request', 'sequence': 10, 'is_done': True, 'done_date': (datetime.now() - relativedelta(months=3)).strftime('%Y-%m-%d')}),
+                (0, 0, {'name': 'Sending closing request', 'sequence': 100, 'is_done': False})
+            ]"/>
+        </record>
+
+        <!-- Student Enrollments -->
+        <record id="enrollment_student_1" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_1"/>
+            <field name="training_class_id" ref="class_promo_2024_a"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
+            <field name="callsign">B24A-HAMDI</field>
+            <field name="status">active</field>
+            <field name="required_hour_ids" eval="[
+                (0, 0, {'discipline_id': ref('fs_training.discipline_man'), 'flight_type_id': ref('fs_training.flight_type_dual'), 'hours_logged': 15.5}),
+                (0, 0, {'discipline_id': ref('fs_training.discipline_man'), 'flight_type_id': ref('fs_training.flight_type_solo'), 'hours_logged': 5.0}),
+                (0, 0, {'discipline_id': ref('fs_training.discipline_nav'), 'flight_type_id': ref('fs_training.flight_type_dual'), 'hours_logged': 8.0})
+            ]"/>
+        </record>
+
+        <record id="enrollment_student_2" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_2"/>
+            <field name="training_class_id" ref="class_promo_2024_a"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
+            <field name="callsign">B24A-CHERIF</field>
             <field name="status">active</field>
         </record>
 
-        <record id="enrollment_demo_new_2" model="fs.student.enrollment">
-            <field name="student_id" ref="fs_people.student_demo_new_2"/>
-            <field name="training_class_id" ref="training_class_demo_1"/>
-            <field name="callsign">CPL25A-02</field>
-            <field name="instructor_id" ref="fs_people.instructor_demo_new_1"/>
-            <field name="status">active</field>
-        </record>
-
-        <!-- Enrollments for Demo 2 (Draft) -->
-        <record id="enrollment_demo_new_3" model="fs.student.enrollment">
-            <field name="student_id" ref="fs_people.student_demo_new_3"/>
-            <field name="training_class_id" ref="training_class_demo_2"/>
-            <field name="callsign">ADV25-01</field>
+        <record id="enrollment_student_3" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_3"/>
+            <field name="training_class_id" ref="class_ppl_winter"/>
             <field name="status">enrolled</field>
         </record>
+
+        <record id="enrollment_student_5_cpl" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_5"/>
+            <field name="training_class_id" ref="class_cpl_summer"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_2"/>
+            <field name="callsign">CPL24S-SFAR</field>
+            <field name="status">active</field>
+        </record>
+
+
+
+
+
     </data>
 </odoo>
