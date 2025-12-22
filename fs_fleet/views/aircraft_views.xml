@@ -26,16 +26,24 @@
                        decoration-info="status == 'in_use'"
                        decoration-warning="status in ('maintenance', 'reserved')"
                        decoration-danger="status == 'grounded'"/>
-                <field name="maintenance_status" widget="badge"
+                <field name="maintenance_hour_status" widget="badge" string="Hour Status"
+                       decoration-success="maintenance_hour_status == 'ok'"
+                       decoration-warning="maintenance_hour_status == 'due_soon'"
+                       decoration-danger="maintenance_hour_status == 'overdue'"
+                       optional="show"/>
+                <field name="maintenance_date_status" widget="badge" string="Date Status"
+                       decoration-success="maintenance_date_status == 'ok'"
+                       decoration-warning="maintenance_date_status == 'due_soon'"
+                       decoration-danger="maintenance_date_status == 'overdue'"
+                       optional="show"/>
+                <field name="maintenance_status" widget="badge" string="Overall Status"
                        decoration-success="maintenance_status == 'ok'"
                        decoration-warning="maintenance_status == 'due_soon'"
                        decoration-danger="maintenance_status == 'overdue'"
-                       optional="show"/>
+                       optional="hide"/>
                 <field name="remaining_maintenance_hours" widget="float_time" optional="show"/>
                 <field name="maintenance_due_at_hours" widget="float_time" optional="hide"/>
-                <field name="annual_inspection_due_soon" column_invisible="1"/>
-                <field name="annual_inspection_date" optional="show"
-                       decoration-danger="annual_inspection_due_soon"/>
+
                 <field name="home_base" optional="hide"/>
                 <field name="active" column_invisible="1"/>
             </list>
@@ -51,6 +59,8 @@
                 <header>
                     <button name="action_set_available" string="Set Available" type="object" 
                             class="btn-primary" invisible="status == 'available'"/>
+                    <button name="action_set_maintenance" string="Send to Maintenance" type="object" 
+                            class="btn-secondary" invisible="status == 'maintenance'"/>
                     <button name="action_set_grounded" string="Ground Aircraft" type="object"
                             class="btn-danger" invisible="status == 'grounded'"
                             confirm="Are you sure you want to ground this aircraft?"/>
@@ -89,14 +99,23 @@
                                 </group>
                                 <group string="Maintenance">
                                     <field name="last_maintenance_date"/>
-                                    <field name="next_maintenance_date"/>
+                                    <label for="next_maintenance_date"/>
+                                    <div class="o_row">
+                                        <field name="next_maintenance_date" nolabel="1"/>
+                                        <field name="maintenance_date_status" widget="badge" nolabel="1"
+                                               decoration-success="maintenance_date_status == 'ok'"
+                                               decoration-warning="maintenance_date_status == 'due_soon'"
+                                               decoration-danger="maintenance_date_status == 'overdue'"/>
+                                    </div>
                                     <field name="maintenance_due_at_hours" widget="float_time"/>
-                                    <field name="remaining_maintenance_hours" widget="float_time" readonly="1"/>
-                                    <field name="maintenance_status" widget="badge"
-                                           decoration-success="maintenance_status == 'ok'"
-                                           decoration-warning="maintenance_status == 'due_soon'"
-                                           decoration-danger="maintenance_status == 'overdue'"/>
-                                    <field name="annual_inspection_date"/>
+                                    <label for="remaining_maintenance_hours"/>
+                                    <div class="o_row">
+                                        <field name="remaining_maintenance_hours" widget="float_time" readonly="1" nolabel="1"/>
+                                        <field name="maintenance_hour_status" widget="badge" nolabel="1"
+                                               decoration-success="maintenance_hour_status == 'ok'"
+                                               decoration-warning="maintenance_hour_status == 'due_soon'"
+                                               decoration-danger="maintenance_hour_status == 'overdue'"/>
+                                    </div>
                                 </group>
                             </group>
                         </page>
@@ -128,7 +147,7 @@
         <field name="name">fs.aircraft.kanban</field>
         <field name="model">fs.aircraft</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="status">
+            <kanban default_group_by="status" group_create="false" group_edit="false" group_delete="false" records_draggable="true">
                 <field name="id"/>
                 <field name="registration"/>
                 <field name="aircraft_type_id"/>
@@ -136,23 +155,39 @@
                 <field name="status_color"/>
                 <field name="total_hours"/>
                 <field name="maintenance_status"/>
+                <field name="maintenance_hour_status"/>
+                <field name="maintenance_date_status"/>
+                <field name="next_maintenance_date"/>
+                <field name="category_code"/>
                 <field name="image_128"/>
                 <progressbar field="maintenance_status" colors='{"ok": "success", "due_soon": "warning", "overdue": "danger"}'/>
                 <templates>
                     <t t-name="card">
-                        <div class="d-flex">
+                        <div class="d-flex align-items-center">
                             <field name="image_128" widget="image" class="o_kanban_image" options="{'size': [64, 64]}"/>
                             <div class="flex-grow-1 ms-2">
-                                <div class="fw-bold fs-5">
-                                    <field name="registration"/>
-                                </div>
-                                <div class="small">
-                                    <field name="aircraft_type_id"/>
-                                </div>
-                                <div class="mt-2">
-                                    <span t-attf-class="badge #{record.maintenance_status.raw_value == 'due_soon' ? 'text-bg-warning' : (record.maintenance_status.raw_value == 'overdue' ? 'text-bg-danger' : 'text-bg-secondary')}">
-                                        <field name="remaining_maintenance_hours" widget="float_time"/> hrs
-                                    </span>
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold fs-5">
+                                            <field name="registration"/>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <field name="aircraft_type_id"/>
+                                        </div>
+                                    </div>
+                                    <div t-if="record.category_code.raw_value != 'SIM'" class="mt-1 d-flex flex-column align-items-end">
+                                        <div>
+                                            <span t-attf-class="badge text-nowrap d-inline-flex align-items-center #{record.maintenance_hour_status.raw_value == 'due_soon' ? 'text-bg-warning' : (record.maintenance_hour_status.raw_value == 'overdue' ? 'text-bg-danger' : 'text-bg-secondary')}">
+                                                <i class="fa fa-clock-o me-1" title="Remaining Hours"/><field name="remaining_maintenance_hours" widget="float_time"/>
+                                            </span>
+                                        </div>
+                                        <div t-if="record.maintenance_date_status.raw_value != 'ok'" class="mt-1">
+                                            <span t-attf-class="badge text-nowrap d-inline-flex align-items-center #{record.maintenance_date_status.raw_value == 'due_soon' ? 'text-bg-warning' : 'text-bg-danger'}">
+                                                <i class="fa fa-calendar me-1" title="Maintenance Due Date"/>
+                                                <field name="next_maintenance_date"/>
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -184,6 +219,8 @@
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                 <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
                 <separator/>
+                <filter name="no_simulators" string="No Simulators" domain="[('category_code', '!=', 'SIM')]"/>
+                <separator/>
                 <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
                 <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
                 <filter string="Type" name="group_type" context="{'group_by': 'aircraft_type_id'}"/>
@@ -211,7 +248,7 @@
         <field name="name">Fleet</field>
         <field name="res_model">fs.aircraft</field>
         <field name="view_mode">kanban,list,form,calendar</field>
-        <field name="context">{'search_default_active': 1}</field>
+        <field name="context">{'search_default_active': 1, 'search_default_no_simulators': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Add your first aircraft
@@ -228,7 +265,7 @@
         <field name="res_model">fs.aircraft</field>
         <field name="view_mode">kanban,list,form</field>
         <field name="domain">[('status', '=', 'available')]</field>
-        <field name="context">{'search_default_active': 1}</field>
+        <field name="context">{'search_default_active': 1, 'search_default_no_simulators': 1, 'group_by': 'aircraft_type_id'}</field>
     </record>
 
     <!-- Action: Maintenance Due -->

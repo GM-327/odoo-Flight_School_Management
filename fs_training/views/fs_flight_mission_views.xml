@@ -11,14 +11,9 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="class_type_id"/>
-                <field name="discipline_color" column_invisible="1"/>
-                <field name="discipline_id" widget="badge" decoration-bf="1" options="{'color_field': 'discipline_color'}"/>
-                <field name="flight_type_color" column_invisible="1"/>
-                <field name="flight_type_id" widget="badge" decoration-bf="1" options="{'color_field': 'flight_type_color'}"/>
-                <field name="mission_type" widget="badge"
-                       decoration-info="mission_type == 'flight'"
-                       decoration-warning="mission_type == 'sim'"
-                       decoration-danger="mission_type == 'exam'"/>
+                <field name="activity_id"/>
+                <field name="is_exam" widget="boolean_toggle"/>
+                <field name="is_extra" widget="boolean_toggle"/>
                 <field name="duration_hours" widget="float_time"/>
                 <button name="action_duplicate_mission" type="object" icon="fa-copy" title="Duplicate Mission"/>
             </list>
@@ -42,9 +37,9 @@
                     <group>
                         <group string="Classification">
                             <field name="class_type_id"/>
-                            <field name="discipline_id"/>
-                            <field name="flight_type_id"/>
-                            <field name="mission_type" widget="radio"/>
+                            <field name="activity_id"/>
+                            <field name="is_exam" widget="boolean_toggle"/>
+                            <field name="is_extra" widget="boolean_toggle"/>
                         </group>
                         <group string="Details">
                             <field name="duration_hours" widget="float_time"/>
@@ -72,13 +67,13 @@
             <search>
                 <field name="name"/>
                 <field name="class_type_id"/>
-                <field name="discipline_id"/>
-                <filter name="flight" string="Flight" domain="[('mission_type', '=', 'flight')]"/>
-                <filter name="sim" string="Simulator" domain="[('mission_type', '=', 'sim')]"/>
-                <filter name="exam" string="Exam" domain="[('mission_type', '=', 'exam')]"/>
+                <field name="activity_id"/>
+                <filter name="is_exam" string="Is Exam" domain="[('is_exam', '=', True)]"/>
+                <filter name="is_extra" string="Is Revision/Extra" domain="[('is_extra', '=', True)]"/>
+                <filter name="is_training" string="Core Training" domain="[('is_exam', '=', False), ('is_extra', '=', False)]"/>
                 <separator/>
                 <filter string="Class Type" name="group_class_type" context="{'group_by': 'class_type_id'}"/>
-                <filter string="Discipline" name="group_discipline" context="{'group_by': 'discipline_id'}"/>
+                <filter string="Activity" name="group_activity" context="{'group_by': 'activity_id'}"/>
             </search>
         </field>
     </record>

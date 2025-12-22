@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <data noupdate="1">
         <!-- Class Requirements -->
         <record id="req_medical_1" model="fs.class.requirement">
             <field name="name">Medical Class 1</field>
@@ -134,9 +134,10 @@
             <field name="callsign">B24A-HAMDI</field>
             <field name="status">active</field>
             <field name="required_hour_ids" eval="[
-                (0, 0, {'discipline_id': ref('fs_training.discipline_man'), 'flight_type_id': ref('fs_training.flight_type_dual'), 'hours_logged': 15.5}),
-                (0, 0, {'discipline_id': ref('fs_training.discipline_man'), 'flight_type_id': ref('fs_training.flight_type_solo'), 'hours_logged': 5.0}),
-                (0, 0, {'discipline_id': ref('fs_training.discipline_nav'), 'flight_type_id': ref('fs_training.flight_type_dual'), 'hours_logged': 8.0})
+                (5, 0, 0),
+                (0, 0, {'activity_id': ref('fs_training.activity_man_dual'), 'hours_logged': 15.5}),
+                (0, 0, {'activity_id': ref('fs_training.activity_man_solo'), 'hours_logged': 5.0}),
+                (0, 0, {'activity_id': ref('fs_training.activity_nav_dual'), 'hours_logged': 8.0})
             ]"/>
         </record>
 

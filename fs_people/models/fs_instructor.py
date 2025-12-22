@@ -171,53 +171,7 @@ class FsInstructor(models.Model):
     )
 
     # === Assigned Students ===
-    assigned_student_count = fields.Integer(
-        string='Assigned Students',
-        compute='_compute_assigned_student_count',
-        help="Number of active students currently assigned to this instructor.",
-    )
-    student_capacity_reached = fields.Boolean(
-        string='Capacity Reached',
-        compute='_compute_assigned_student_count',
-        help="True if the instructor has reached their maximum student limit.",
-    )
+    # These fields are and logic are handled in the fs_training module
+    # via model inheritance to avoid circular dependencies and errors
+    # when the Training module is not installed.
 
-    def _compute_assigned_student_count(self):
-        """Compute count of active students assigned to this instructor."""
-        # Use runtime model lookup to avoid circular dependency
-        Enrollment = self.env.get('fs.student.enrollment')
-        for record in self:
-            if Enrollment:
-                count = Enrollment.search_count([
-                    ('instructor_id', '=', record.id),
-                    ('status', '=', 'active'),
-                ])
-                record.assigned_student_count = count
-                record.student_capacity_reached = count >= record.max_students
-            else:
-                record.assigned_student_count = 0
-                record.student_capacity_reached = False
-
-    def action_view_assigned_students(self):
-        """Open list of active students assigned to this instructor."""
-        self.ensure_one()
-        # Check if fs_training module is installed (provides fs.student.enrollment)
-        if not self.env.get('fs.student.enrollment'):
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': 'Module Not Installed',
-                    'message': 'The Training module (fs_training) is required to view student enrollments.',
-                    'type': 'warning',
-                    'sticky': False,
-                },
-            }
-        return {
-            'type': 'ir.actions.act_window',
-            'name': f'Students assigned to {self.display_name}',
-            'res_model': 'fs.student.enrollment',  # type: ignore[cross-module-optional]
-            'view_mode': 'list,form',
-            'domain': [('instructor_id', '=', self.id), ('status', '=', 'active')],
-            'context': {'default_instructor_id': self.id},
-        }

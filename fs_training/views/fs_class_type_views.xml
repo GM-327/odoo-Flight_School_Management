@@ -57,8 +57,7 @@
                         <page string="Hour Requirements" name="hours">
                             <field name="hour_requirement_ids">
                                 <list editable="bottom">
-                                    <field name="discipline_id"/>
-                                    <field name="flight_type_id"/>
+                                    <field name="activity_id"/>
                                     <field name="minimum_hours" widget="float_time"/>
                                 </list>
                             </field>
@@ -68,9 +67,8 @@
                                 <list>
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
-                                    <field name="discipline_id"/>
-                                    <field name="flight_type_id"/>
-                                    <field name="mission_type" widget="badge"/>
+                                    <field name="activity_id"/>
+                                    <field name="is_exam" widget="boolean_toggle"/>
                                     <field name="duration_hours" widget="float_time"/>
                                     <button name="action_duplicate_mission" type="object" icon="fa-copy" title="Duplicate Mission"/>
                                 </list>

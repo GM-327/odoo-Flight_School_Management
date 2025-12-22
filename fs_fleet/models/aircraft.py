@@ -48,6 +48,11 @@ class Aircraft(models.Model):
         store=True,
         readonly=True,
     )
+    category_code = fields.Char(
+        string='Category Code',
+        related='category_id.code',
+        store=True,
+    )
     
     # === Identification ===
     serial_number = fields.Char(
@@ -74,7 +79,13 @@ class Aircraft(models.Model):
         required=True,
         tracking=True,
         help="Current operational status of the aircraft.",
+        group_expand="_read_group_status",
     )
+
+    @api.model
+    def _read_group_status(self, stages, domain):
+        """Ensure all status columns are visible in Kanban even if empty."""
+        return [key for key, val in self.fields_get(['status'])['status']['selection']]
     status_reason = fields.Text(
         string='Status Reason',
         tracking=True,
@@ -128,25 +139,35 @@ class Aircraft(models.Model):
         store=True,
         help="Remaining hours until next maintenance.",
     )
+    maintenance_hour_status = fields.Selection(
+        selection=[
+            ('ok', 'OK'),
+            ('due_soon', 'Due Soon'),
+            ('overdue', 'Overdue'),
+        ],
+        string='Hour Warning',
+        compute='_compute_maintenance_hour_status',
+    )
+    maintenance_date_status = fields.Selection(
+        selection=[
+            ('ok', 'OK'),
+            ('due_soon', 'Due Soon'),
+            ('overdue', 'Overdue'),
+        ],
+        string='Date Warning',
+        compute='_compute_maintenance_date_status',
+    )
     maintenance_status = fields.Selection(
         selection=[
             ('ok', 'OK'),
             ('due_soon', 'Due Soon'),
             ('overdue', 'Overdue'),
         ],
-        string='Maintenance Status',
+        string='Overall Maintenance Status',
         compute='_compute_maintenance_status',
         store=True,
     )
-    annual_inspection_date = fields.Date(
-        string='Annual Inspection Due',
-        tracking=True,
-    )
-    annual_inspection_due_soon = fields.Boolean(
-        string='Annual Inspection Due Soon',
-        compute='_compute_annual_inspection_due_soon',
-        help="True if annual inspection is due within warning period.",
-    )
+
     
     # === Insurance & Certificates ===
     insurance_policy = fields.Char(
@@ -237,44 +258,44 @@ class Aircraft(models.Model):
             else:
                 record.remaining_maintenance_hours = 0.0
 
-    @api.depends('next_maintenance_date', 'remaining_maintenance_hours')
-    def _compute_maintenance_status(self):
-        today = date.today()
+    @api.depends('remaining_maintenance_hours')
+    def _compute_maintenance_hour_status(self):
         config_param = self.env['ir.config_parameter'].sudo()
         warning_hours = float(config_param.get_param('flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
-        
         for record in self:
             status = 'ok'
-            
-            # Check date-based maintenance
+            if record.remaining_maintenance_hours < 0:
+                status = 'overdue'
+            elif record.remaining_maintenance_hours <= warning_hours:
+                status = 'due_soon'
+            record.maintenance_hour_status = status
+
+    @api.depends('next_maintenance_date')
+    def _compute_maintenance_date_status(self):
+        today = date.today()
+        config_param = self.env['ir.config_parameter'].sudo()
+        warning_days = int(config_param.get_param('flight_school.maintenance_warning_days', '7'))  # type: ignore
+        for record in self:
+            status = 'ok'
             if record.next_maintenance_date:
                 days_until = (record.next_maintenance_date - today).days
                 if days_until < 0:
                     status = 'overdue'
-                elif days_until <= 7:
+                elif days_until <= warning_days:
                     status = 'due_soon'
-            
-            # Check hours-based maintenance
-            if record.remaining_maintenance_hours:
-                if record.remaining_maintenance_hours < 0:
-                    status = 'overdue'
-                elif record.remaining_maintenance_hours <= warning_hours and status != 'overdue':
-                    status = 'due_soon'
-            
-            record.maintenance_status = status
+            record.maintenance_date_status = status
 
-    @api.depends('annual_inspection_date')
-    def _compute_annual_inspection_due_soon(self):
-        today = date.today()
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.annual_inspection_warning_days', '30'
-        ))
+    @api.depends('maintenance_hour_status', 'maintenance_date_status')
+    def _compute_maintenance_status(self):
         for record in self:
-            if record.annual_inspection_date:
-                days_until = (record.annual_inspection_date - today).days
-                record.annual_inspection_due_soon = days_until <= warning_days
+            if 'overdue' in (record.maintenance_hour_status, record.maintenance_date_status):
+                record.maintenance_status = 'overdue'
+            elif 'due_soon' in (record.maintenance_hour_status, record.maintenance_date_status):
+                record.maintenance_status = 'due_soon'
             else:
-                record.annual_inspection_due_soon = False
+                record.maintenance_status = 'ok'
+
+
 
     @api.onchange('registration')
     def _onchange_registration_uppercase(self):
@@ -300,15 +321,7 @@ class Aircraft(models.Model):
 
     def action_set_maintenance(self):
         """Set aircraft status to in maintenance."""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Set Maintenance Status',
-            'res_model': 'fs.aircraft',
-            'res_id': self.id,
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {'default_status': 'maintenance'},
-        }
+        self.write({'status': 'maintenance'})
 
     def action_set_grounded(self):
         """Set aircraft status to grounded."""

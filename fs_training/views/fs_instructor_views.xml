@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Instructor Tree View -->
+    <record id="view_fs_instructor_tree_inherit_training" model="ir.ui.view">
+        <field name="name">fs.instructor.list.inherit.training</field>
+        <field name="model">fs.instructor</field>
+        <field name="inherit_id" ref="fs_people.view_fs_instructor_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='english_status']" position="after">
+                <field name="assigned_student_count" string="Students" decoration-danger="student_capacity_reached"/>
+                <field name="student_capacity_reached" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Instructor Form View -->
+    <record id="view_fs_instructor_form_inherit_training" model="ir.ui.view">
+        <field name="name">fs.instructor.form.inherit.training</field>
+        <field name="model">fs.instructor</field>
+        <field name="inherit_id" ref="fs_people.view_fs_instructor_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Stat Button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_assigned_students" type="object" 
+                        class="oe_stat_button" icon="fa-users">
+                    <div class="o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="assigned_student_count" class="d-inline"/>
+                            <span class="text-muted"> / </span>
+                            <field name="max_students" class="d-inline"/>
+                        </span>
+                        <span class="o_stat_text">Students</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Add Fields to Work Limits page -->
+            <xpath expr="//page[@name='limits']//group" position="inside">
+                <group string="Current Load">
+                    <field name="assigned_student_count" decoration-danger="student_capacity_reached"/>
+                    <field name="student_capacity_reached" invisible="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

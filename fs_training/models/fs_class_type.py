@@ -124,11 +124,11 @@ class FsClassType(models.Model):
 
 
 class FsClassTypeHours(models.Model):
-    """Minimum hour requirements per discipline and flight type."""
+    """Minimum hour requirements per activity."""
 
     _name = 'fs.class.type.hours'
     _description = 'Class Type Hour Requirements'
-    _order = 'discipline_id, flight_type_id'
+    _order = 'activity_id'
 
     class_type_id = fields.Many2one(
         comodel_name='fs.class.type',
@@ -136,17 +136,21 @@ class FsClassTypeHours(models.Model):
         required=True,
         ondelete='cascade',
     )
-    discipline_id = fields.Many2one(
-        comodel_name='fs.flight.discipline',
-        string='Discipline',
+    activity_id = fields.Many2one(
+        comodel_name='fs.flight.activity',
+        string='Activity',
         required=True,
         ondelete='restrict',
     )
+    discipline_id = fields.Many2one(
+        comodel_name='fs.flight.discipline',
+        related='activity_id.discipline_id',
+        store=True,
+    )
     flight_type_id = fields.Many2one(
         comodel_name='fs.flight.type',
-        string='Flight Type',
-        required=True,
-        ondelete='restrict',
+        related='activity_id.flight_type_id',
+        store=True,
     )
     minimum_hours = fields.Float(
         string='Minimum Hours',
@@ -154,7 +158,7 @@ class FsClassTypeHours(models.Model):
         default=0.0,
     )
 
-    _unique_discipline_type = models.Constraint(
-        'UNIQUE(class_type_id, discipline_id, flight_type_id)',
-        'Combination of discipline and flight type must be unique per class type!',
+    _unique_activity = models.Constraint(
+        'UNIQUE(class_type_id, activity_id)',
+        'This activity is already defined for this class type!',
     )

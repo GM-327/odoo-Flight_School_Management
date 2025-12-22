@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Common Flight Activities -->
+        
+        <!-- Maneuvering -->
+        <record id="activity_man_dual" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+        </record>
+        <record id="activity_man_solo" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+        </record>
+
+        <!-- Navigation -->
+        <record id="activity_nav_dual" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_nav"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+        </record>
+        <record id="activity_nav_solo" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_nav"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+        </record>
+
+        <!-- Instrument Flight (IFR) -->
+        <record id="activity_ifr_dual" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_ifr"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+        </record>
+        <record id="activity_ifr_solo" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_ifr"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+        </record>
+
+        <!-- Non Visual (VSV) -->
+        <record id="activity_vsv_dual" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_vsv"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+        </record>
+
+        <!-- Night Flight -->
+        <record id="activity_night_dual" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_night"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+        </record>
+        <record id="activity_night_solo" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_night"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+        </record>
+
+        <!-- Simulator Activities -->
+        <record id="activity_ifr_sim" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_ifr"/>
+            <field name="flight_type_id" ref="flight_type_sim"/>
+        </record>
+        <record id="activity_vsv_sim" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_vsv"/>
+            <field name="flight_type_id" ref="flight_type_sim"/>
+        </record>
+        <record id="activity_man_sim" model="fs.flight.activity">
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_sim"/>
+        </record>
+    </data>
+</odoo>

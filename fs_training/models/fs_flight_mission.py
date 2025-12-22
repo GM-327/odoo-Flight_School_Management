@@ -23,12 +23,17 @@ class FsFlightMission(models.Model):
         required=True,
         ondelete='cascade',
     )
-    discipline_id = fields.Many2one(
-        comodel_name='fs.flight.discipline',
-        string='Discipline',
+    activity_id = fields.Many2one(
+        comodel_name='fs.flight.activity',
+        string='Activity',
         required=True,
         ondelete='restrict',
-        help="Flight discipline (MAN, NAV, IFR, etc.).",
+        help="Flight activity (combination of discipline and type).",
+    )
+    discipline_id = fields.Many2one(
+        comodel_name='fs.flight.discipline',
+        related='activity_id.discipline_id',
+        store=True,
     )
     discipline_color = fields.Integer(
         string='Discipline Color',
@@ -36,24 +41,22 @@ class FsFlightMission(models.Model):
     )
     flight_type_id = fields.Many2one(
         comodel_name='fs.flight.type',
-        string='Flight Type',
-        required=True,
-        ondelete='restrict',
-        help="Flight type (Solo, Dual).",
+        related='activity_id.flight_type_id',
+        store=True,
     )
     flight_type_color = fields.Integer(
         string='Flight Type Color',
         related='flight_type_id.color',
     )
-    mission_type = fields.Selection(
-        selection=[
-            ('flight', 'Flight'),
-            ('sim', 'Simulator'),
-            ('exam', 'Exam'),
-        ],
-        string='Mission Type',
-        default='flight',
-        required=True,
+    is_exam = fields.Boolean(
+        string='Is Exam',
+        default=False,
+        help="Check if this mission is an evaluation or final exam.",
+    )
+    is_extra = fields.Boolean(
+        string='Is Extra/Revision',
+        default=False,
+        help="If checked, this mission is for revision or extra practice and doesn't count as a mandatory syllabus step.",
     )
     duration_hours = fields.Float(
         string='Duration (Hours)',
@@ -79,7 +82,7 @@ class FsFlightMission(models.Model):
         default=True,
     )
 
-    @api.depends('discipline_id')
+    @api.depends('activity_id', 'discipline_id')
     def _compute_duration_hours(self):
         """Default duration from discipline."""
         for record in self:

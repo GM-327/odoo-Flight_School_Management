@@ -14,8 +14,6 @@
                 <field name="qualification_badges" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
                 <field name="english_status" widget="badge" optional="show" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'"/>
-                <field name="assigned_student_count" string="Students" decoration-danger="student_capacity_reached"/>
-                <field name="student_capacity_reached" column_invisible="1"/>
                 <field name="total_instruction_hours" widget="float_time" optional="show"/>
             </list>
         </field>
@@ -39,17 +37,6 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_assigned_students" type="object" 
-                                class="oe_stat_button" icon="fa-users">
-                            <div class="o_stat_info">
-                                <span class="o_stat_value">
-                                    <field name="assigned_student_count" class="d-inline"/>
-                                    <span class="text-muted"> / </span>
-                                    <field name="max_students" class="d-inline"/>
-                                </span>
-                                <span class="o_stat_text">Students</span>
-                            </div>
-                        </button>
                         <button name="action_view_user" type="object" 
                                 class="oe_stat_button" icon="fa-user"
                                 invisible="not has_user">
@@ -112,9 +99,7 @@
                                     <field name="english_level_id"/>
                                     <label for="english_expiry" string="English Expiry"/>
                                     <div class="o_row">
-                                        <field name="english_expiry" class="text-danger" invisible="english_status not in ['expired', 'expiring']" nolabel="1"/>
-                                        <field name="english_expiry" class="text-warning" invisible="english_status != 'expiring'" nolabel="1"/>
-                                        <field name="english_expiry" invisible="english_status in ['expired', 'expiring']" nolabel="1"/>
+                                        <field name="english_expiry" nolabel="1" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'"/>
                                         <field name="english_status" widget="badge" invisible="english_status == 'valid'" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'" nolabel="1"/>
                                     </div>
                                 </group>
@@ -137,9 +122,7 @@
                                     <field name="medical_class_id"/>
                                     <label for="medical_expiry" string="Medical Expiry"/>
                                     <div class="o_row">
-                                        <field name="medical_expiry" class="text-danger" invisible="medical_status != 'expired'" nolabel="1"/>
-                                        <field name="medical_expiry" class="text-warning" invisible="medical_status != 'expiring'" nolabel="1"/>
-                                        <field name="medical_expiry" invisible="medical_status in ['expired', 'expiring']" nolabel="1"/>
+                                        <field name="medical_expiry" nolabel="1" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'"/>
                                         <field name="medical_status" widget="badge" invisible="medical_status == 'valid'" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'" nolabel="1"/>
                                     </div>
                                 </group>
@@ -148,9 +131,7 @@
                         <page string="Work Limits" name="limits">
                             <group>
                                 <group string="Student Capacity">
-                                    <field name="assigned_student_count" decoration-danger="student_capacity_reached"/>
                                     <field name="max_students"/>
-                                    <field name="student_capacity_reached" invisible="1"/>
                                 </group>
                                 <group string="Hours Limits">
                                     <field name="max_hours_per_month" widget="float_time"/>

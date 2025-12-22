@@ -53,6 +53,13 @@
               sequence="30"
               groups="fs_core.group_flight_school_admin"/>
 
+    <menuitem id="menu_config_flight_activities"
+              name="Flight Activities"
+              parent="menu_config_training"
+              action="fs_flight_activity_action"
+              sequence="35"
+              groups="fs_core.group_flight_school_admin"/>
+
     <menuitem id="menu_config_requirements"
               name="Enrollment Requirements"
               parent="menu_config_training"

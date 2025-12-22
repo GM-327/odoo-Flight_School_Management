@@ -111,8 +111,7 @@ class FsStudentEnrollment(models.Model):
                 commands = [(5, 0, 0)]  # Clear all existing
                 for req in class_type.hour_requirement_ids:  # type: ignore
                     commands.append((0, 0, {  # type: ignore
-                        'discipline_id': req.discipline_id.id,
-                        'flight_type_id': req.flight_type_id.id,
+                        'activity_id': req.activity_id.id,
                         'hours_logged': 0.0,
                         'is_extra': False,
                     }))
@@ -132,7 +131,7 @@ class FsStudentEnrollment(models.Model):
             if hour_commands:
                 for cmd in hour_commands:
                     if isinstance(cmd, (list, tuple)) and cmd[0] == 0:
-                        if cmd[2] and cmd[2].get('discipline_id'):
+                        if cmd[2] and cmd[2].get('activity_id'):
                             is_valid = True
                             break
             
@@ -143,8 +142,7 @@ class FsStudentEnrollment(models.Model):
                     commands = [(5, 0, 0)]
                     for req in class_type.hour_requirement_ids:
                         commands.append((0, 0, { # type: ignore
-                            'discipline_id': req.discipline_id.id,
-                            'flight_type_id': req.flight_type_id.id,
+                            'activity_id': req.activity_id.id,
                             'hours_logged': 0.0,
                             'is_extra': False,
                         }))
@@ -163,11 +161,11 @@ class FsStudentEnrollment(models.Model):
             total_req = sum(reqs.mapped('minimum_hours'))
             if total_req > 0:
                 total_progress = 0.0
-                all_lines = self.required_hour_ids | self.extra_hour_ids
                 for req in reqs:
-                    logged = sum(all_lines.filtered(
-                        lambda h: h.discipline_id == req.discipline_id and h.flight_type_id == req.flight_type_id
+                    logged = sum(self.required_hour_ids.filtered(
+                        lambda h: h.activity_id == req.activity_id
                     ).mapped('hours_logged'))
+                    # Cap progression per activity at 100%
                     total_progress += min(logged, req.minimum_hours)
                 self.progression = (total_progress / total_req) * 100.0
             else:
@@ -267,16 +265,15 @@ class FsStudentEnrollment(models.Model):
                 record.progression = 100.0
                 continue
 
-            # Calculate actual vs required per discipline/type
+            # Calculate actual vs required per activity (Core Syllabus Only - Capped at 100%)
             total_progress = 0.0
-            all_lines = record.required_hour_ids | record.extra_hour_ids
             for req in requirements:
-                logged = sum(all_lines.filtered(
-                    lambda h: h.discipline_id == req.discipline_id and h.flight_type_id == req.flight_type_id
+                logged = sum(record.required_hour_ids.filtered(
+                    lambda h: h.activity_id == req.activity_id
                 ).mapped('hours_logged')) # type: ignore
                 if req.minimum_hours > 0:
-                    progress = min(logged / req.minimum_hours, 1.0) * req.minimum_hours
-                    total_progress += progress
+                    # Cap each mandatory activity at its required minimum for the syllabus progression
+                    total_progress += min(logged, req.minimum_hours)
 
             record.progression = (total_progress / total_required) * 100.0
 
@@ -329,11 +326,11 @@ class FsStudentEnrollment(models.Model):
                 record.drop_date = False
                 record.graduation_date = False
 class FsEnrollmentHours(models.Model):
-    """Flight hours logged per discipline and type for an enrollment."""
+    """Flight hours logged per activity for an enrollment."""
 
     _name = 'fs.enrollment.hours'
     _description = 'Enrollment Flight Hours'
-    _order = 'discipline_id, flight_type_id'
+    _order = 'activity_id'
 
     enrollment_id = fields.Many2one(
         comodel_name='fs.student.enrollment',
@@ -346,11 +343,16 @@ class FsEnrollmentHours(models.Model):
         default=False,
         help="True if these are extra hours added specifically for this student.",
     )
-    discipline_id = fields.Many2one(
-        comodel_name='fs.flight.discipline',
-        string='Discipline',
+    activity_id = fields.Many2one(
+        comodel_name='fs.flight.activity',
+        string='Activity',
         required=True,
         ondelete='restrict',
+    )
+    discipline_id = fields.Many2one(
+        comodel_name='fs.flight.discipline',
+        related='activity_id.discipline_id',
+        store=True,
     )
     discipline_code = fields.Char(
         string='Discipline Code',
@@ -358,9 +360,8 @@ class FsEnrollmentHours(models.Model):
     )
     flight_type_id = fields.Many2one(
         comodel_name='fs.flight.type',
-        string='Flight Type',
-        required=True,
-        ondelete='restrict',
+        related='activity_id.flight_type_id',
+        store=True,
     )
     flight_type_code = fields.Char(
         string='Type Code',
@@ -386,12 +387,12 @@ class FsEnrollmentHours(models.Model):
         """Compute progress percentage for this hour requirement."""
         for record in self:
             if record.minimum_hours > 0:
-                record.progress_percentage = min((record.hours_logged / record.minimum_hours) * 100, 100)
+                record.progress_percentage = (record.hours_logged / record.minimum_hours) * 100.0
             else:
                 record.progress_percentage = 100.0 if record.hours_logged > 0 else 0.0
 
     @api.depends('enrollment_id.training_class_id.class_type_id.hour_requirement_ids',
-                 'discipline_id', 'flight_type_id')
+                 'activity_id')
     def _compute_minimum_hours(self):
         """Get minimum hours from class type requirements."""
         for record in self:
@@ -400,13 +401,13 @@ class FsEnrollmentHours(models.Model):
                 class_type = record.enrollment_id.training_class_id.class_type_id  # type: ignore
                 if class_type:
                     requirement = class_type.hour_requirement_ids.filtered(  # type: ignore
-                        lambda r: r.discipline_id == record.discipline_id and r.flight_type_id == record.flight_type_id
+                        lambda r: r.activity_id == record.activity_id
                     )
                     if requirement:
                         min_hours = requirement[0].minimum_hours  # type: ignore
             record.minimum_hours = min_hours
 
-    _unique_discipline_type = models.Constraint(
-        'UNIQUE(enrollment_id, discipline_id, flight_type_id, is_extra)',
-        'Combination of discipline, flight type, and extra status must be unique per enrollment!',
+    _unique_activity = models.Constraint(
+        'UNIQUE(enrollment_id, activity_id, is_extra)',
+        'This activity already exists in this section (Mandatory or Additional).',
     )
