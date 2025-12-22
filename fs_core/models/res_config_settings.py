@@ -28,7 +28,7 @@ class ResConfigSettings(models.TransientModel):
     # === Instructor Limits ===
     fs_default_max_students = fields.Integer(
         string='Default Max Students per Instructor',
-        default=8,
+        default=6,
         config_parameter='flight_school.default_max_students',
         help="Number of students assigned by default when creating new instructors.",
     )
@@ -48,27 +48,33 @@ class ResConfigSettings(models.TransientModel):
     # === Warning Periods ===
     fs_medical_warning_days = fields.Integer(
         string='Medical Expiry Warning (Days)',
-        default=30,
+        default=35,
         config_parameter='flight_school.medical_warning_days',
         help="Days before medical certificate expiry to show warnings.",
     )
     fs_license_warning_days = fields.Integer(
         string='License/Qualification Expiry Warning (Days)',
-        default=30,
+        default=35,
         config_parameter='flight_school.license_warning_days',
         help="Days before license or qualification expiry to show warnings.",
     )
     fs_english_warning_days = fields.Integer(
         string='English Proficiency Expiry Warning (Days)',
-        default=30,
+        default=60,
         config_parameter='flight_school.english_warning_days',
         help="Days before English proficiency expiry to show warnings.",
     )
     fs_insurance_warning_days = fields.Integer(
         string='Insurance Expiry Warning (Days)',
-        default=30,
+        default=14,
         config_parameter='flight_school.insurance_warning_days',
         help="Days before insurance expiry to show warnings (civilians).",
+    )
+    fs_security_warning_days = fields.Integer(
+        string='Security Clearance Expiry Warning (Days)',
+        default=60,
+        config_parameter='flight_school.security_warning_days',
+        help="Days before security clearance expiry to show warnings (civilians).",
     )
     fs_training_class_end_warning_days = fields.Integer(
         string='Class End Warning (Days)',
@@ -84,7 +90,7 @@ class ResConfigSettings(models.TransientModel):
     )
     fs_maintenance_warning_hours = fields.Float(
         string='Maintenance Warning (Hours)',
-        default=10.0,
+        default=5.0,
         config_parameter='flight_school.maintenance_warning_hours',
         help="Hours before maintenance is due to show warnings.",
     )

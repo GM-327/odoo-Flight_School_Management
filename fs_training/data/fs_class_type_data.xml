@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Class Types -->
+    <record id="class_type_basic" model="fs.class.type">
+        <field name="name">Basic Training</field>
+        <field name="code">BASIC</field>
+        <field name="is_military">True</field>
+        <field name="duration_value">12</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="class_type_advanced" model="fs.class.type">
+        <field name="name">Advanced Training</field>
+        <field name="code">ADV</field>
+        <field name="is_military">True</field>
+        <field name="duration_value">16</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="class_type_ppl" model="fs.class.type">
+        <field name="name">PPL Course</field>
+        <field name="code">PPL</field>
+        <field name="is_military">False</field>
+        <field name="duration_value">8</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="class_type_cpl" model="fs.class.type">
+        <field name="name">CPL Course</field>
+        <field name="code">CPL</field>
+        <field name="is_military">False</field>
+        <field name="duration_value">20</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="class_type_ir" model="fs.class.type">
+        <field name="name">IR Course</field>
+        <field name="code">IR</field>
+        <field name="is_military">False</field>
+        <field name="duration_value">6</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="class_type_cpl_ir" model="fs.class.type">
+        <field name="name">CPL/IR Combined</field>
+        <field name="code">CPL-IR</field>
+        <field name="is_military">False</field>
+        <field name="duration_value">24</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="class_type_fi" model="fs.class.type">
+        <field name="name">FI Course</field>
+        <field name="code">FI</field>
+        <field name="is_military">False</field>
+        <field name="duration_value">10</field>
+        <field name="duration_unit">weeks</field>
+        <field name="sequence">70</field>
+    </record>
+</odoo>

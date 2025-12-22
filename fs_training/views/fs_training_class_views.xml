@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Training Class Views -->
+
+    <!-- Tree View -->
+    <record id="view_training_class_tree" model="ir.ui.view">
+        <field name="name">fs.training.class.list</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status == 'completed'"
+                  decoration-danger="status == 'cancelled'" 
+                  decoration-info="status == 'in_progress'"
+                  decoration-muted="status == 'draft'">
+                <field name="code" decoration-bf="1"/>
+                <field name="name"/>
+                <field name="color" column_invisible="1"/>
+                <field name="class_type_id" widget="badge" decoration-bf="1" options="{'color_field': 'color'}"/>
+                <field name="start_date"/>
+                <field name="expected_end_date"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'completed'"
+                       decoration-info="status == 'in_progress'"
+                       decoration-muted="status == 'draft'"
+                       decoration-danger="status == 'cancelled'"/>
+                <field name="student_count"/>
+                <field name="graduated_count" optional="show"/>
+                <field name="dropped_count" optional="hide"/>
+                <field name="progress_percentage" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_training_class_form" model="ir.ui.view">
+        <field name="name">fs.training.class.form</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_start_class" string="Start Class" type="object"
+                            class="btn-primary" invisible="status != 'draft'"/>
+                    <button name="action_set_draft" string="Set to Draft" type="object"
+                            class="btn-secondary" invisible="status not in ('in_progress', 'cancelled', 'completed')"/>
+                    <button name="action_complete_class" string="Complete" type="object"
+                            class="btn-success" invisible="status != 'in_progress'"/>
+                    <button name="action_cancel_class" string="Cancel" type="object"
+                            class="btn-danger" invisible="status == 'cancelled'"
+                            confirm="Are you sure you want to cancel this class?"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Completed" bg_color="text-bg-success" invisible="status != 'completed'"/>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-warning" invisible="status != 'cancelled'"/>
+                    <div class="oe_button_box" name="button_box">
+                    </div>
+                    <div class="oe_title">
+                        <div class="d-flex gap-4">
+                            <div class="flex-grow-1">
+                                <label for="name"/>
+                                <h1><field name="name" placeholder="Class Name"/></h1>
+                            </div>
+                            <div>
+                                <label for="code"/>
+                                 <h2><field name="code" placeholder="e.g. CPL24"/></h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3 mb-4 mt-2 align-items-stretch">
+                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                            <span class="text-uppercase small fw-bold text-muted mb-1">Progress</span>
+                            <div class="d-flex align-items-baseline gap-1">
+                                <span class="fs-2 fw-bolder text-info"><field name="progress_percentage" widget="integer"/></span>
+                                <span class="fw-bold text-info">%</span>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                            <span class="text-uppercase small fw-bold text-muted mb-1">Students</span>
+                            <span class="fs-2 fw-bolder text-primary"><field name="student_count"/></span>
+                        </div>
+                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                            <span class="text-uppercase small fw-bold text-muted mb-1">Graduated</span>
+                            <span class="fs-2 fw-bolder text-success"><field name="graduated_count"/></span>
+                        </div>
+                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                            <span class="text-uppercase small fw-bold text-muted mb-1">Dropped</span>
+                            <span class="fs-2 fw-bolder text-danger"><field name="dropped_count"/></span>
+                        </div>
+                        <div class="flex-grow-1 ms-3 p-3 border rounded bg-view shadow-sm d-flex flex-column justify-content-center">
+                            <label for="progress_percentage" string="Overall Class Progression" class="text-uppercase small fw-bold text-muted mb-2"/>
+                            <field name="progress_percentage" widget="progressbar" options="{'editable': false}" class="w-100"/>
+                        </div>
+                    </div>
+                    <group>
+                        <group string="Class Details">
+                            <field name="class_type_id" options="{'no_create': True}"/>
+                            <field name="aircraft_type_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        </group>
+                        <group string="Dates">
+                            <field name="start_date"/>
+                            <field name="initial_end_date"/>
+                            <field name="expected_end_date" 
+                                   decoration-danger="end_date_warning_level == 'danger'"
+                                   decoration-warning="end_date_warning_level == 'warning'"/>
+                            <field name="actual_end_date" required="status in ('completed', 'cancelled')"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-danger d-flex align-items-center mb-4" role="alert" 
+                         invisible="end_date_warning_level != 'danger'">
+                        <i class="fa fa-exclamation-triangle me-2" title="Danger"/>
+                        <field name="end_date_warning_message" nolabel="1" class="fw-bold"/>
+                    </div>
+                    <div class="alert alert-warning d-flex align-items-center mb-4" role="alert" 
+                         invisible="end_date_warning_level != 'warning'">
+                        <i class="fa fa-exclamation-circle me-2" title="Warning"/>
+                        <field name="end_date_warning_message" nolabel="1" class="fw-bold"/>
+                    </div>
+                    
+                    <field name="end_date_warning_level" invisible="1"/>
+
+                    <notebook>
+                        <page string="Students" name="students">
+                            <!-- Warning for unsaved class -->
+                            <div class="alert alert-warning" role="alert" invisible="id">
+                                <i class="fa fa-exclamation-triangle me-2" title="Warning"/>
+                                <b>Please save the class first before adding students.</b>
+                            </div>
+                            <field name="enrollment_ids" context="{'default_training_class_id': id}" invisible="not id">
+                                <list editable="bottom">
+                                    <field name="student_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="callsign"/>
+                                    <field name="instructor_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="total_hours" widget="float_time" readonly="1"/>
+                                    <field name="progression" widget="progressbar" readonly="1"/>
+                                    <field name="status" widget="badge"
+                                           decoration-success="status == 'graduated'"
+                                           decoration-info="status == 'active'"
+                                           decoration-muted="status in ('enrolled', 'cancelled')"
+                                           decoration-danger="status == 'dropped'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Admin Tasks" name="tasks">
+                            <field name="admin_task_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="notes"/>
+                                    <field name="is_done"/>
+                                    <field name="done_date"/>
+                                    <field name="done_by_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Class notes..."/>
+                        </page>
+                    </notebook>
+                    <field name="active" invisible="1"/>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_training_class_kanban" model="ir.ui.view">
+        <field name="name">fs.training.class.kanban</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status" records_draggable="1" sample="1">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="class_type_id"/>
+                <field name="status"/>
+                <field name="status_color"/>
+                <field name="start_date"/>
+                <field name="expected_end_date"/>
+                <field name="end_date_warning_level"/>
+                <field name="student_count"/>
+                <field name="progress_percentage"/>
+                <progressbar field="status" colors='{"draft": "muted", "in_progress": "success", "completed": "info"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="o_kanban_record_top">
+                            <div class="o_kanban_record_headings">
+                                <strong class="o_kanban_record_title fs-5">
+                                    <field name="name"/>
+                                </strong>
+                            </div>
+                            <field name="status_color" widget="color" invisible="1"/>
+                        </div>
+                        <div class="o_kanban_record_body mt-1">
+                            <div class="text-muted small fw-bold">
+                                <i class="fa fa-tag me-1" title="Class Type"/> <field name="class_type_id"/>
+                            </div>
+                            <div class="mt-2 d-flex gap-2">
+                                <span t-attf-class="badge rounded-pill border {{ record.end_date_warning_level.raw_value == 'danger' ? 'text-bg-danger' : (record.end_date_warning_level.raw_value == 'warning' ? 'text-bg-warning' : 'text-bg-light') }}">
+                                    <i class="fa fa-calendar-check-o me-1" title="Expected End Date"/> <field name="expected_end_date"/>
+                                </span>
+                                <span class="badge rounded-pill text-bg-light border">
+                                    <i class="fa fa-users me-1 text-info" title="Students"/> <field name="student_count"/>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="o_kanban_record_bottom mt-3">
+                            <div class="oe_kanban_bottom_left">
+                                <field name="progress_percentage" widget="progressbar" class="w-100"/>
+                            </div>
+                            <div class="oe_kanban_bottom_right">
+                                <!-- Placeholder for potential avatar or status icon -->
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_training_class_search" model="ir.ui.view">
+        <field name="name">fs.training.class.search</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="class_type_id"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('status', '=', 'draft')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('status', '=', 'in_progress')]"/>
+                <filter name="completed" string="Completed" domain="[('status', '=', 'completed')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('status', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="military" string="Military" domain="[('is_military', '=', True)]"/>
+                <filter name="civilian" string="Civilian" domain="[('is_military', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Class Type" name="group_type" context="{'group_by': 'class_type_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_training_class" model="ir.actions.act_window">
+        <field name="name">Training Classes</field>
+        <field name="res_model">fs.training.class</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('status', '!=', 'cancelled')]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first training class
+            </p>
+            <p>Training classes group students learning together with shared curriculum.</p>
+        </field>
+    </record>
+</odoo>

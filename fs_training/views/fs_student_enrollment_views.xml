@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Student Enrollment Views -->
+
+    <!-- Tree View -->
+    <record id="view_student_enrollment_tree" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.list</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="arch" type="xml">
+            <list decoration-success="status == 'graduated'"
+                  decoration-info="status == 'active'"
+                  decoration-muted="status in ('enrolled', 'cancelled')"
+                  decoration-danger="status == 'dropped'">
+                <field name="student_id"/>
+                <field name="training_class_id"/>
+                <field name="callsign"/>
+                <field name="instructor_id" optional="show"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'graduated'"
+                       decoration-info="status == 'active'"
+                       decoration-muted="status in ('enrolled', 'cancelled')"
+                       decoration-danger="status == 'dropped'"/>
+                <field name="total_hours" widget="float_time"/>
+                <field name="progression" widget="progressbar"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_student_enrollment_form" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.form</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_graduate" string="Graduate" type="object"
+                            class="btn-success" invisible="status not in ('enrolled', 'active')"/>
+                    <button name="action_drop" string="Drop" type="object"
+                            class="btn-danger" invisible="status not in ('enrolled', 'active')"
+                            confirm="Are you sure you want to drop this student?"/>
+                    <button name="action_reinstate" string="Reinstate" type="object"
+                            class="btn-warning" invisible="status not in ('dropped', 'graduated')"
+                            confirm="Reinstate this student back to active/enrolled status?"/>
+                    <field name="status" widget="statusbar" statusbar_visible="enrolled,active,graduated,dropped,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="student_id"/>
+                        <h1>
+                            <field name="student_id" options="{'no_create': True}"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Enrollment">
+                            <field name="training_class_id"/>
+                            <field name="callsign"/>
+                            <field name="instructor_id" options="{'no_create': True}"/>
+                            <field name="status" readonly="1"/>
+                        </group>
+                        <group string="Progress">
+                            <field name="total_hours" widget="float_time"/>
+                            <field name="progression" widget="progressbar"/>
+                        </group>
+                        <group string="Dates">
+                            <field name="enrollment_date"/>
+                            <field name="graduation_date" invisible="status != 'graduated'"/>
+                            <field name="drop_date" invisible="status != 'dropped'"/>
+                        </group>
+                    </group>
+
+
+
+                    <notebook>
+                        <page string="Flight Hours" name="hours">
+                            <group col="2">
+                                <group string="Mandatory Syllabus" colspan="1">
+                                    <field name="required_hour_ids" nolabel="1" options="{'no_open': True}">
+                                        <list editable="bottom" create="false" delete="false" open_form_view="0" class="o_list_renderer_syllabus">
+                                            <field name="discipline_code" widget="badge" string="Disc."/>
+                                            <field name="flight_type_code" widget="badge" string="Type"/>
+                                            <field name="minimum_hours" widget="float_time"
+                                                   string="Req." readonly="1"/>
+                                            <field name="hours_logged" widget="float_time"
+                                                   string="Logged" sum="Total Syllabus"/>
+                                            <field name="progress_percentage" widget="progressbar"
+                                                   string="Progress"/>
+                                            <field name="discipline_id" column_invisible="1"/>
+                                            <field name="flight_type_id" column_invisible="1"/>
+                                        </list>
+                                    </field>
+                                </group>
+                                <group string="Additional Training" colspan="1">
+                                    <field name="extra_hour_ids" nolabel="1" context="{'default_is_extra': True}" options="{'no_open': True}">
+                                        <list editable="bottom" open_form_view="0">
+                                            <field name="is_extra" column_invisible="1"/>
+                                            <field name="discipline_id" string="Disc." required="1" options="{'no_open': True, 'no_create': True}"/>
+                                            <field name="flight_type_id" string="Type" required="1" options="{'no_open': True, 'no_create': True}"/>
+                                            <field name="hours_logged" widget="float_time"
+                                                   string="Hrs" sum="Total Extra"/>
+                                        </list>
+                                    </field>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Enrollment notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_student_enrollment_kanban" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.kanban</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="training_class_id" class="o_kanban_small_column">
+                <field name="id"/>
+                <field name="student_id"/>
+                <field name="student_name"/>
+                <field name="status"/>
+                <field name="callsign"/>
+                <field name="instructor_id"/>
+                <field name="total_hours"/>
+                <field name="progression"/>
+                <field name="training_class_id"/>
+                <progressbar field="status" colors='{"enrolled": "muted", "active": "info", "graduated": "success", "dropped": "danger", "cancelled": "muted"}'/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-baseline mb-1">
+                            <div class="d-flex align-items-baseline gap-1 overflow-hidden">
+                                <strong class="o_kanban_record_title text-truncate">
+                                    <field name="callsign"/>
+                                </strong>
+                                <span class="text-muted small text-truncate"> - <field name="student_name"/></span>
+                            </div>
+                            <field name="status" widget="badge"
+                                   decoration-success="status == 'graduated'"
+                                   decoration-info="status == 'active'"
+                                   decoration-muted="status in ('enrolled', 'cancelled')"
+                                   decoration-danger="status == 'dropped'"/>
+                        </div>
+                        <div class="o_kanban_record_body d-flex justify-content-between align-items-center text-muted small">
+                            <div class="text-truncate mr-2">
+                                <t t-if="record.instructor_id.raw_value">
+                                    <i class="fa fa-user me-1" title="Instructor"/>
+                                    <field name="instructor_id"/>
+                                </t>
+                            </div>
+                            <div class="text-nowrap ms-auto">
+                                <i class="fa fa-clock-o me-1" title="Flight Hours"/>
+                                <field name="total_hours" widget="float_time"/>
+                            </div>
+                        </div>
+                        <div class="o_kanban_record_bottom mt-1 pt-1 border-top">
+                            <field name="progression" widget="progressbar" class="w-100"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_student_enrollment_search" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.search</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="student_id"/>
+                <field name="training_class_id"/>
+                <field name="callsign"/>
+                <field name="instructor_id"/>
+                <separator/>
+                <filter name="enrolled" string="Enrolled" domain="[('status', '=', 'enrolled')]"/>
+                <filter name="active" string="Active" domain="[('status', '=', 'active')]"/>
+                <filter name="graduated" string="Graduated" domain="[('status', '=', 'graduated')]"/>
+                <filter name="dropped" string="Dropped" domain="[('status', '=', 'dropped')]"/>
+                <separator/>
+                <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Class" name="group_class" context="{'group_by': 'training_class_id'}"/>
+                <filter string="Instructor" name="group_instructor" context="{'group_by': 'instructor_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_student_enrollment" model="ir.actions.act_window">
+        <field name="name">Students</field>
+        <field name="res_model">fs.student.enrollment</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'search_default_active': 1, 'group_by': 'training_class_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No enrollments yet
+            </p>
+            <p>Enroll students in training classes to track their progress.</p>
+        </field>
+    </record>
+
+    <!-- Enrollment Hours Form View -->
+    <record id="view_enrollment_hours_form" model="ir.ui.view">
+        <field name="name">fs.enrollment.hours.form</field>
+        <field name="model">fs.enrollment.hours</field>
+        <field name="arch" type="xml">
+            <form string="Enrollment Flight Hour Details">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="discipline_id" readonly="not is_extra"/>
+                            <field name="flight_type_id" readonly="not is_extra"/>
+                            <field name="is_extra" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="hours_logged" widget="float_time"/>
+                            <field name="minimum_hours" widget="float_time" invisible="is_extra"/>
+                        </group>
+                    </group>
+                    <group invisible="is_extra">
+                        <field name="progress_percentage" widget="progressbar"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

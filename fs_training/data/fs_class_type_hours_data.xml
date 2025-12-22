@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Hour Requirements for PPL Course - Force load -->
+        <record id="ppl_hours_man_dual" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_ppl"/>
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+            <field name="minimum_hours">15.0</field>
+        </record>
+        <record id="ppl_hours_man_solo" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_ppl"/>
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+        <record id="ppl_hours_nav_dual" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_ppl"/>
+            <field name="discipline_id" ref="discipline_nav"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+        <record id="ppl_hours_nav_solo" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_ppl"/>
+            <field name="discipline_id" ref="discipline_nav"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+            <field name="minimum_hours">5.0</field>
+        </record>
+
+        <!-- Hour Requirements for Basic Training -->
+        <record id="basic_hours_man_dual" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+            <field name="minimum_hours">20.0</field>
+        </record>
+        <record id="basic_hours_man_solo" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="discipline_id" ref="discipline_man"/>
+            <field name="flight_type_id" ref="flight_type_solo"/>
+            <field name="minimum_hours">15.0</field>
+        </record>
+        <record id="basic_hours_nav_dual" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="discipline_id" ref="discipline_nav"/>
+            <field name="flight_type_id" ref="flight_type_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+    </data>
+</odoo>

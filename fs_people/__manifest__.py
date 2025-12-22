@@ -57,6 +57,7 @@ All personnel can optionally have Odoo user accounts for system access.
         'demo/fs_pilot_demo.xml',
         'demo/fs_student_demo.xml',
         'demo/fs_admin_staff_demo.xml',
+        'demo/fs_personal_new_demo.xml',
     ],
     'installable': True,
     'application': True,

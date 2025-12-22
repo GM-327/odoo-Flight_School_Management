@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Class Requirement Views -->
+
+    <!-- Tree View -->
+    <record id="view_class_requirement_tree" model="ir.ui.view">
+        <field name="name">fs.class.requirement.list</field>
+        <field name="model">fs.class.requirement</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="category"/>
+                <field name="is_military"/>
+                <field name="is_civilian"/>
+                <field name="is_default"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_class_requirement_form" model="ir.ui.view">
+        <field name="name">fs.class.requirement.form</field>
+        <field name="model">fs.class.requirement</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="category"/>
+                            <field name="is_default"/>
+                        </group>
+                        <group>
+                            <field name="is_military"/>
+                            <field name="is_civilian"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_class_requirement_search" model="ir.ui.view">
+        <field name="name">fs.class.requirement.search</field>
+        <field name="model">fs.class.requirement</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="category"/>
+                <filter name="military" string="Military" domain="[('is_military', '=', True)]"/>
+                <filter name="civilian" string="Civilian" domain="[('is_civilian', '=', True)]"/>
+                <separator/>
+                <filter name="medical" string="Medical" domain="[('category', '=', 'medical')]"/>
+                <filter name="license" string="License" domain="[('category', '=', 'license')]"/>
+                <filter name="qualification" string="Qualification" domain="[('category', '=', 'qualification')]"/>
+                <filter name="english" string="English" domain="[('category', '=', 'english')]"/>
+                <separator/>
+                <filter name="default" string="Default" domain="[('is_default', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_class_requirement" model="ir.actions.act_window">
+        <field name="name">Enrollment Requirements</field>
+        <field name="res_model">fs.class.requirement</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define enrollment requirements
+            </p>
+            <p>Requirements students must meet to enroll in a class.</p>
+        </field>
+    </record>
+</odoo>

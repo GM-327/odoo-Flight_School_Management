@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Menu Structure for fs_training
+    ==============================
+    Standalone app with its own menu structure.
+    -->
+
+    <!-- Root Menu: Training -->
+    <menuitem id="menu_training_root"
+              name="Training"
+              web_icon="fs_training,static/description/icon.svg"
+              sequence="25"/>
+
+    <!-- Main menu items -->
+    <menuitem id="menu_training_classes"
+              name="Training Classes"
+              parent="menu_training_root"
+              action="action_training_class"
+              sequence="10"/>
+
+    <menuitem id="menu_enrollments"
+              name="Students"
+              parent="menu_training_root"
+              action="action_student_enrollment"
+              sequence="20"/>
+
+    <!-- Configuration submenu -->
+    <menuitem id="menu_config_training"
+              name="Configuration"
+              parent="menu_training_root"
+              sequence="999"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_class_types"
+              name="Class Types"
+              parent="menu_config_training"
+              action="action_class_type"
+              sequence="10"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_flight_disciplines"
+              name="Flight Disciplines"
+              parent="menu_config_training"
+              action="action_flight_discipline"
+              sequence="20"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_flight_types"
+              name="Flight Types"
+              parent="menu_config_training"
+              action="action_flight_type"
+              sequence="30"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_requirements"
+              name="Enrollment Requirements"
+              parent="menu_config_training"
+              action="action_class_requirement"
+              sequence="40"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_flight_missions"
+              name="Flight Missions"
+              parent="menu_config_training"
+              action="action_flight_mission"
+              sequence="50"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_config_admin_task_templates"
+              name="Admin Task Templates"
+              parent="menu_config_training"
+              action="action_admin_task_template"
+              sequence="60"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <!-- Admin Tasks (main menu) -->
+    <menuitem id="menu_admin_tasks"
+              name="Admin Tasks"
+              parent="menu_training_root"
+              action="action_admin_task"
+              sequence="30"/>
+
+</odoo>

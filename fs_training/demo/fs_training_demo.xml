@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Demo Classes -->
+        <record id="training_class_demo_1" model="fs.training.class">
+            <field name="name">CPL Class 25A</field>
+            <field name="code">CPL25A</field>
+            <field name="class_type_id" ref="fs_training.class_type_cpl"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(weeks=4)).strftime('%Y-%m-%d')"/>
+            <field name="status">in_progress</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da40')), (4, ref('fs_fleet.aircraft_type_c172'))]"/>
+        </record>
+
+        <record id="training_class_demo_2" model="fs.training.class">
+            <field name="name">Advanced Pilot Course 25-1</field>
+            <field name="code">ADV25-1</field>
+            <field name="class_type_id" ref="fs_training.class_type_advanced"/>
+            <field name="start_date" eval="(datetime.now() + relativedelta(weeks=1)).strftime('%Y-%m-%d')"/>
+            <field name="status">draft</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da42')), (4, ref('fs_fleet.aircraft_type_fnpt2'))]"/>
+        </record>
+
+        <!-- Enrollments for Demo 1 (In Progress) -->
+        <record id="enrollment_demo_new_1" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_new_1"/>
+            <field name="training_class_id" ref="training_class_demo_1"/>
+            <field name="callsign">CPL25A-01</field>
+            <field name="instructor_id" ref="fs_people.instructor_demo_new_2"/>
+            <field name="status">active</field>
+        </record>
+
+        <record id="enrollment_demo_new_2" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_new_2"/>
+            <field name="training_class_id" ref="training_class_demo_1"/>
+            <field name="callsign">CPL25A-02</field>
+            <field name="instructor_id" ref="fs_people.instructor_demo_new_1"/>
+            <field name="status">active</field>
+        </record>
+
+        <!-- Enrollments for Demo 2 (Draft) -->
+        <record id="enrollment_demo_new_3" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_new_3"/>
+            <field name="training_class_id" ref="training_class_demo_2"/>
+            <field name="callsign">ADV25-01</field>
+            <field name="status">enrolled</field>
+        </record>
+    </data>
+</odoo>

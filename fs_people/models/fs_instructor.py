@@ -19,6 +19,18 @@ class FsInstructor(models.Model):
         string='Callsign',
         help="Callsign for the instructor.",
     )
+    display_name = fields.Char(
+        string='Display Name',
+        compute='_compute_display_name',
+    )
+
+    @api.depends('name', 'callsign')
+    def _compute_display_name(self):
+        for record in self:
+            if record.callsign:
+                record.display_name = f"[{record.callsign}] {record.name}"  # type: ignore
+            else:
+                record.display_name = record.name or ''  # type: ignore
 
     # === License & Qualifications ===
     license_id = fields.Many2one(
@@ -157,3 +169,55 @@ class FsInstructor(models.Model):
         string='Total Instruction Hours',
         help="Total logged instruction hours.",
     )
+
+    # === Assigned Students ===
+    assigned_student_count = fields.Integer(
+        string='Assigned Students',
+        compute='_compute_assigned_student_count',
+        help="Number of active students currently assigned to this instructor.",
+    )
+    student_capacity_reached = fields.Boolean(
+        string='Capacity Reached',
+        compute='_compute_assigned_student_count',
+        help="True if the instructor has reached their maximum student limit.",
+    )
+
+    def _compute_assigned_student_count(self):
+        """Compute count of active students assigned to this instructor."""
+        # Use runtime model lookup to avoid circular dependency
+        Enrollment = self.env.get('fs.student.enrollment')
+        for record in self:
+            if Enrollment:
+                count = Enrollment.search_count([
+                    ('instructor_id', '=', record.id),
+                    ('status', '=', 'active'),
+                ])
+                record.assigned_student_count = count
+                record.student_capacity_reached = count >= record.max_students
+            else:
+                record.assigned_student_count = 0
+                record.student_capacity_reached = False
+
+    def action_view_assigned_students(self):
+        """Open list of active students assigned to this instructor."""
+        self.ensure_one()
+        # Check if fs_training module is installed (provides fs.student.enrollment)
+        if not self.env.get('fs.student.enrollment'):
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Module Not Installed',
+                    'message': 'The Training module (fs_training) is required to view student enrollments.',
+                    'type': 'warning',
+                    'sticky': False,
+                },
+            }
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Students assigned to {self.display_name}',
+            'res_model': 'fs.student.enrollment',  # type: ignore[cross-module-optional]
+            'view_mode': 'list,form',
+            'domain': [('instructor_id', '=', self.id), ('status', '=', 'active')],
+            'context': {'default_instructor_id': self.id},
+        }

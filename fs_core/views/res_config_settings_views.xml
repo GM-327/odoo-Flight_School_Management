@@ -58,9 +58,14 @@
                         </setting>
                         
                         <h2>Civilian Requirements</h2>
-                        <setting string="Insurance &amp; Security Clearance Warning" help="Days before insurance/security clearance expiry to show warning (civilians)">
+                        <setting string="Insurance Warning" help="Days before insurance expiry to show warning (civilians)">
                             <div class="text-muted">
                                 Show warning <field name="fs_insurance_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                            </div>
+                        </setting>
+                        <setting string="Security Clearance Warning" help="Days before security clearance expiry to show warning (civilians)">
+                            <div class="text-muted">
+                                Show warning <field name="fs_security_warning_days" class="o_field_integer oe_inline"/> days before expiry
                             </div>
                         </setting>
                     </block>

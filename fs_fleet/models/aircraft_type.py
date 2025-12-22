@@ -109,6 +109,10 @@ class AircraftType(models.Model):
         string='Sequence',
         default=10,
     )
+    color = fields.Integer(
+        string='Color',
+        default=0,
+    )
     active = fields.Boolean(
         string='Active',
         default=True,

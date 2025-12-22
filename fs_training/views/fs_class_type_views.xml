@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Class Type Views -->
+
+    <!-- Tree View -->
+    <record id="view_class_type_tree" model="ir.ui.view">
+        <field name="name">fs.class.type.list</field>
+        <field name="model">fs.class.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="color" widget="color_picker"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="is_military" widget="boolean_toggle"/>
+                <field name="for_licensed_personnel" widget="boolean_toggle"/>
+                <field name="duration_value"/>
+                <field name="duration_unit"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_class_type_form" model="ir.ui.view">
+        <field name="name">fs.class.type.form</field>
+        <field name="model">fs.class.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Class Type Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="code"/>
+                            <field name="color" widget="color_picker"/>
+                            <field name="is_military"/>
+                            <field name="for_licensed_personnel"/>
+                            <label for="duration_value" string="Typical Duration"/>
+                            <div class="o_row">
+                                <field name="duration_value" class="oe_inline"/>
+                                <field name="duration_unit" class="oe_inline"/>
+                            </div>
+                            <field name="reference_document"/>
+                        </group>
+                        <group string="Resources">
+                            <field name="aircraft_type_ids" widget="many2many_tags"/>
+                            <field name="requirement_ids" widget="many2many_tags" 
+                                   domain="for_licensed_personnel and [(is_military and 'is_military' or 'is_civilian', '=', True)] or [(is_military and 'is_military' or 'is_civilian', '=', True), ('category', 'not in', ['english', 'qualification'])]"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Hour Requirements" name="hours">
+                            <field name="hour_requirement_ids">
+                                <list editable="bottom">
+                                    <field name="discipline_id"/>
+                                    <field name="flight_type_id"/>
+                                    <field name="minimum_hours" widget="float_time"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Flight Missions" name="missions">
+                            <field name="flight_mission_ids">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="discipline_id"/>
+                                    <field name="flight_type_id"/>
+                                    <field name="mission_type" widget="badge"/>
+                                    <field name="duration_hours" widget="float_time"/>
+                                    <button name="action_duplicate_mission" type="object" icon="fa-copy" title="Duplicate Mission"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Admin Tasks" name="tasks">
+                            <field name="admin_task_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="template_id"/>
+                                    <field name="template_description" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" nolabel="1" placeholder="Class type description..."/>
+                        </page>
+                    </notebook>
+                    <field name="active" invisible="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_class_type_search" model="ir.ui.view">
+        <field name="name">fs.class.type.search</field>
+        <field name="model">fs.class.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="military" string="Military" domain="[('is_military', '=', True)]"/>
+                <filter name="civilian" string="Civilian" domain="[('is_military', '=', False)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_class_type" model="ir.actions.act_window">
+        <field name="name">Class Types</field>
+        <field name="res_model">fs.class.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define class types
+            </p>
+            <p>Class types are templates for training classes with requirements and syllabus.</p>
+        </field>
+    </record>
+</odoo>

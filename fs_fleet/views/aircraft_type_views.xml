@@ -16,6 +16,7 @@
                 <field name="name"/>
                 <field name="code" optional="show"/>
                 <field name="category_id"/>
+                <field name="color" widget="color_picker"/>
                 <field name="engine_count" optional="hide"/>
                 <field name="engine_type" optional="hide"/>
                 <field name="is_complex" widget="boolean_toggle"/>
@@ -49,6 +50,7 @@
                             <field name="category_id"/>
                             <field name="code" placeholder="ICAO code"/>
                             <field name="suitable_for_training"/>
+                            <field name="color" widget="color_picker"/>
                             <field name="aircraft_count" string="In Fleet"/>
                             <field name="active"/>
                         </group>

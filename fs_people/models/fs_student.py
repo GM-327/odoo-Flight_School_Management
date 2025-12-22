@@ -120,7 +120,7 @@ class FsStudent(models.Model):
     def _compute_security_clearance_status(self):
         """Compute security clearance status based on expiry date."""
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.insurance_warning_days', '30'))
+            'flight_school.security_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
         
@@ -171,6 +171,9 @@ class FsStudent(models.Model):
         string='Solo Hours',
         help="Total solo flight hours.",
     )
+
+    # Enrollment availability logic moved to fs_training module
+
     
 
 
