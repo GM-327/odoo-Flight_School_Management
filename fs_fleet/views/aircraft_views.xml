@@ -67,8 +67,8 @@
                     <field name="status" widget="statusbar" statusbar_visible="available,in_use,maintenance,grounded"/>
                 </header>
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
-                    <widget name="web_ribbon" title="Grounded" bg_color="text-bg-warning" invisible="status != 'grounded'"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Grounded" bg_color="bg-warning" invisible="status != 'grounded'"/>
                     <field name="image" widget="image" class="oe_avatar" options="{'size': [128, 128]}"/>
                     <div class="oe_title">
                         <label for="registration"/>
@@ -91,26 +91,27 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Hours &amp; Maintenance" name="hours">
+                        <page string="Maintenance &amp; Hours" name="hours">
                             <group>
-                                <group string="Flight Hours">
+                                <group string="Current Usage">
                                     <field name="total_hours" widget="float_time"/>
                                     <field name="hours_since_overhaul" widget="float_time"/>
                                 </group>
-                                <group string="Maintenance">
+                                <group string="Maintenance Status">
                                     <field name="last_maintenance_date"/>
                                     <label for="next_maintenance_date"/>
                                     <div class="o_row">
-                                        <field name="next_maintenance_date" nolabel="1"/>
+                                        <field name="next_maintenance_date" nolabel="1" class="fw-bold"/>
                                         <field name="maintenance_date_status" widget="badge" nolabel="1"
                                                decoration-success="maintenance_date_status == 'ok'"
                                                decoration-warning="maintenance_date_status == 'due_soon'"
                                                decoration-danger="maintenance_date_status == 'overdue'"/>
                                     </div>
+                                    <separator string="Hour Thresholds" class="mt-3"/>
                                     <field name="maintenance_due_at_hours" widget="float_time"/>
                                     <label for="remaining_maintenance_hours"/>
                                     <div class="o_row">
-                                        <field name="remaining_maintenance_hours" widget="float_time" readonly="1" nolabel="1"/>
+                                        <field name="remaining_maintenance_hours" widget="float_time" readonly="1" nolabel="1" class="fw-bold text-primary"/>
                                         <field name="maintenance_hour_status" widget="badge" nolabel="1"
                                                decoration-success="maintenance_hour_status == 'ok'"
                                                decoration-warning="maintenance_hour_status == 'due_soon'"
@@ -119,21 +120,20 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Certificates &amp; Insurance" name="certificates">
+                        <page string="Documents &amp; Insurance" name="certificates">
                             <group>
-                                <group string="Insurance">
+                                <group string="Insurance Policy">
                                     <field name="insurance_policy"/>
-                                    <field name="insurance_expiry"/>
+                                    <field name="insurance_expiry" decoration-danger="maintenance_date_status == 'overdue'"/> <!-- Just for coloring if expired -->
                                 </group>
-                                <group string="Airworthiness">
+                                <group string="Technical Certificates">
                                     <field name="cof_a_expiry"/>
                                     <field name="arc_expiry"/>
                                 </group>
                             </group>
                         </page>
-
-                        <page string="Notes" name="notes">
-                            <field name="notes" placeholder="General notes about this aircraft..."/>
+                        <page string="Internal Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Detailed aircraft history and internal observations..."/>
                         </page>
                     </notebook>
                 </sheet>

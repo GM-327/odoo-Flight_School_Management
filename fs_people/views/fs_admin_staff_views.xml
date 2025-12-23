@@ -6,13 +6,13 @@
         <field name="model">fs.admin.staff</field>
         <field name="arch" type="xml">
             <list>
-                <field name="service_number" optional="show"/>
                 <field name="name"/>
                 <field name="rank_id" optional="show"/>
                 <field name="department" optional="show"/>
                 <field name="position" optional="show"/>
+                <field name="service_number" optional="hide"/>
                 <field name="phone" optional="show"/>
-                <field name="has_user" widget="boolean" optional="show"/>
+                <field name="has_user" widget="boolean" optional="hide"/>
             </list>
         </field>
     </record>

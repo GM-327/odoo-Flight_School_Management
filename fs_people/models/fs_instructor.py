@@ -83,6 +83,19 @@ class FsInstructor(models.Model):
                 badges.append(badge_html)
             record.qualification_badges = ''.join(badges) if badges else ''
 
+    def action_view_qualifications(self):
+        """Navigate to the detailed qualifications list in a popup."""
+        self.ensure_one()
+        return {
+            'name': 'Qualifications & Ratings',
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.person.qualification',
+            'view_mode': 'list',
+            'domain': [('id', 'in', self.qualification_ids.ids)],
+            'context': {'default_instructor_id': self.id},
+            'target': 'new',
+        }
+
     has_expired_qualification = fields.Boolean(
         string='Has Expired Qualification',
         compute='_compute_has_expired_qualification',
@@ -169,6 +182,63 @@ class FsInstructor(models.Model):
         string='Total Instruction Hours',
         help="Total logged instruction hours.",
     )
+    
+    hours_current_month = fields.Float(
+        string='Hours (Current Month)',
+        compute='_compute_rolling_hours',
+        help="Instruction hours logged in the current calendar month.",
+    )
+    hours_3months = fields.Float(
+        string='Hours (Rolling 3 Months)',
+        compute='_compute_rolling_hours',
+        help="Instruction hours logged in the current and previous two months.",
+    )
+    
+    hours_current_month_status = fields.Selection(
+        selection=[('ok', 'OK'), ('warning', 'Near Limit'), ('danger', 'Over Limit')],
+        compute='_compute_rolling_hours_status',
+    )
+    hours_3months_status = fields.Selection(
+        selection=[('ok', 'OK'), ('warning', 'Near Limit'), ('danger', 'Over Limit')],
+        compute='_compute_rolling_hours_status',
+    )
+
+    def _compute_rolling_hours(self):
+        """Compute monthly and 3-month rolling hours.
+        Note: Currently returns 0.0 as the individual flight log model is not yet integrated.
+        """
+        for record in self:
+            # Placeholder for future integration with fs.flight.log
+            record.hours_current_month = 0.0
+            record.hours_3months = 0.0
+
+    @api.depends('hours_current_month', 'max_hours_per_month', 'hours_3months', 'max_hours_per_3months')
+    def _compute_rolling_hours_status(self):
+        """Compute status based on percentage of max hours."""
+        for record in self:
+            # Current Month Status
+            if record.max_hours_per_month > 0:
+                ratio = record.hours_current_month / record.max_hours_per_month
+                if ratio >= 1.0:
+                    record.hours_current_month_status = 'danger'
+                elif ratio >= 0.8:
+                    record.hours_current_month_status = 'warning'
+                else:
+                    record.hours_current_month_status = 'ok'
+            else:
+                record.hours_current_month_status = 'ok'
+                
+            # 3-Month Status
+            if record.max_hours_per_3months > 0:
+                ratio = record.hours_3months / record.max_hours_per_3months
+                if ratio >= 1.0:
+                    record.hours_3months_status = 'danger'
+                elif ratio >= 0.8:
+                    record.hours_3months_status = 'warning'
+                else:
+                    record.hours_3months_status = 'ok'
+            else:
+                record.hours_3months_status = 'ok'
 
     # === Assigned Students ===
     # These fields are and logic are handled in the fs_training module

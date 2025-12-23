@@ -80,6 +80,19 @@ class FsPilot(models.Model):
                 )
                 badges.append(badge_html)
             record.qualification_badges = ''.join(badges) if badges else ''
+
+    def action_view_qualifications(self):
+        """Navigate to the detailed qualifications list in a popup."""
+        self.ensure_one()
+        return {
+            'name': 'Qualifications & Ratings',
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.person.qualification',
+            'view_mode': 'list',
+            'domain': [('id', 'in', self.qualification_ids.ids)],
+            'context': {'default_pilot_id': self.id},
+            'target': 'new',
+        }
     
     @api.depends('qualification_ids.expiry_status', 'medical_status', 'english_status', 
                  'security_clearance_status', 'insurance_status')

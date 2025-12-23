@@ -33,7 +33,7 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
                     <field name="image" widget="image" class="oe_avatar" options="{'size': [128, 128]}"/>
                     <div class="oe_title">
                         <label for="manufacturer"/>
@@ -61,17 +61,23 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Specifications" name="specs">
-                            <group string="Characteristics">
-                                <field name="seats"/>
-                                <field name="is_complex"/>
+                        <page string="Technical Specs" name="specs">
+                            <group>
+                                <group string="Airframe &amp; Systems">
+                                    <field name="seats"/>
+                                    <field name="is_complex" widget="boolean_toggle"/>
+                                </group>
+                                <group string="Performance Profile">
+                                    <field name="is_high_performance" widget="boolean_toggle"/>
+                                    <field name="suitable_for_training" widget="boolean_toggle"/>
+                                </group>
                             </group>
                         </page>
                         <page string="Training Notes" name="training">
-                            <field name="training_notes" placeholder="Notes about using this aircraft for training..."/>
+                            <field name="training_notes" nolabel="1" placeholder="Add specific guidance for student pilots using this aircraft type..."/>
                         </page>
-                        <page string="Description" name="description">
-                            <field name="description" placeholder="Detailed description of this aircraft type..."/>
+                        <page string="Detailed Description" name="description">
+                            <field name="description" nolabel="1" placeholder="Add a comprehensive description, history, or technical summary..."/>
                         </page>
                     </notebook>
                 </sheet>

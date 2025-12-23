@@ -5,7 +5,7 @@
         <field name="name">fs.pilot.list</field>
         <field name="model">fs.pilot</field>
         <field name="arch" type="xml">
-            <list decoration-danger="has_expired_qualification" decoration-success="not has_expired_qualification">
+            <list decoration-danger="has_expired_qualification" decoration-success="has_expired_qualification == False">
                 <field name="has_expired_qualification" column_invisible="1"/>
                 <field name="callsign" optional="show"/>
                 <field name="name"/>
@@ -38,130 +38,184 @@
                             invisible="not has_user"/>
                 </header>
                 <sheet>
+                    <field name="has_expired_qualification" invisible="1"/>
+                    <div class="alert alert-danger text-center o_form_header shadow-sm mb-3" invisible="has_expired_qualification == False" role="alert">
+                        <i class="fa fa-exclamation-triangle me-2" title="Warning"/> 
+                        <strong>Attention Required:</strong> This pilot has expired or expiring qualifications or medical/compliance documents.
+                    </div>
+
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_user" type="object" 
                                 class="oe_stat_button" icon="fa-user"
                                 invisible="not has_user">
                             <div class="o_stat_info">
-                                <span class="o_stat_text">User Account</span>
+                                <span class="o_stat_text">User Profile</span>
                             </div>
                         </button>
                     </div>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
-                    <field name="image" widget="image" class="oe_avatar" options="{'size': [128, 128]}"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    
+                    <field name="image" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'image_128'}"/>
+                    
                     <div class="oe_title">
-                        <label for="name"/>
+                        <label for="name" class="oe_edit_only"/>
                         <h1>
-                            <field name="name" placeholder="Full Name"/>
+                            <field name="name" placeholder="Pilot Full Name"/>
                         </h1>
+                        <label for="callsign" class="oe_edit_only"/>
                         <h2>
-                            <field name="callsign" placeholder="Callsign"/>
+                            <field name="callsign" placeholder="e.g. 123"/>
                         </h2>
                     </div>
-                    <group>
-                        <group>
-                            <field name="license_id"/>
-                            <field name="license_number"/>
-                            <field name="rank_id" invisible="not is_military"/>
-                        </group>
-                        <group>
-                            <field name="total_flight_hours" widget="float_time"/>
-                            <field name="advance_payment"/>
-                            <field name="is_military" invisible="1"/>
-                            <field name="currency_id" invisible="1"/>
-                        </group>
-                    </group>
+
+                    <div class="mb-3 p-2 bg-light border rounded shadow-sm">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <div class="text-center flex-fill" >
+                                <field name="medical_status" invisible="1"/>
+                                <i class="fa fa-medkit fa-2x mb-1 text-danger" title="Medical Expired" invisible="medical_status != 'expired'"/>
+                                <i class="fa fa-medkit fa-2x mb-1 text-warning" title="Medical Expiring" invisible="medical_status != 'expiring'"/>
+                                <i class="fa fa-medkit fa-2x mb-1 text-success" title="Medical Valid" invisible="medical_status != 'valid'"/>
+                                <i class="fa fa-medkit fa-2x mb-1 text-muted" title="Medical No Info" invisible="medical_status != 'no_expiry'"/>
+                                <div class="h6 fw-bold mb-0">Medical</div>
+                                <div class="small text-muted"><field name="medical_expiry" nolabel="1"/></div>
+                            </div>
+                            <div class="text-center flex-fill border-start ps-4">
+                                <field name="english_status" invisible="1"/>
+                                <i class="fa fa-language fa-2x mb-1 text-danger" title="English Expired" invisible="english_status != 'expired'"/>
+                                <i class="fa fa-language fa-2x mb-1 text-warning" title="English Expiring" invisible="english_status != 'expiring'"/>
+                                <i class="fa fa-language fa-2x mb-1 text-success" title="English Valid" invisible="english_status != 'valid'"/>
+                                <i class="fa fa-language fa-2x mb-1 text-muted" title="English No Info" invisible="english_status != 'no_expiry'"/>
+                                <div class="h6 fw-bold mb-0">English</div>
+                                <div class="small text-muted"><field name="english_expiry" nolabel="1"/></div>
+                            </div>
+                            <div class="text-center flex-fill border-start ps-4" invisible="is_military">
+                                <field name="security_clearance_status" invisible="1"/>
+                                <i class="fa fa-shield fa-2x mb-1 text-danger" title="Security Expired" invisible="security_clearance_status != 'expired'"/>
+                                <i class="fa fa-shield fa-2x mb-1 text-warning" title="Security Expiring" invisible="security_clearance_status != 'expiring'"/>
+                                <i class="fa fa-shield fa-2x mb-1 text-success" title="Security Valid" invisible="security_clearance_status != 'valid'"/>
+                                <i class="fa fa-shield fa-2x mb-1 text-muted" title="Security No Info" invisible="security_clearance_status != 'no_expiry'"/>
+                                <div class="h6 fw-bold mb-0">Security</div>
+                                <div class="small text-muted"><field name="security_clearance_expiry" nolabel="1"/></div>
+                            </div>
+                            <div class="text-center flex-fill border-start ps-4" invisible="is_military">
+                                <field name="insurance_status" invisible="1"/>
+                                <i class="fa fa-umbrella fa-2x mb-1 text-danger" title="Insurance Expired" invisible="insurance_status != 'expired'"/>
+                                <i class="fa fa-umbrella fa-2x mb-1 text-warning" title="Insurance Expiring" invisible="insurance_status != 'expiring'"/>
+                                <i class="fa fa-umbrella fa-2x mb-1 text-success" title="Insurance Valid" invisible="insurance_status != 'valid'"/>
+                                <i class="fa fa-umbrella fa-2x mb-1 text-muted" title="Insurance No Info" invisible="insurance_status != 'no_expiry'"/>
+                                <div class="h6 fw-bold mb-0">Insurance</div>
+                                <div class="small text-muted"><field name="insurance_expiry" nolabel="1"/></div>
+                            </div>
+                        </div>
+                        <button name="action_view_qualifications" type="object" 
+                                class="mt-4 pt-3 border-top text-center w-100 bg-transparent border-start-0 border-end-0 border-bottom-0 shadow-none" 
+                                style="cursor: pointer;"
+                                invisible="not qualification_ids">
+                            <div class="text-uppercase small fw-bold text-muted mb-2">Active Ratings &amp; Qualifications</div>
+                            <field name="qualification_badges" nolabel="1"/>
+                        </button>
+                    </div>
+
                     <notebook>
-                        <page string="Personal" name="personal">
+                        <page string="Overview" name="dashboard">
                             <group>
-                                <group string="Personal Information">
-                                    <field name="gender" widget="radio"/>
-                                    <field name="birth_date"/>
-                                    <field name="nationality_id"/>
-                                    <field name="identification_number"/>
-                                    <field name="phone"/>
-                                </group>
-                                <group string="Military Information">
+                                <group string="Identity &amp; Military" name="military">
                                     <field name="is_military"/>
-                                    <field name="rank_id" invisible="not is_military"/>
+                                    <field name="rank_id" options="{'no_create': True}" invisible="not is_military"/>
                                     <field name="service_number" invisible="not is_military"/>
                                 </group>
-                            </group>
-                            <group string="Address">
-                                <field name="address" nolabel="1" colspan="2"/>
-                            </group>
-                        </page>
-                        <page string="License &amp; Qualifications" name="license">
-                            <group>
-                                <group string="License">
-                                    <field name="license_id"/>
-                                    <field name="license_number"/>
-                                    <field name="license_issue_date"/>
-                                </group>
-                                <group string="English Proficiency">
-                                    <field name="english_level_id"/>
-                                    <label for="english_expiry" string="English Expiry"/>
-                                    <div class="o_row">
-                                        <field name="english_expiry" nolabel="1" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'"/>
-                                        <field name="english_status" widget="badge" invisible="english_status == 'valid'" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'" nolabel="1"/>
-                                    </div>
-                                </group>
-                            </group>
-                            <separator string="Qualifications"/>
-                            <field name="qualification_ids" nolabel="1">
-                                <list editable="bottom" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'" decoration-success="expiry_status == 'valid'" decoration-muted="expiry_status == 'no_expiry'">
-                                    <field name="qualification_id"/>
-                                    <field name="qualification_code" optional="show"/>
-                                    <field name="issue_date"/>
-                                    <field name="expiry_date"/>
-                                    <field name="expiry_status" widget="badge" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'" decoration-success="expiry_status == 'valid'" decoration-muted="expiry_status == 'no_expiry'"/>
-                                    <field name="notes" optional="hide"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Medical" name="medical">
-                            <group>
-                                <group string="Medical Certificate">
-                                    <field name="medical_class_id"/>
-                                    <label for="medical_expiry" string="Medical Expiry"/>
-                                    <div class="o_row">
-                                        <field name="medical_expiry" nolabel="1" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'"/>
-                                        <field name="medical_status" widget="badge" invisible="medical_status == 'valid'" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'" nolabel="1"/>
-                                    </div>
-                                </group>
-                            </group>
-                        </page>
-                        <page string="Civilian Requirements" name="civilian" invisible="is_military">
-                            <group>
-                                <group string="Clearances &amp; Insurance">
-                                    <label for="security_clearance_expiry" string="Security Clearance Expiry"/>
-                                    <div class="o_row">
-                                        <field name="security_clearance_expiry" nolabel="1" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'"/>
-                                        <field name="security_clearance_status" widget="badge" invisible="security_clearance_status == 'valid'" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'" decoration-success="security_clearance_status == 'valid'" decoration-muted="security_clearance_status == 'no_expiry'" nolabel="1"/>
-                                    </div>
-                                    <label for="insurance_expiry" string="Insurance Expiry"/>
-                                    <div class="o_row">
-                                        <field name="insurance_expiry" nolabel="1" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'"/>
-                                        <field name="insurance_status" widget="badge" invisible="insurance_status == 'valid'" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'" nolabel="1"/>
-                                    </div>
-                                </group>
-                                <group string="Financial">
-                                    <field name="advance_payment"/>
+                                <group string="" name="stats">
+                                    <field name="phone"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                    <field name="total_flight_hours" widget="float_time"/>
+                                    <field name="advance_payment" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                                     <field name="currency_id" invisible="1"/>
                                 </group>
                             </group>
                         </page>
-                        <page string="System" name="system">
+
+                        <page string="License &amp; Ratings" name="license">
                             <group>
-                                <group string="System Access">
+                                <group string="Primary License">
+                                    <field name="license_id" options="{'no_create': True}"/>
+                                    <field name="license_number"/>
+                                    <field name="license_issue_date"/>
+                                </group>
+                                <group string="Language Settings">
+                                    <field name="english_level_id" options="{'no_create': True}"/>
+                                    <label for="english_expiry"/>
+                                    <div class="o_row">
+                                        <field name="english_expiry" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'"/>
+                                        <field name="english_status" widget="badge" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'"/>
+                                    </div>
+                                </group>
+                            </group>
+                            <separator string="Additional Ratings &amp; Qualifications" class="mt-4"/>
+                            <field name="qualification_ids" nolabel="1">
+                                <list editable="bottom" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'" decoration-success="expiry_status == 'valid'">
+                                    <field name="qualification_id" options="{'no_create': True}"/>
+                                    <field name="qualification_code"/>
+                                    <field name="issue_date"/>
+                                    <field name="expiry_date"/>
+                                    <field name="expiry_status" widget="badge" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'" decoration-success="expiry_status == 'valid'" decoration-muted="expiry_status == 'no_expiry'"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Compliance &amp; Medical" name="compliance">
+                            <group>
+                                <group string="Medical Certificate">
+                                    <field name="medical_class_id" options="{'no_create': True}"/>
+                                    <label for="medical_expiry"/>
+                                    <div class="o_row">
+                                        <field name="medical_expiry" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'"/>
+                                        <field name="medical_status" widget="badge" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
+                                    </div>
+                                </group>
+                                <group string="Civilian Compliance" invisible="is_military">
+                                    <label for="security_clearance_expiry"/>
+                                    <div class="o_row">
+                                        <field name="security_clearance_expiry" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'"/>
+                                        <field name="security_clearance_status" widget="badge" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'" decoration-success="security_clearance_status == 'valid'" decoration-muted="security_clearance_status == 'no_expiry'"/>
+                                    </div>
+                                    <label for="insurance_expiry"/>
+                                    <div class="o_row">
+                                        <field name="insurance_expiry" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'"/>
+                                        <field name="insurance_status" widget="badge" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'"/>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Personal Details" name="personal">
+                            <group>
+                                <group string="Identity">
+                                    <field name="gender" widget="radio" options="{'horizontal': true}"/>
+                                    <field name="birth_date"/>
+                                    <field name="nationality_id" options="{'no_create': True}"/>
+                                    <field name="identification_number"/>
+                                </group>
+                                <group string="Contact Info">
+                                    <field name="phone"/>
+                                    <field name="address" placeholder="Residential address..."/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Administration" name="system" groups="base.group_no_one">
+                            <group>
+                                <group string="System Links">
                                     <field name="user_id"/>
                                     <field name="has_user" invisible="1"/>
                                 </group>
                             </group>
                         </page>
-                        <page string="Notes" name="notes">
-                            <field name="notes" nolabel="1" placeholder="Additional notes..."/>
+
+                        <page string="Internal Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Add internal remarks here..."/>
                         </page>
+
                     </notebook>
                 </sheet>
                 <chatter/>

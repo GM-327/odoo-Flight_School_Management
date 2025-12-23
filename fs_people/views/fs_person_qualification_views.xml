@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Person Qualification Tree View -->
+    <record id="view_fs_person_qualification_tree" model="ir.ui.view">
+        <field name="name">fs.person.qualification.list</field>
+        <field name="model">fs.person.qualification</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" 
+                  decoration-danger="expiry_status == 'expired'" 
+                  decoration-warning="expiry_status == 'expiring'" 
+                  decoration-success="expiry_status == 'valid'">
+                <field name="qualification_id" options="{'no_create': True}"/>
+                <field name="qualification_code"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="expiry_status" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Person Qualification Action (to ensure the view is registered/used) -->
+    <record id="action_fs_person_qualification" model="ir.actions.act_window">
+        <field name="name">Qualifications &amp; Ratings</field>
+        <field name="res_model">fs.person.qualification</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_fs_person_qualification_tree"/>
+    </record>
+</odoo>

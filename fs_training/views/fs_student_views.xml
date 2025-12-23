@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Student Form View -->
+    <record id="view_fs_student_form_inherit_training" model="ir.ui.view">
+        <field name="name">fs.student.form.inherit.training</field>
+        <field name="model">fs.student</field>
+        <field name="inherit_id" ref="fs_people.view_fs_student_form"/>
+        <field name="arch" type="xml">
+            <!-- Add Stat Button for Enrolled Classes -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_enrolled_classes" type="object" 
+                        class="oe_stat_button" icon="fa-university">
+                    <div class="o_stat_info">
+                        <field name="enrollment_count" class="o_stat_value"/>
+                        <span class="o_stat_text">Classes</span>
+                    </div>
+                </button>
+            </xpath>
+            
+            <!-- Add Callsign subtitle -->
+            <xpath expr="//div[hasclass('oe_title')]/h1" position="after">
+                <label for="callsign" class="oe_edit_only" invisible="not callsign"/>
+                <h2 invisible="not callsign">
+                    <field name="callsign"/>
+                </h2>
+            </xpath>
+
+            <!-- Replace License Type with Current Class in Dashboard -->
+            <xpath expr="//div[hasclass('mb-3')][hasclass('p-2')]//field[@name='license_id']/ancestor::div[hasclass('col')]" position="replace">
+                <div class="col px-3 border-start" invisible="is_military">
+                    <div class="text-uppercase small fw-bold text-muted mb-1">Current Class</div>
+                    <div class="h4 mb-0 text-secondary text-nowrap">
+                        <field name="current_class_code" readonly="1"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

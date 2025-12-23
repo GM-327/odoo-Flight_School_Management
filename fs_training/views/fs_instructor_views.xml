@@ -25,21 +25,16 @@
                         class="oe_stat_button" icon="fa-users">
                     <div class="o_stat_info">
                         <span class="o_stat_value">
-                            <field name="assigned_student_count" class="d-inline"/>
-                            <span class="text-muted"> / </span>
-                            <field name="max_students" class="d-inline"/>
+                            <field name="assigned_student_count"/> / <field name="max_students"/>
                         </span>
                         <span class="o_stat_text">Students</span>
                     </div>
                 </button>
             </xpath>
 
-            <!-- Add Fields to Work Limits page -->
-            <xpath expr="//page[@name='limits']//group" position="inside">
-                <group string="Current Load">
-                    <field name="assigned_student_count" decoration-danger="student_capacity_reached"/>
-                    <field name="student_capacity_reached" invisible="1"/>
-                </group>
+            <!-- Hide boolean utility field -->
+            <xpath expr="//group[@name='capacity_limits']" position="inside">
+                <field name="student_capacity_reached" invisible="1"/>
             </xpath>
         </field>
     </record>

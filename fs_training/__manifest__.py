@@ -51,9 +51,15 @@ This module provides:
         # Views - Training
         'views/fs_training_class_views.xml',
         'views/fs_student_enrollment_views.xml',
+        'views/fs_student_views.xml',
         'views/fs_instructor_views.xml',
         'views/menu_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'fs_training/static/src/js/progress_bar_patch.js',
+        ],
+    },
     'demo': [
         'demo/fs_training_demo.xml',
     ],

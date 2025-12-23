@@ -11,10 +11,30 @@
                   decoration-info="status == 'active'"
                   decoration-muted="status in ('enrolled', 'cancelled')"
                   decoration-danger="status == 'dropped'">
+                <field name="callsign"/>
                 <field name="student_id"/>
                 <field name="training_class_id"/>
-                <field name="callsign"/>
                 <field name="instructor_id" optional="show"/>
+                <field name="medical_status" widget="badge" optional="show"
+                       decoration-danger="medical_status == 'expired'"
+                       decoration-warning="medical_status == 'expiring'"
+                       decoration-success="medical_status == 'valid'"
+                       decoration-muted="medical_status == 'no_expiry'"/>
+                <field name="license_expiry_status" widget="badge" optional="show"
+                       decoration-danger="license_expiry_status == 'expired'"
+                       decoration-warning="license_expiry_status == 'expiring'"
+                       decoration-success="license_expiry_status == 'valid'"
+                       decoration-muted="license_expiry_status == 'no_expiry'"/>
+                <field name="security_clearance_status" widget="badge" optional="hide"
+                       decoration-danger="security_clearance_status == 'expired'"
+                       decoration-warning="security_clearance_status == 'expiring'"
+                       decoration-success="security_clearance_status == 'valid'"
+                       decoration-muted="security_clearance_status == 'no_expiry'"/>
+                <field name="insurance_status" widget="badge" optional="hide"
+                       decoration-danger="insurance_status == 'expired'"
+                       decoration-warning="insurance_status == 'expiring'"
+                       decoration-success="insurance_status == 'valid'"
+                       decoration-muted="insurance_status == 'no_expiry'"/>
                 <field name="status" widget="badge"
                        decoration-success="status == 'graduated'"
                        decoration-info="status == 'active'"
@@ -44,62 +64,153 @@
                     <field name="status" widget="statusbar" statusbar_visible="enrolled,active,graduated,dropped,cancelled"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <label for="student_id"/>
-                        <h1>
-                            <field name="student_id" options="{'no_create': True}"/>
-                        </h1>
+                    <field name="has_expired_status" invisible="1"/>
+                    <div class="alert alert-danger text-center o_form_header" invisible="has_expired_status == False" role="alert">
+                        <i class="fa fa-exclamation-triangle me-1" title="Warning"/> 
+                        <strong>Attention:</strong> This student has expired or expiring documents (Medical, License, Security, or Insurance).
                     </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_student" type="object" 
+                                class="oe_stat_button" icon="fa-user">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Student</span>
+                                <span class="o_stat_text">Profile</span>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <field name="student_image" widget="image" class="oe_avatar" options="{'preview_image': 'student_image'}"/>
+                    
+                    <div class="oe_title">
+                        <label for="callsign" class="oe_edit_only"/>
+                        <h1>
+                            <field name="callsign" placeholder="e.g. CPL24A"/>
+                        </h1>
+                        <h2>
+                            <field name="student_id" placeholder="Select Student" options="{'no_create': True}"/>
+                        </h2>
+                    </div>
+
                     <group>
-                        <group string="Enrollment">
-                            <field name="training_class_id"/>
-                            <field name="callsign"/>
+                        <group string="General Information" name="main_info">
+                            <field name="training_class_id" options="{'no_create': True}"/>
                             <field name="instructor_id" options="{'no_create': True}"/>
-                            <field name="status" readonly="1"/>
+                            <field name="student_phone"/>
                         </group>
-                        <group string="Progress">
-                            <field name="total_hours" widget="float_time"/>
-                            <field name="progression" widget="progressbar"/>
+                        <group string="Training Progress" name="metrics">
+                            <label for="progression" string="Overall Completion"/>
+                            <div class="o_row">
+                                <field name="progression" widget="progressbar"/>
+                            </div>
+                            <field name="total_hours" widget="float_time" string="Total Logged Hours"/>
+                            <field name="remaining_hours" widget="float_time" invisible="progression == 100"/>
                         </group>
-                        <group string="Dates">
+                    </group>
+
+                    <group>
+                        <group string="Enrollment Lifecycle" name="dates">
                             <field name="enrollment_date"/>
                             <field name="graduation_date" invisible="status != 'graduated'"/>
                             <field name="drop_date" invisible="status != 'dropped'"/>
                         </group>
+                        <group string="Compliance Status" name="compliance">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="text-center flex-fill">
+                                    <field name="medical_status" invisible="1"/>
+                                    <i class="fa fa-medkit fa-2x mb-1 text-danger" title="Medical Expired" invisible="medical_status != 'expired'"/>
+                                    <i class="fa fa-medkit fa-2x mb-1 text-warning" title="Medical Expiring" invisible="medical_status != 'expiring'"/>
+                                    <i class="fa fa-medkit fa-2x mb-1 text-success" title="Medical Valid" invisible="medical_status != 'valid'"/>
+                                    <i class="fa fa-medkit fa-2x mb-1 text-muted" title="Medical No Info" invisible="medical_status != 'no_expiry'"/>
+                                    <div class="small fw-bold">Medical</div>
+                                </div>
+                                <div class="text-center flex-fill border-start ps-3">
+                                    <field name="license_expiry_status" invisible="1"/>
+                                    <i class="fa fa-id-card fa-2x mb-1 text-danger" title="License Expired" invisible="license_expiry_status != 'expired'"/>
+                                    <i class="fa fa-id-card fa-2x mb-1 text-warning" title="License Expiring" invisible="license_expiry_status != 'expiring'"/>
+                                    <i class="fa fa-id-card fa-2x mb-1 text-success" title="License Valid" invisible="license_expiry_status != 'valid'"/>
+                                    <i class="fa fa-id-card fa-2x mb-1 text-muted" title="License No Info" invisible="license_expiry_status != 'no_expiry'"/>
+                                    <div class="small fw-bold">License</div>
+                                </div>
+                                <div class="text-center flex-fill border-start ps-3">
+                                    <field name="security_clearance_status" invisible="1"/>
+                                    <i class="fa fa-shield fa-2x mb-1 text-danger" title="Security Expired" invisible="security_clearance_status != 'expired'"/>
+                                    <i class="fa fa-shield fa-2x mb-1 text-warning" title="Security Expiring" invisible="security_clearance_status != 'expiring'"/>
+                                    <i class="fa fa-shield fa-2x mb-1 text-success" title="Security Valid" invisible="security_clearance_status != 'valid'"/>
+                                    <i class="fa fa-shield fa-2x mb-1 text-muted" title="Security No Info" invisible="security_clearance_status != 'no_expiry'"/>
+                                    <div class="small fw-bold">Security</div>
+                                </div>
+                                <div class="text-center flex-fill border-start ps-3">
+                                    <field name="insurance_status" invisible="1"/>
+                                    <i class="fa fa-umbrella fa-2x mb-1 text-danger" title="Insurance Expired" invisible="insurance_status != 'expired'"/>
+                                    <i class="fa fa-umbrella fa-2x mb-1 text-warning" title="Insurance Expiring" invisible="insurance_status != 'expiring'"/>
+                                    <i class="fa fa-umbrella fa-2x mb-1 text-success" title="Insurance Valid" invisible="insurance_status != 'valid'"/>
+                                    <i class="fa fa-umbrella fa-2x mb-1 text-muted" title="Insurance No Info" invisible="insurance_status != 'no_expiry'"/>
+                                    <div class="small fw-bold">Insurance</div>
+                                </div>
+                            </div>
+                        </group>
                     </group>
 
-
-
                     <notebook>
-                        <page string="Flight Hours" name="hours">
-                            <group col="2">
-                                <group string="Mandatory Syllabus" colspan="1">
+                        <page string="Training Progress" name="hours">
+                            <div class="o_row d-flex justify-content-around mb-4 p-3 bg-light border border-dashed rounded shadow-sm">
+                                <div class="text-center">
+                                    <div class="text-muted small fw-bold mb-1">Overall Syllabus</div>
+                                    <div class="h4 mb-0"><field name="progression" widget="percentpie" style="width: 70px; height: 70px;"/></div>
+                                </div>
+                                <div class="text-center border-start ps-5">
+                                    <div class="text-muted small fw-bold mb-2">Total Logged</div>
+                                    <div class="h3 mb-0 text-primary fw-bolder"><field name="total_hours" widget="float_time"/></div>
+                                    <div class="small text-muted">Flight Hours</div>
+                                </div>
+                                <div class="text-center border-start ps-5">
+                                    <div class="text-muted small fw-bold mb-2">Remaining</div>
+                                    <div class="h3 mb-1 text-danger fw-bolder"><field name="remaining_hours" widget="float_time"/></div>
+                                    <field name="remaining_breakdown_html" nolabel="1"/>
+                                </div>
+                            </div>
+                            <group>
+                                <group string="Mandatory Syllabus Items">
                                     <field name="required_hour_ids" nolabel="1" options="{'no_open': True}">
-                                        <list editable="bottom" create="false" delete="false" open_form_view="0" class="o_list_renderer_syllabus">
+                                        <list editable="bottom" create="false" delete="false" open_form_view="0" 
+                                              decoration-success="progress_percentage == 100"
+                                              decoration-info="progress_percentage > 0 and progress_percentage &lt; 100"
+                                              class="o_list_renderer_syllabus">
                                             <field name="activity_id" options="{'no_open': True}"/>
-                                            <field name="minimum_hours" widget="float_time"
-                                                   string="Req." readonly="1"/>
-                                            <field name="hours_logged" widget="float_time"
-                                                   string="Logged" sum="Total Syllabus"/>
-                                            <field name="progress_percentage" widget="progressbar"
-                                                   string="Progress"/>
+                                            <field name="minimum_hours" widget="float_time" string="Req." readonly="1"/>
+                                            <field name="hours_logged" widget="float_time" string="Logged" sum="Total Syllabus"/>
+                                            <field name="remaining_hours" widget="float_time" string="Left" 
+                                                   decoration-danger="remaining_hours > 0" 
+                                                   decoration-success="remaining_hours == 0"/>
+                                            <field name="progress_percentage" widget="progressbar" string="Progress"/>
                                         </list>
                                     </field>
                                 </group>
-                                <group string="Additional Training" colspan="1">
+                                <group string="Additional Training">
                                     <field name="extra_hour_ids" nolabel="1" context="{'default_is_extra': True}" options="{'no_open': True}">
                                         <list editable="bottom" open_form_view="0">
                                             <field name="is_extra" column_invisible="1"/>
                                             <field name="activity_id" string="Activity" required="1" options="{'no_open': True, 'no_create': True}"/>
-                                            <field name="hours_logged" widget="float_time"
-                                                   string="Hrs" sum="Total Extra"/>
+                                            <field name="hours_logged" widget="float_time" string="Hrs" sum="Total Extra"/>
                                         </list>
                                     </field>
                                 </group>
                             </group>
                         </page>
-                        <page string="Notes" name="notes">
-                            <field name="notes" nolabel="1" placeholder="Enrollment notes..."/>
+                        <page string="Administrative History" name="history">
+                            <group>
+                                <group string="Enrollment Details">
+                                    <field name="enrollment_date"/>
+                                    <field name="status" widget="badge"/>
+                                </group>
+                                <group string="Completion &amp; Exit" invisible="status not in ('graduated', 'dropped')">
+                                    <field name="graduation_date" invisible="status != 'graduated'"/>
+                                    <field name="drop_date" invisible="status != 'dropped'"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Internal Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Add internal enrollment notes or behavioral observations..."/>
                         </page>
                     </notebook>
                 </sheet>
@@ -123,6 +234,10 @@
                 <field name="total_hours"/>
                 <field name="progression"/>
                 <field name="training_class_id"/>
+                <field name="medical_status"/>
+                <field name="license_expiry_status"/>
+                <field name="security_clearance_status"/>
+                <field name="insurance_status"/>
                 <progressbar field="status" colors='{"enrolled": "muted", "active": "info", "graduated": "success", "dropped": "danger", "cancelled": "muted"}'/>
                 <templates>
                     <t t-name="card">
@@ -133,11 +248,20 @@
                                 </strong>
                                 <span class="text-muted small text-truncate"> - <field name="student_name"/></span>
                             </div>
-                            <field name="status" widget="badge"
-                                   decoration-success="status == 'graduated'"
-                                   decoration-info="status == 'active'"
-                                   decoration-muted="status in ('enrolled', 'cancelled')"
-                                   decoration-danger="status == 'dropped'"/>
+                            <div class="d-flex gap-2">
+                                <t t-if="record.medical_status.raw_value != 'no_expiry'">
+                                    <i class="fa fa-medkit" t-att-class="record.medical_status.raw_value == 'expired' ? 'text-danger' : (record.medical_status.raw_value == 'expiring' ? 'text-warning' : (record.medical_status.raw_value == 'valid' ? 'text-success' : 'text-muted'))" title="Medical Status"/>
+                                </t>
+                                <t t-if="record.license_expiry_status.raw_value != 'no_expiry'">
+                                    <i class="fa fa-id-card" t-att-class="record.license_expiry_status.raw_value == 'expired' ? 'text-danger' : (record.license_expiry_status.raw_value == 'expiring' ? 'text-warning' : (record.license_expiry_status.raw_value == 'valid' ? 'text-success' : 'text-muted'))" title="License Status"/>
+                                </t>
+                                <t t-if="record.security_clearance_status.raw_value != 'no_expiry'">
+                                    <i class="fa fa-shield" t-att-class="record.security_clearance_status.raw_value == 'expired' ? 'text-danger' : (record.security_clearance_status.raw_value == 'expiring' ? 'text-warning' : (record.security_clearance_status.raw_value == 'valid' ? 'text-success' : 'text-muted'))" title="Security Status"/>
+                                </t>
+                                <t t-if="record.insurance_status.raw_value != 'no_expiry'">
+                                    <i class="fa fa-umbrella" t-att-class="record.insurance_status.raw_value == 'expired' ? 'text-danger' : (record.insurance_status.raw_value == 'expiring' ? 'text-warning' : (record.insurance_status.raw_value == 'valid' ? 'text-success' : 'text-muted'))" title="Insurance Status"/>
+                                </t>
+                            </div>
                         </div>
                         <div class="o_kanban_record_body d-flex justify-content-between align-items-center text-muted small">
                             <div class="text-truncate mr-2">

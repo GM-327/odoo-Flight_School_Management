@@ -234,6 +234,43 @@ class FsStudentEnrollment(models.Model):
         related='student_id.name',
         store=True,
     )
+    medical_status = fields.Selection(
+        related='student_id.medical_status',
+        string='Medical Status',
+    )
+    license_expiry_status = fields.Selection(
+        related='student_id.license_expiry_status',
+        string='License Status',
+    )
+    security_clearance_status = fields.Selection(
+        related='student_id.security_clearance_status',
+        string='Security Status',
+    )
+    insurance_status = fields.Selection(
+        related='student_id.insurance_status',
+        string='Insurance Status',
+    )
+    student_image = fields.Image(
+        related='student_id.image_128',
+        string='Student Image',
+    )
+    student_phone = fields.Char(
+        related='student_id.phone',
+        string='Phone',
+    )
+    has_expired_status = fields.Boolean(
+        related='student_id.has_expired_status',
+        string='Has Expired Status',
+    )
+    remaining_hours = fields.Float(
+        string='Remaining Syllabus Hours',
+        compute='_compute_remaining_hours',
+        help="Total hours remaining to complete the mandatory syllabus requirements.",
+    )
+    remaining_breakdown_html = fields.Html(
+        string='Remaining Breakdown',
+        compute='_compute_remaining_breakdown_html',
+    )
 
     @api.depends('status')
     def _compute_is_active(self):
@@ -276,6 +313,55 @@ class FsStudentEnrollment(models.Model):
                     total_progress += min(logged, req.minimum_hours)
 
             record.progression = (total_progress / total_required) * 100.0
+
+    @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours')
+    def _compute_remaining_hours(self):
+        """Calculate the sum of hours still required for mandatory activities."""
+        for record in self:
+            remaining = 0.0
+            for req in record.required_hour_ids:
+                if req.minimum_hours > req.hours_logged:  # type: ignore
+                    remaining += (req.minimum_hours - req.hours_logged)  # type: ignore
+            record.remaining_hours = remaining
+    @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours', 'required_hour_ids.activity_id')
+    def _compute_remaining_breakdown_html(self):
+        """Generate a pretty HTML summary of remaining hours per activity."""
+        for record in self:
+            # Filter for incomplete mandatory items
+            incomplete = record.required_hour_ids.filtered(lambda x: x.remaining_hours > 0) # type: ignore
+            if not incomplete:
+                record.remaining_breakdown_html = '<span class="text-success small"><i class="fa fa-check-circle"/> Syllabus Fully Completed</span>'
+                continue
+            
+            # Sort by most hours remaining (most critical)
+            incomplete = sorted(incomplete, key=lambda x: x.remaining_hours, reverse=True) # type: ignore
+            
+            html = '<div class="d-flex flex-column gap-1">'
+            # Show top 3 most critical activities
+            for req in incomplete[:3]:
+                # Extract values and format as float_time (HH:MM)
+                act_name = req.activity_id.name  # type: ignore
+                rem_h = req.remaining_hours  # type: ignore
+                hours, minutes = divmod(abs(rem_h) * 60, 60)
+                rem_h_fmt = f"{int(hours)}:{int(minutes):02d}"
+                
+                # Determine color based on completion
+                progress = req.progress_percentage # type: ignore
+                color = "text-danger" if progress < 50 else "text-warning"
+                
+                html += f'''
+                    <div class="d-flex justify-content-between align-items-center small" style="min-width: 220px;">
+                        <span class="text-muted text-truncate me-2" style="max-width: 170px;" title="{act_name}">{act_name}</span>
+                        <strong class="{color}">{rem_h_fmt} left</strong>
+                    </div>
+                '''
+            
+            # Add and more if needed
+            if len(incomplete) > 3:
+                html += f'<div class="text-muted x-small italic text-center text-decoration-underline mt-1">+{len(incomplete)-3} more activities...</div>'
+            
+            html += '</div>'
+            record.remaining_breakdown_html = html
 
     @api.constrains('student_id', 'status')
     def _check_one_active_enrollment(self):
@@ -325,6 +411,16 @@ class FsStudentEnrollment(models.Model):
                 # Clear relevant dates
                 record.drop_date = False
                 record.graduation_date = False
+    def action_view_student(self):
+        """Open the specific student's form view."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.student',
+            'res_id': self.student_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 class FsEnrollmentHours(models.Model):
     """Flight hours logged per activity for an enrollment."""
 
@@ -381,6 +477,16 @@ class FsEnrollmentHours(models.Model):
         compute='_compute_progress_percentage',
         store=True,
     )
+    remaining_hours = fields.Float(
+        string='Remaining',
+        compute='_compute_remaining_hours_line',
+    )
+
+    @api.depends('hours_logged', 'minimum_hours')
+    def _compute_remaining_hours_line(self):
+        """Calculate remaining hours for this specific activity."""
+        for record in self:
+            record.remaining_hours = max(0.0, record.minimum_hours - record.hours_logged)
 
     @api.depends('hours_logged', 'minimum_hours')
     def _compute_progress_percentage(self):
