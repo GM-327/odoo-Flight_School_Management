@@ -40,6 +40,16 @@ class FsFlightType(models.Model):
         string='Active',
         default=True,
     )
+    is_solo = fields.Boolean(
+        string='Is Solo',
+        default=False,
+        help="Mark if this flight type is a solo flight.",
+    )
+    is_sim = fields.Boolean(
+        string='Is Simulator',
+        default=False,
+        help="Mark if this flight type is a simulator session.",
+    )
 
     _code_unique = models.Constraint(
         'UNIQUE(code)',

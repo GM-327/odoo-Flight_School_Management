@@ -2,12 +2,12 @@
 <odoo>
     <data noupdate="0">
         <!-- 
-        Student Demo Data
+        Student Demo Data (15 Students)
         =================
         Demo students with various statuses for testing.
         -->
 
-        <!-- Student 1: All valid -->
+        <!-- Student 1 -->
         <record id="student_demo_1" model="fs.student">
             <field name="name">Youssef Hamdi</field>
             <field name="gender">male</field>
@@ -26,7 +26,7 @@
             <field name="phone">+216 96 111 111</field>
         </record>
 
-        <!-- Student 2: License expiring soon -->
+        <!-- Student 2 -->
         <record id="student_demo_2" model="fs.student">
             <field name="name">Amel Cherif</field>
             <field name="gender">female</field>
@@ -45,7 +45,7 @@
             <field name="phone">+216 96 222 222</field>
         </record>
 
-        <!-- Student 3: Medical expiring soon -->
+        <!-- Student 3 -->
         <record id="student_demo_3" model="fs.student">
             <field name="name">Omar Ghannouchi</field>
             <field name="gender">male</field>
@@ -65,7 +65,7 @@
             <field name="phone">+216 96 333 333</field>
         </record>
 
-        <!-- Student 4: License expired -->
+        <!-- Student 4 -->
         <record id="student_demo_4" model="fs.student">
             <field name="name">Rim Mabrouk</field>
             <field name="gender">female</field>
@@ -85,7 +85,7 @@
             <field name="phone">+216 96 444 444</field>
         </record>
 
-        <!-- Student 5: Civilian, all valid -->
+        <!-- Student 5 -->
         <record id="student_demo_5" model="fs.student">
             <field name="name">Nadia Sfar</field>
             <field name="gender">female</field>
@@ -105,6 +105,118 @@
             <field name="phone">+216 96 555 555</field>
         </record>
 
+        <!-- Student 6 -->
+        <record id="student_demo_6" model="fs.student">
+            <field name="name">Ahmed Mansour</field>
+            <field name="gender">male</field>
+            <field name="birth_date">2002-05-15</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-006</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="license_number">SC-TN-2024-006</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=150)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">10.0</field>
+            <field name="phone">+216 96 666 666</field>
+        </record>
+
+        <!-- Student 7 -->
+        <record id="student_demo_7" model="fs.student">
+            <field name="name">Sonia Ben Ali</field>
+            <field name="gender">female</field>
+            <field name="birth_date">2001-09-20</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=200)).strftime('%Y-%m-%d')"/>
+            <field name="phone">+216 96 777 777</field>
+        </record>
+
+        <!-- Student 8 -->
+        <record id="student_demo_8" model="fs.student">
+            <field name="name">Hamza Mejri</field>
+            <field name="gender">male</field>
+            <field name="birth_date">2000-11-30</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-008</field>
+            <field name="license_id" ref="fs_people.license_type_sc"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=50)).strftime('%Y-%m-%d')"/>
+            <field name="phone">+216 96 888 888</field>
+        </record>
+
+        <!-- Student 9 -->
+        <record id="student_demo_9" model="fs.student">
+            <field name="name">Lina Trabelsi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">2003-01-10</field>
+            <field name="is_military">False</field>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=300)).strftime('%Y-%m-%d')"/>
+            <field name="phone">+216 96 999 999</field>
+        </record>
+
+        <!-- Student 10 -->
+        <record id="student_demo_10" model="fs.student">
+            <field name="name">Mehdi Bouker</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1999-07-22</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-010</field>
+            <field name="phone">+216 96 000 000</field>
+        </record>
+
+        <!-- Student 11 -->
+        <record id="student_demo_11" model="fs.student">
+            <field name="name">Rania Sassi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">2002-03-05</field>
+            <field name="is_military">False</field>
+            <field name="phone">+216 95 111 222</field>
+        </record>
+
+        <!-- Student 12 -->
+        <record id="student_demo_12" model="fs.student">
+            <field name="name">Firas Gharbi</field>
+            <field name="gender">male</field>
+            <field name="birth_date">2001-12-12</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-012</field>
+            <field name="phone">+216 95 222 333</field>
+        </record>
+
+        <!-- Student 13 -->
+        <record id="student_demo_13" model="fs.student">
+            <field name="name">Ines Jlassi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">2004-06-18</field>
+            <field name="is_military">False</field>
+            <field name="phone">+216 95 333 444</field>
+        </record>
+
+        <!-- Student 14 -->
+        <record id="student_demo_14" model="fs.student">
+            <field name="name">Anis Riahi</field>
+            <field name="gender">male</field>
+            <field name="birth_date">2000-08-30</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_cadet"/>
+            <field name="service_number">CAD-2024-014</field>
+            <field name="phone">+216 95 444 555</field>
+        </record>
+
+        <!-- Student 15 -->
+        <record id="student_demo_15" model="fs.student">
+            <field name="name">Mona Abidi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1998-10-05</field>
+            <field name="is_military">False</field>
+            <field name="phone">+216 95 555 666</field>
+        </record>
+
     </data>
 </odoo>
-

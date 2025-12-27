@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Training Class Form View with Documents Tab -->
+    <record id="view_fs_training_class_form_documents" model="ir.ui.view">
+        <field name="name">fs.training.class.form.documents</field>
+        <field name="model">fs.training.class</field>
+        <field name="inherit_id" ref="fs_training.view_training_class_form"/>
+        <field name="arch" type="xml">
+            <!-- Add document count field -->
+            <xpath expr="//sheet" position="inside">
+                <field name="document_ids" invisible="1"/>
+                <field name="document_count" invisible="1"/>
+            </xpath>
+
+            <!-- Add document smart button -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_documents" type="object" 
+                        class="oe_stat_button" icon="fa-folder-open">
+                    <field name="document_count" widget="statinfo" string="Documents"/>
+                </button>
+            </xpath>
+
+            <!-- Add Documents Tab -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Documents" name="documents">
+                    <field name="document_ids" nolabel="1" context="{'default_training_class_id': id}">
+                        <list decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
+                            <field name="name"/>
+                            <field name="document_type_id"/>
+                            <field name="expiry_date"/>
+                            <field name="expiry_status" widget="badge" 
+                                   decoration-danger="expiry_status == 'expired'" 
+                                   decoration-warning="expiry_status == 'expiring'" 
+                                   decoration-success="expiry_status == 'valid'" 
+                                   decoration-muted="expiry_status == 'no_expiry'"/>
+                            <field name="version_count" string="Ver."/>
+                            <field name="filename"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

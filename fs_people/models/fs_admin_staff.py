@@ -65,7 +65,8 @@ class FsAdminStaff(models.Model):
     )
     
     # === Employment ===
-    department = fields.Char(
+    department_id = fields.Many2one(
+        'fs.department',
         string='Department',
     )
     position = fields.Char(
@@ -116,6 +117,8 @@ class FsAdminStaff(models.Model):
                 'default_name': self.name,
                 'default_login': self.name.lower().replace(' ', '.') if self.name else '',
                 'default_groups_id': [(4, self.env.ref('fs_core.group_flight_school_user').id)],
+                'fs_person_id': self.id,
+                'fs_person_model': self._name,
             },
         }
     

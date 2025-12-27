@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Document Upload Wizard Form View -->
+    <record id="view_fs_document_upload_wizard_form" model="ir.ui.view">
+        <field name="name">fs.document.upload.wizard.form</field>
+        <field name="model">fs.document.upload.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Upload Document">
+                <sheet>
+                    <!-- Statusbar -->
+                    <group>
+                        <field name="state" widget="statusbar" statusbar_visible="type,upload,details"/>
+                    </group>
+
+                    <!-- Step 1: Select Document Type -->
+                    <group invisible="state != 'type'">
+                        <separator string="Step 1: Select Document Type"/>
+                        <group>
+                            <field name="document_type_id" options="{'no_create': True}"/>
+                        </group>
+                        <!-- Hidden fields for entity type availability -->
+                        <field name="available_entity_types" invisible="1"/>
+                        <field name="can_select_student" invisible="1"/>
+                        <field name="can_select_instructor" invisible="1"/>
+                        <field name="can_select_pilot" invisible="1"/>
+                        <field name="can_select_training_class" invisible="1"/>
+                        <field name="can_select_admin_task" invisible="1"/>
+                        
+                        <!-- Entity Type - only visible after document type is selected -->
+                        <group invisible="not document_type_id">
+                            <field name="entity_type_id" options="{'no_create': True}"
+                                   domain="[('id', 'in', applies_to_ids)]"/>
+                            <field name="entity_type_code" invisible="1"/>
+                            <field name="applies_to_ids" invisible="1"/>
+                        </group>
+                        
+                        <!-- Entity selection fields - visible based on entity_type_code -->
+                        <group invisible="entity_type_code != 'student' or not can_select_student">
+                            <field name="student_id" options="{'no_create': True}" required="entity_type_code == 'student'"/>
+                        </group>
+                        <group invisible="entity_type_code != 'instructor' or not can_select_instructor">
+                            <field name="instructor_id" options="{'no_create': True}" required="entity_type_code == 'instructor'"/>
+                        </group>
+                        <group invisible="entity_type_code != 'pilot' or not can_select_pilot">
+                            <field name="pilot_id" options="{'no_create': True}" required="entity_type_code == 'pilot'"/>
+                        </group>
+                        <group invisible="entity_type_code != 'training_class' or not can_select_training_class">
+                            <field name="training_class_id" options="{'no_create': True}" required="entity_type_code == 'training_class'"/>
+                        </group>
+                        <group invisible="entity_type_code != 'admin_task' or not can_select_admin_task">
+                            <field name="admin_task_id" options="{'no_create': True}" required="entity_type_code == 'admin_task'"/>
+                        </group>
+                        <!-- Show if document exists -->
+                        <group invisible="is_new_document">
+                            <field name="existing_document_id" invisible="1"/>
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle me-2" title="Info"/>
+                                A document of this type already exists. A new version will be added.
+                            </div>
+                        </group>
+                    </group>
+
+                    <!-- Step 2: Upload File -->
+                    <group invisible="state != 'upload'">
+                        <separator string="Step 2: Upload File"/>
+                        <group>
+                            <field name="document_type_name" readonly="1" string="Document Type"/>
+                        </group>
+                        <group>
+                            <field name="file" filename="filename" widget="binary"/>
+                            <field name="filename"/>
+                        </group>
+                        <group string="Notes (Optional)">
+                            <field name="notes" nolabel="1" placeholder="Notes about this file..."/>
+                        </group>
+                    </group>
+
+                    <!-- Step 3: Enter Details -->
+                    <group invisible="state != 'details'">
+                        <separator string="Step 3: Enter Details"/>
+                        <group string="Document Information">
+                            <field name="reference" placeholder="e.g., CERT-2024-001"/>
+                            <field name="issue_date"/>
+                            <field name="expiry_date"/>
+                            <field name="has_expiry" invisible="1"/>
+                        </group>
+                        <group string="Summary">
+                            <field name="document_type_name" readonly="1" string="Document Type"/>
+                            <field name="filename" readonly="1"/>
+                            <field name="student_id" readonly="1" invisible="not student_id"/>
+                            <field name="instructor_id" readonly="1" invisible="not instructor_id"/>
+                            <field name="pilot_id" readonly="1" invisible="not pilot_id"/>
+                            <field name="training_class_id" readonly="1" invisible="not training_class_id"/>
+                            <field name="admin_task_id" readonly="1" invisible="not admin_task_id"/>
+                        </group>
+                        <group invisible="is_new_document">
+                            <div class="alert alert-info" role="alert">
+                                <i class="fa fa-info-circle me-2" title="Info"/>
+                                This will add a new version to the existing document.
+                            </div>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_previous" 
+                            string="Previous" 
+                            type="object" 
+                            class="btn-secondary"
+                            invisible="state == 'type'"/>
+                    <button name="action_next" 
+                            string="Next" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="state == 'details'"/>
+                    <button name="action_submit" 
+                            string="Upload Document" 
+                            type="object" 
+                            class="btn-primary"
+                            invisible="state != 'details'"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action to open wizard -->
+    <record id="action_fs_document_upload_wizard" model="ir.actions.act_window">
+        <field name="name">Upload Document</field>
+        <field name="res_model">fs.document.upload.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fs_document_upload_wizard_form"/>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

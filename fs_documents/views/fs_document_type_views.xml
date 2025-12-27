@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Document Type Tree View -->
+    <record id="view_fs_document_type_tree" model="ir.ui.view">
+        <field name="name">fs.document.type.list</field>
+        <field name="model">fs.document.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="applies_to_ids" widget="many2many_tags"/>
+                <field name="has_expiry"/>
+                <field name="expiry_field"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Document Type Form View -->
+    <record id="view_fs_document_type_form" model="ir.ui.view">
+        <field name="name">fs.document.type.form</field>
+        <field name="model">fs.document.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <group>
+                        <group string="Basic Information">
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="applies_to_ids" widget="many2many_tags"/>
+                        </group>
+                        <group string="Expiry Settings">
+                            <field name="has_expiry"/>
+                            <field name="expiry_field" invisible="not has_expiry"
+                                   placeholder="e.g., medical_expiry"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+                    <group string="Description">
+                        <field name="description" colspan="4" nolabel="1" placeholder="Description of this document type..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Document Type Search View -->
+    <record id="view_fs_document_type_search" model="ir.ui.view">
+        <field name="name">fs.document.type.search</field>
+        <field name="model">fs.document.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="filter_has_expiry" string="Has Expiry" domain="[('has_expiry', '=', True)]"/>
+                <separator/>
+                <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <field name="applies_to_ids"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Document Type Action -->
+    <record id="action_fs_document_type" model="ir.actions.act_window">
+        <field name="name">Document Types</field>
+        <field name="res_model">fs.document.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first document type
+            </p>
+            <p>Document types categorize documents and control expiry syncing.</p>
+        </field>
+    </record>
+</odoo>

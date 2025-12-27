@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend Pilot Form View with Documents Tab and Buttons -->
+    <record id="view_fs_pilot_form_documents" model="ir.ui.view">
+        <field name="name">fs.pilot.form.documents</field>
+        <field name="model">fs.pilot</field>
+        <field name="inherit_id" ref="fs_people.view_fs_pilot_form"/>
+        <field name="arch" type="xml">
+            <!-- Add document count field -->
+            <field name="has_expired_qualification" position="after">
+                <field name="document_ids" invisible="1"/>
+                <field name="document_count" invisible="1"/>
+            </field>
+
+            <!-- Add document smart buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_documents" type="object" 
+                        class="oe_stat_button" icon="fa-folder-open">
+                    <field name="document_count" widget="statinfo" string="Documents"/>
+                </button>
+                <button name="action_view_medical_document" type="object" 
+                        class="oe_stat_button" icon="fa-medkit"
+                        invisible="not medical_document_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Medical Doc</span>
+                    </div>
+                </button>
+                <button name="action_view_english_document" type="object" 
+                        class="oe_stat_button" icon="fa-language"
+                        invisible="not english_document_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">English Doc</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <!-- Add hidden fields for document buttons -->
+            <field name="has_expired_qualification" position="after">
+                <field name="medical_document_id" invisible="1"/>
+                <field name="license_document_id" invisible="1"/>
+                <field name="english_document_id" invisible="1"/>
+                <field name="security_document_id" invisible="1"/>
+                <field name="insurance_document_id" invisible="1"/>
+                <field name="id_document_id" invisible="1"/>
+            </field>
+
+            <!-- Add Documents Tab -->
+            <xpath expr="//page[@name='notes']" position="after">
+                <page string="Documents" name="documents">
+                    <field name="document_ids" nolabel="1" context="{'default_pilot_id': id}">
+                        <list decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
+                            <field name="name"/>
+                            <field name="document_type_id"/>
+                            <field name="expiry_date"/>
+                            <field name="expiry_status" widget="badge" 
+                                   decoration-danger="expiry_status == 'expired'" 
+                                   decoration-warning="expiry_status == 'expiring'" 
+                                   decoration-success="expiry_status == 'valid'" 
+                                   decoration-muted="expiry_status == 'no_expiry'"/>
+                            <field name="version_count" string="Ver."/>
+                            <field name="filename"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

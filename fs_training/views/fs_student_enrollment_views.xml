@@ -10,8 +10,10 @@
             <list decoration-success="status == 'graduated'"
                   decoration-info="status == 'active'"
                   decoration-muted="status in ('enrolled', 'cancelled')"
-                  decoration-danger="status == 'dropped'">
-                <field name="callsign"/>
+                  decoration-danger="status == 'dropped'"
+                  sample="1">
+                <field name="student_image" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle ml-0 mr-0"/>
+                <field name="callsign" decoration-bf="1"/>
                 <field name="student_id"/>
                 <field name="training_class_id"/>
                 <field name="instructor_id" optional="show"/>
@@ -25,23 +27,13 @@
                        decoration-warning="license_expiry_status == 'expiring'"
                        decoration-success="license_expiry_status == 'valid'"
                        decoration-muted="license_expiry_status == 'no_expiry'"/>
-                <field name="security_clearance_status" widget="badge" optional="hide"
-                       decoration-danger="security_clearance_status == 'expired'"
-                       decoration-warning="security_clearance_status == 'expiring'"
-                       decoration-success="security_clearance_status == 'valid'"
-                       decoration-muted="security_clearance_status == 'no_expiry'"/>
-                <field name="insurance_status" widget="badge" optional="hide"
-                       decoration-danger="insurance_status == 'expired'"
-                       decoration-warning="insurance_status == 'expiring'"
-                       decoration-success="insurance_status == 'valid'"
-                       decoration-muted="insurance_status == 'no_expiry'"/>
                 <field name="status" widget="badge"
                        decoration-success="status == 'graduated'"
                        decoration-info="status == 'active'"
                        decoration-muted="status in ('enrolled', 'cancelled')"
                        decoration-danger="status == 'dropped'"/>
-                <field name="total_hours" widget="float_time"/>
-                <field name="progression" widget="progressbar"/>
+                <field name="total_hours" widget="float_time" optional="show"/>
+                <field name="progression" widget="progressbar" optional="show" avg="Average Progression"/>
             </list>
         </field>
     </record>
@@ -87,7 +79,7 @@
                             <field name="callsign" placeholder="e.g. CPL24A"/>
                         </h1>
                         <h2>
-                            <field name="student_id" placeholder="Select Student" options="{'no_create': True}"/>
+                            <field name="student_id" placeholder="Select Student" options="{'no_create': True}" domain="['!', ('enrollment_ids.status', 'in', ['enrolled', 'active'])]"/>
                         </h2>
                     </div>
 

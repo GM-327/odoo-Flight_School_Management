@@ -13,7 +13,6 @@ class FsStudent(models.Model):
     is_available_for_enrollment = fields.Boolean(
         string='Available for Enrollment',
         compute='_compute_is_available_for_enrollment',
-        search='_search_is_available_for_enrollment',
         help="True if student has no active or enrolled status in any class.",
     )
 
@@ -31,7 +30,33 @@ class FsStudent(models.Model):
     current_class_code = fields.Char(
         string='Current Class',
         compute='_compute_enrollment_data',
-        help="The code of the training class the student is currently enrolled in.",
+    )
+    enrollment_status = fields.Selection(
+        selection=[
+            ('enrolled', 'Enrolled'),
+            ('active', 'Active'),
+            ('graduated', 'Graduated'),
+            ('dropped', 'Dropped'),
+            ('cancelled', 'Cancelled'),
+        ],
+        string='Enrollment Status',
+        compute='_compute_enrollment_data',
+    )
+    enrollment_progression = fields.Float(
+        string='Progression (%)',
+        compute='_compute_enrollment_data',
+    )
+    enrollment_total_hours = fields.Float(
+        string='Logged Hours',
+        compute='_compute_enrollment_data',
+    )
+    enrollment_remaining_hours = fields.Float(
+        string='Remaining Hours',
+        compute='_compute_enrollment_data',
+    )
+    enrollment_expected_end_date = fields.Date(
+        string='Expected Completion',
+        compute='_compute_enrollment_data',
     )
     enrollment_count = fields.Integer(
         string='Classes',
@@ -63,9 +88,19 @@ class FsStudent(models.Model):
                 record.callsign = getattr(last_enrollment, 'callsign', False)
                 class_rec = getattr(last_enrollment, 'training_class_id', False)
                 record.current_class_code = getattr(class_rec, 'code', False) if class_rec else False
+                record.enrollment_status = getattr(last_enrollment, 'status', False)
+                record.enrollment_progression = getattr(last_enrollment, 'progression', 0.0)
+                record.enrollment_total_hours = getattr(last_enrollment, 'total_hours', 0.0)
+                record.enrollment_remaining_hours = getattr(last_enrollment, 'remaining_hours', 0.0)
+                record.enrollment_expected_end_date = getattr(class_rec, 'expected_end_date', False) if class_rec else False
             else:
                 record.callsign = False
                 record.current_class_code = False
+                record.enrollment_status = False
+                record.enrollment_progression = 0.0
+                record.enrollment_total_hours = 0.0
+                record.enrollment_remaining_hours = 0.0
+                record.enrollment_expected_end_date = False
 
     def action_view_enrolled_classes(self):
         """View the list of enrollments for this student."""
@@ -79,45 +114,12 @@ class FsStudent(models.Model):
             'context': {'default_student_id': self.id},
         }
 
+    @api.depends('enrollment_ids.status')
     def _compute_is_available_for_enrollment(self):
         """Check if student is available for new enrollment."""
         for record in self:
-            active_count = self.env['fs.student.enrollment'].search_count([
+            active_count = self.env['fs.student.enrollment'].sudo().search_count([
                 ('student_id', '=', record.id),
                 ('status', 'in', ['enrolled', 'active']),
             ])
-            record.is_available_for_enrollment = active_count == 0
-
-    def _search_is_available_for_enrollment(self, operator, value):
-        """Search method for is_available_for_enrollment field.
-        
-        Returns a domain to filter students based on their enrollment status.
-        A student is 'available' if they have no active/enrolled status in any class.
-        """
-        # Get all students who have active/enrolled enrollments
-        enrollments = self.env['fs.student.enrollment'].search([
-            ('status', 'in', ['enrolled', 'active']),
-        ])
-        enrolled_student_ids = list(enrollments.mapped('student_id').ids)  # type: ignore
-        
-        # Determine what we're looking for
-        # operator='=' value=True means "give me available students"
-        # operator='=' value=False means "give me unavailable students"
-        looking_for_available = (operator == '=' and value) or (operator == '!=' and not value)
-        
-        if looking_for_available:
-            # We want students who are NOT in the enrolled list
-            if enrolled_student_ids:
-                return [('id', 'not in', enrolled_student_ids)]
-            else:
-                # No one is enrolled, so EVERYONE is available
-                # Return a domain that matches all records (id > 0)
-                return [('id', '>', 0)]
-        else:
-            # We want students who ARE in the enrolled list
-            if enrolled_student_ids:
-                return [('id', 'in', enrolled_student_ids)]
-            else:
-                # No one is enrolled, so NO ONE is unavailable
-                # Return a domain that matches no records
-                return [('id', '=', 0)]
+            record.is_available_for_enrollment = (active_count == 0)

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Simplified User Form for Flight School Managers -->
+    <record id="view_res_users_form_fs" model="ir.ui.view">
+        <field name="name">res.users.form.fs</field>
+        <field name="model">res.users</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="%(base.change_password_wizard_action)d" string="Change Password" type="action" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <field name="active" invisible="1"/>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Name" required="1"/></h1>
+                        <label for="login"/>
+                        <h2><field name="login" placeholder="email@example.com" required="1"/></h2>
+                    </div>
+                    <notebook>
+                        <page string="Access Rights" name="access_rights">
+                            <group>
+                                <group string="Flight School Role">
+                                    <field name="group_ids" 
+                                           widget="many2many_tags" 
+                                           string="Roles"
+                                           domain="[('privilege_id.category_id', '=', %(module_category_flight_school)d)]"
+                                           options="{'no_create': True}"/>
+                                </group>
+                                <group string="Account Status">
+                                    <field name="email"/>
+                                    <field name="company_id" groups="base.group_multi_company"/>
+                                </group>
+                            </group>
+                            <div class="alert alert-info mt-3" role="status">
+                                <i class="fa fa-info-circle me-1" title="Info"/>
+                                <strong>Tip:</strong> Flight School roles are hierarchical. Selecting "Manager" automatically includes Instructor and User permissions.
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Simplified User List for Flight School -->
+    <record id="view_res_users_list_fs" model="ir.ui.view">
+        <field name="name">res.users.list.fs</field>
+        <field name="model">res.users</field>
+        <field name="arch" type="xml">
+            <list string="Users">
+                <field name="name"/>
+                <field name="login"/>
+                <field name="email"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+</odoo>

@@ -5,17 +5,18 @@
         <field name="name">fs.pilot.list</field>
         <field name="model">fs.pilot</field>
         <field name="arch" type="xml">
-            <list decoration-danger="has_expired_qualification" decoration-success="has_expired_qualification == False">
+            <list decoration-danger="has_expired_qualification" decoration-success="has_expired_qualification == False" sample="1" multi_edit="1">
                 <field name="has_expired_qualification" column_invisible="1"/>
+                <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle ml-0 mr-0"/>
+                <field name="name" decoration-bf="1"/>
                 <field name="callsign" optional="show"/>
-                <field name="name"/>
                 <field name="rank_id" optional="show"/>
                 <field name="license_code" widget="badge" optional="hide"/>
                 <field name="qualification_badges" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
                 <field name="english_status" widget="badge" optional="show" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'"/>
-                <field name="security_clearance_status" widget="badge" optional="show" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'" decoration-success="security_clearance_status == 'valid'" decoration-muted="security_clearance_status == 'no_expiry'"/>
-                <field name="insurance_status" widget="badge" optional="show" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'"/>
+                <field name="security_clearance_status" widget="badge" optional="hide" decoration-danger="security_clearance_status == 'expired'" decoration-warning="security_clearance_status == 'expiring'" decoration-success="security_clearance_status == 'valid'" decoration-muted="security_clearance_status == 'no_expiry'"/>
+                <field name="insurance_status" widget="badge" optional="hide" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'"/>
                 <field name="total_flight_hours" widget="float_time" optional="hide"/>
                 <field name="advance_payment" optional="show"/>
             </list>
@@ -123,6 +124,7 @@
                                     <field name="is_military"/>
                                     <field name="rank_id" options="{'no_create': True}" invisible="not is_military"/>
                                     <field name="service_number" invisible="not is_military"/>
+                                    <field name="department_id" options="{'no_create': True}"/>
                                 </group>
                                 <group string="" name="stats">
                                     <field name="phone"/>
@@ -203,7 +205,7 @@
                             </group>
                         </page>
 
-                        <page string="Administration" name="system" groups="base.group_no_one">
+                        <page string="Administration" name="system">
                             <group>
                                 <group string="System Links">
                                     <field name="user_id"/>
@@ -229,14 +231,81 @@
         <field name="model">fs.pilot</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name"/>
-                <field name="license_number"/>
-
+                <field name="department_id"/>
                 <filter name="filter_military" string="Military" domain="[('is_military', '=', True)]"/>
                 <separator/>
                 <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
                 <separator/>
+                <filter name="group_department" string="Department" context="{'group_by': 'department_id'}"/>
             </search>
+        </field>
+    </record>
+
+    <!-- Pilot Kanban View -->
+    <record id="view_fs_pilot_kanban" model="ir.ui.view">
+        <field name="name">fs.pilot.kanban</field>
+        <field name="model">fs.pilot</field>
+        <field name="arch" type="xml">
+            <kanban sample="1">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="callsign"/>
+                <field name="rank_id"/>
+                <field name="medical_status"/>
+                <field name="english_status"/>
+                <field name="security_clearance_status"/>
+                <field name="insurance_status"/>
+                <field name="license_code"/>
+                <field name="qualification_badges"/>
+                <field name="earliest_expiry_date"/>
+                <field name="total_flight_hours"/>
+                <field name="image_128"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-center">
+                            <field name="image_128" widget="image" options="{'size': [64, 64]}" class="oe_avatar rounded-circle me-3"/>
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                    <strong class="o_kanban_record_title text-truncate fs-5">
+                                        <t t-if="record.callsign.raw_value">[<field name="callsign"/>] </t><field name="name"/>
+                                    </strong>
+                                    <div class="ms-2">
+                                        <t t-if="record.medical_status.raw_value != 'no_expiry'">
+                                            <i class="fa fa-medkit" t-att-class="record.medical_status.raw_value == 'expired' ? 'text-danger' : (record.medical_status.raw_value == 'expiring' ? 'text-warning' : 'text-success')" title="Medical Status"/>
+                                        </t>
+                                        <t t-if="record.english_status.raw_value != 'no_expiry'">
+                                            <i class="fa fa-language ms-1" t-att-class="record.english_status.raw_value == 'expired' ? 'text-danger' : (record.english_status.raw_value == 'expiring' ? 'text-warning' : 'text-success')" title="English Status"/>
+                                        </t>
+                                        <t t-if="record.security_clearance_status.raw_value != 'no_expiry'">
+                                            <i class="fa fa-shield ms-1" t-att-class="record.security_clearance_status.raw_value == 'expired' ? 'text-danger' : (record.security_clearance_status.raw_value == 'expiring' ? 'text-warning' : 'text-success')" title="Security Status"/>
+                                        </t>
+                                        <t t-if="record.insurance_status.raw_value != 'no_expiry'">
+                                            <i class="fa fa-umbrella ms-1" t-att-class="record.insurance_status.raw_value == 'expired' ? 'text-danger' : (record.insurance_status.raw_value == 'expiring' ? 'text-warning' : 'text-success')" title="Insurance Status"/>
+                                        </t>
+                                    </div>
+                                </div>
+                                <div class="text-muted small">
+                                    <t t-if="record.rank_id.raw_value">
+                                        <field name="rank_id"/><br/>
+                                    </t>
+                                    <t t-if="record.license_code.raw_value">
+                                        <i class="fa fa-id-card me-1" title="License Code"/> <field name="license_code"/>
+                                    </t><br/>
+                                    <i class="fa fa-clock-o me-1" title="Flight Hours"/> <field name="total_flight_hours" widget="float_time"/> Experience
+                                </div>
+                                <div class="mt-2">
+                                    <field name="qualification_badges" widget="html"/>
+                                </div>
+                                <div t-if="record.earliest_expiry_date.raw_value" class="mt-2">
+                                    <span class="badge rounded-pill text-bg-light border">
+                                        <i class="fa fa-calendar-times-o me-1 text-danger" title="Earliest Expiry"/> <field name="earliest_expiry_date"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
         </field>
     </record>
 
@@ -244,7 +313,7 @@
     <record id="action_fs_pilot" model="ir.actions.act_window">
         <field name="name">Pilots</field>
         <field name="res_model">fs.pilot</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">kanban,list,form</field>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

@@ -29,6 +29,7 @@ Available modules: Fleet, People, Training, etc.
     'depends': [
         'base',
         'base_setup',
+        'auth_signup',
     ],
     'data': [
         # Security (must be loaded first)
@@ -36,8 +37,12 @@ Available modules: Fleet, People, Training, etc.
         'security/ir.model.access.csv',
         # Data
         'data/fs_core_data.xml',
+        'data/fs_department_data.xml',
         # Views
         'views/res_config_settings_views.xml',
+        'views/fs_department_views.xml',
+        'views/res_users_views.xml',
+        'views/res_groups_privilege_views.xml',
         'views/menu_views.xml',
     ],
     'demo': [],
@@ -45,4 +50,5 @@ Available modules: Fleet, People, Training, etc.
     'application': True,
     'auto_install': False,
     'sequence': 1,
+    'images': ['static/description/icon.svg'],
 }

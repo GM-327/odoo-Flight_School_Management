@@ -9,20 +9,6 @@
 
         <!-- Single-Engine Piston (SEP) -->
 
-        <record id="aircraft_type_da40" model="fs.aircraft.type">
-            <field name="name">DA40 Diamond Star</field>
-            <field name="manufacturer">Diamond</field>
-            <field name="category_id" ref="aircraft_category_sep"/>
-            <field name="code">DA40</field>
-            <field name="description">Modern composite trainer with glass cockpit option.</field>
-            <field name="engine_count">1</field>
-            <field name="engine_type">piston</field>
-            <field name="is_complex">False</field>
-            <field name="seats">4</field>
-            <field name="suitable_for_training">True</field>
-            <field name="sequence">15</field>
-        </record>
-
         <record id="aircraft_type_pa28" model="fs.aircraft.type">
             <field name="name">Warrior 3</field>
             <field name="manufacturer">Piper</field>
@@ -63,34 +49,6 @@
             <field name="seats">6</field>
             <field name="suitable_for_training">True</field>
             <field name="sequence">30</field>
-        </record>
-
-        <record id="aircraft_type_tecnam" model="fs.aircraft.type">
-            <field name="name">P2006T</field>
-            <field name="manufacturer">Tecnam</field>
-            <field name="category_id" ref="aircraft_category_mep"/>
-            <field name="code">P2006</field>
-            <field name="description">Modern twin-engine trainer with Rotax engines.</field>
-            <field name="engine_count">2</field>
-            <field name="engine_type">piston</field>
-            <field name="is_complex">True</field>
-            <field name="seats">4</field>
-            <field name="suitable_for_training">True</field>
-            <field name="sequence">35</field>
-        </record>
-
-        <record id="aircraft_type_da42" model="fs.aircraft.type">
-            <field name="name">DA42 Twin Star</field>
-            <field name="manufacturer">Diamond</field>
-            <field name="category_id" ref="aircraft_category_mep"/>
-            <field name="code">DA42</field>
-            <field name="description">Modern diesel twin for ME training. Glass cockpit standard.</field>
-            <field name="engine_count">2</field>
-            <field name="engine_type">piston</field>
-            <field name="is_complex">True</field>
-            <field name="seats">4</field>
-            <field name="suitable_for_training">True</field>
-            <field name="sequence">40</field>
         </record>
 
         <!-- Flight Simulators -->

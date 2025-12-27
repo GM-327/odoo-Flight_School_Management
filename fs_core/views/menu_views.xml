@@ -18,15 +18,60 @@
     <!-- Root Menu: FS Settings (main app menu) -->
     <menuitem id="menu_flight_school_root"
               name="Settings"
-              web_icon="fs_core,static/description/icon.png"
-              sequence="5"/>
+              web_icon="fs_core,static/description/icon.svg"
+              sequence="100"/>
+
+    <!-- Users Action -->
+    <record id="action_fs_users" model="ir.actions.act_window">
+        <field name="name">Users</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_res_users_list_fs"/>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_res_users_list_fs')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_res_users_form_fs')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage system users
+            </p>
+            <p>Assign logins and access rights to personnel.</p>
+        </field>
+    </record>
+
+    <!-- Groups Action -->
+    <record id="action_fs_groups" model="ir.actions.act_window">
+        <field name="name">Roles</field>
+        <field name="res_model">res.groups</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain" eval="str([('privilege_id.category_id', '=', ref('fs_core.module_category_flight_school'))])"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage Roles
+            </p>
+            <p>Configure access levels and permissions for the Flight School.</p>
+        </field>
+    </record>
+
+    <!-- Privileges Action -->
+    <record id="action_fs_privileges" model="ir.actions.act_window">
+        <field name="name">Privileges</field>
+        <field name="res_model">res.groups.privilege</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain" eval="str([('category_id', '=', ref('fs_core.module_category_flight_school'))])"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage Privileges
+            </p>
+            <p>Configure high-level privileges for the Flight School.</p>
+        </field>
+    </record>
 
     <!-- Configuration Menu -->
     <menuitem id="menu_config_root"
               name="Configuration"
               parent="menu_flight_school_root"
               sequence="10"
-              groups="group_flight_school_admin"/>
+              groups="group_flight_school_manager"/>
 
     <!-- General Settings under Configuration -->
     <menuitem id="menu_config_general"
@@ -35,5 +80,37 @@
               action="action_res_config_settings"
               sequence="1"
               groups="group_flight_school_admin"/>
+
+    <!-- Users under Configuration -->
+    <menuitem id="menu_config_users"
+              name="Users"
+              parent="menu_config_root"
+              action="action_fs_users"
+              sequence="2"
+              groups="group_flight_school_manager"/>
+
+    <!-- Departments under Configuration -->
+    <menuitem id="menu_config_departments"
+              name="Departments"
+              parent="menu_config_root"
+              action="action_fs_department"
+              sequence="3"
+              groups="group_flight_school_admin"/>
+
+    <!-- Roles under Configuration -->
+    <menuitem id="menu_config_roles"
+              name="Roles"
+              parent="menu_config_root"
+              action="action_fs_groups"
+              sequence="10"
+              groups="group_flight_school_manager"/>
+
+    <!-- Privileges under Configuration -->
+    <menuitem id="menu_config_privileges"
+              name="Privileges"
+              parent="menu_config_root"
+              action="action_fs_privileges"
+              sequence="4"
+              groups="group_flight_school_manager"/>
 
 </odoo>

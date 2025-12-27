@@ -1,1 +1,10 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_res_users_fs_manager,res.users.fs.manager,base.model_res_users,group_flight_school_manager,1,1,1,0
+access_res_users_fs_admin,res.users.fs.admin,base.model_res_users,group_flight_school_admin,1,1,1,1
+access_res_groups_fs_manager,res.groups.fs.manager,base.model_res_groups,group_flight_school_manager,1,1,0,0
+access_res_groups_fs_admin,res.groups.fs.admin,base.model_res_groups,group_flight_school_admin,1,1,1,1
+access_res_groups_privilege_fs_manager,res.groups.privilege.fs.manager,base.model_res_groups_privilege,group_flight_school_manager,1,1,0,0
+access_res_groups_privilege_fs_admin,res.groups.privilege.fs.admin,base.model_res_groups_privilege,group_flight_school_admin,1,1,1,1
+access_fs_department_user,fs.department.user,model_fs_department,group_flight_school_user,1,0,0,0
+access_fs_department_manager,fs.department.manager,model_fs_department,group_flight_school_manager,1,1,0,0
+access_fs_department_admin,fs.department.admin,model_fs_department,group_flight_school_admin,1,1,1,1

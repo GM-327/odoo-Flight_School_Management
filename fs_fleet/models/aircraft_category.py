@@ -56,6 +56,10 @@ class AircraftCategory(models.Model):
         default=True,
         help="Uncheck to archive this category.",
     )
+    is_simulator = fields.Boolean(
+        string='Is Simulator',
+        default=False,
+    )
 
     _code_unique = models.Constraint(
         'UNIQUE(code)',

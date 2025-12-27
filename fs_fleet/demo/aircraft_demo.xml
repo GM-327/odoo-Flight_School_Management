@@ -2,11 +2,25 @@
 <odoo>
     <data noupdate="0">
         <!-- 
-        Demo Aircraft
+        Demo Aircraft (7 Aircraft + 2 Simulators)
         =============
         Sample aircraft for testing.
         -->
 
+        <!-- Aircraft 1 -->
+        <record id="aircraft_demo_1" model="fs.aircraft">
+            <field name="registration">TS-DJK</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">28-1001</field>
+            <field name="year_manufactured">2018</field>
+            <field name="status">available</field>
+            <field name="total_hours">1250.5</field>
+            <field name="maintenance_due_at_hours">1300.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(months=2)).strftime('%Y-%m-%d')"/>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <!-- Aircraft 2 -->
         <record id="aircraft_demo_2" model="fs.aircraft">
             <field name="registration">TS-DMK</field>
             <field name="aircraft_type_id" ref="aircraft_type_pa34"/>
@@ -19,42 +33,59 @@
             <field name="home_base">DTTI</field>
         </record>
 
-        <record id="aircraft_demo_4" model="fs.aircraft">
-            <field name="registration">TS-MET</field>
-            <field name="aircraft_type_id" ref="aircraft_type_tecnam"/>
-            <field name="serial_number">P2006-045</field>
-            <field name="year_manufactured">2021</field>
-            <field name="status">available</field>
-            <field name="total_hours">445.8</field>
-            <field name="maintenance_due_at_hours">440.0</field>
-            <field name="next_maintenance_date" eval="(datetime.now() - relativedelta(days=2)).strftime('%Y-%m-%d')"/>
+        <!-- Aircraft 3 -->
+        <record id="aircraft_demo_3" model="fs.aircraft">
+            <field name="registration">TS-ARW</field>
+            <field name="aircraft_type_id" ref="aircraft_type_p28r"/>
+            <field name="serial_number">28R-502</field>
+            <field name="year_manufactured">2019</field>
+            <field name="status">maintenance</field>
+            <field name="total_hours">1100.0</field>
+            <field name="maintenance_due_at_hours">1100.0</field>
+            <field name="next_maintenance_date" eval="datetime.now().strftime('%Y-%m-%d')"/>
             <field name="home_base">DTTI</field>
         </record>
 
+        <!-- Aircraft 4 -->
+        <record id="aircraft_demo_4" model="fs.aircraft">
+            <field name="registration">TS-MET</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">28-1004</field>
+            <field name="year_manufactured">2021</field>
+            <field name="status">available</field>
+            <field name="total_hours">445.8</field>
+            <field name="maintenance_due_at_hours">500.0</field>
+            <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(months=3)).strftime('%Y-%m-%d')"/>
+            <field name="home_base">DTTI</field>
+        </record>
+
+        <!-- Aircraft 5 -->
         <record id="aircraft_demo_5" model="fs.aircraft">
             <field name="registration">TS-TWN</field>
-            <field name="aircraft_type_id" ref="aircraft_type_da42"/>
-            <field name="serial_number">42.356</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa34"/>
+            <field name="serial_number">34-2005</field>
             <field name="year_manufactured">2022</field>
             <field name="status">available</field>
             <field name="total_hours">234.1</field>
             <field name="maintenance_due_at_hours">350.0</field>
             <field name="next_maintenance_date" eval="(datetime.now() + relativedelta(days=2)).strftime('%Y-%m-%d')"/>
+            <field name="home_base">DTTG</field>
+        </record>
+
+        <!-- Aircraft 6 -->
+        <record id="aircraft_demo_6" model="fs.aircraft">
+            <field name="registration">TS-PPR</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">28-1006</field>
+            <field name="year_manufactured">2017</field>
+            <field name="status">grounded</field>
+            <field name="total_hours">3500.0</field>
+            <field name="maintenance_due_at_hours">3550.0</field>
             <field name="home_base">DTTI</field>
         </record>
 
+        <!-- Aircraft 7 -->
         <record id="aircraft_demo_7" model="fs.aircraft">
-            <field name="registration">TS-NEW</field>
-            <field name="aircraft_type_id" ref="aircraft_type_da40"/>
-            <field name="serial_number">40.985</field>
-            <field name="year_manufactured">2024</field>
-            <field name="status">available</field>
-            <field name="total_hours">12.5</field>
-            <field name="maintenance_due_at_hours">100.0</field>
-            <field name="home_base">DTTI</field>
-        </record>
-
-        <record id="aircraft_demo_8" model="fs.aircraft">
             <field name="registration">TS-SKY</field>
             <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
             <field name="serial_number">28-79450</field>
@@ -66,8 +97,9 @@
             <field name="home_base">DTTI</field>
         </record>
 
+        <!-- Simulators -->
         <record id="aircraft_demo_sim_1" model="fs.aircraft">
-            <field name="registration">TS-FSB</field>
+            <field name="registration">TS-SIM1</field>
             <field name="aircraft_type_id" ref="aircraft_type_fnpt2"/>
             <field name="year_manufactured">2020</field>
             <field name="status">available</field>
@@ -77,7 +109,7 @@
         </record>
 
         <record id="aircraft_demo_sim_2" model="fs.aircraft">
-            <field name="registration">TS-FSC</field>
+            <field name="registration">TS-SIM2</field>
             <field name="aircraft_type_id" ref="aircraft_type_fnpt2_mcc"/>
             <field name="year_manufactured">2022</field>
             <field name="status">available</field>

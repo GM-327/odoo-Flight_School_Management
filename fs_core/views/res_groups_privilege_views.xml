@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Privilege Form View -->
+    <record id="view_res_groups_privilege_form_fs" model="ir.ui.view">
+        <field name="name">res.groups.privilege.form.fs</field>
+        <field name="model">res.groups.privilege</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Privilege Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="category_id"/>
+                        </group>
+                        <group>
+                            <field name="placeholder"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Roles (Groups)" name="groups">
+                            <field name="group_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="comment"/>
+                                    <field name="implied_ids" widget="many2many_tags"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description" name="description">
+                            <field name="description" placeholder="Describe the purpose of this privilege..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Privilege List View -->
+    <record id="view_res_groups_privilege_list_fs" model="ir.ui.view">
+        <field name="name">res.groups.privilege.list.fs</field>
+        <field name="model">res.groups.privilege</field>
+        <field name="arch" type="xml">
+            <list string="Privileges">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="category_id"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+</odoo>

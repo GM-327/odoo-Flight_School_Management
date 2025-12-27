@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data noupdate="0">
         <!-- Class Requirements -->
         <record id="req_medical_1" model="fs.class.requirement">
             <field name="name">Medical Class 1</field>
@@ -58,7 +58,7 @@
             <field name="description">Receive final class closure certificate.</field>
         </record>
 
-        <!-- Link Templates to Class Types (Basic Training) -->
+        <!-- Link Templates -->
         <record id="link_basic_docs" model="fs.class.type.admin.task">
             <field name="class_type_id" ref="fs_training.class_type_basic"/>
             <field name="template_id" ref="task_template_docs"/>
@@ -71,25 +71,6 @@
             <field name="sequence">20</field>
         </record>
 
-        <record id="link_basic_open_send" model="fs.class.type.admin.task">
-            <field name="class_type_id" ref="fs_training.class_type_basic"/>
-            <field name="template_id" ref="task_template_open_req_send"/>
-            <field name="sequence">30</field>
-        </record>
-
-        <!-- Link Templates to Class Types (CPL Course) -->
-        <record id="link_cpl_open_send" model="fs.class.type.admin.task">
-            <field name="class_type_id" ref="fs_training.class_type_cpl"/>
-            <field name="template_id" ref="task_template_open_req_send"/>
-            <field name="sequence">10</field>
-        </record>
-
-        <record id="link_cpl_close_send" model="fs.class.type.admin.task">
-            <field name="class_type_id" ref="fs_training.class_type_cpl"/>
-            <field name="template_id" ref="task_template_close_req_send"/>
-            <field name="sequence">100</field>
-        </record>
-
         <!-- Training Classes -->
         <record id="class_promo_2024_a" model="fs.training.class">
             <field name="name">Promo 2024-Alpha</field>
@@ -97,12 +78,7 @@
             <field name="class_type_id" ref="fs_training.class_type_basic"/>
             <field name="start_date" eval="(datetime.now() - relativedelta(months=1)).strftime('%Y-%m-%d')"/>
             <field name="status">in_progress</field>
-            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da40'))]"/>
-            <field name="admin_task_ids" eval="[
-                (0, 0, {'name': 'Collect Student Documents', 'sequence': 10, 'is_done': True, 'done_date': (datetime.now() - relativedelta(days=25)).strftime('%Y-%m-%d')}),
-                (0, 0, {'name': 'Safety Induction Briefing', 'sequence': 20, 'is_done': True, 'done_date': (datetime.now() - relativedelta(days=20)).strftime('%Y-%m-%d')}),
-                (0, 0, {'name': 'Sending opening request', 'sequence': 30, 'is_done': False})
-            ]"/>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa28'))]"/>
         </record>
 
         <record id="class_ppl_winter" model="fs.training.class">
@@ -111,6 +87,7 @@
             <field name="class_type_id" ref="fs_training.class_type_ppl"/>
             <field name="start_date" eval="(datetime.now() + relativedelta(days=15)).strftime('%Y-%m-%d')"/>
             <field name="status">draft</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa28'))]"/>
         </record>
 
         <record id="class_cpl_summer" model="fs.training.class">
@@ -119,28 +96,41 @@
             <field name="class_type_id" ref="fs_training.class_type_cpl"/>
             <field name="start_date" eval="(datetime.now() - relativedelta(months=3)).strftime('%Y-%m-%d')"/>
             <field name="status">in_progress</field>
-            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_da42'))]"/>
-            <field name="admin_task_ids" eval="[
-                (0, 0, {'name': 'Sending opening request', 'sequence': 10, 'is_done': True, 'done_date': (datetime.now() - relativedelta(months=3)).strftime('%Y-%m-%d')}),
-                (0, 0, {'name': 'Sending closing request', 'sequence': 100, 'is_done': False})
-            ]"/>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa34'))]"/>
         </record>
 
-        <!-- Student Enrollments -->
+        <record id="class_ifr_autumn" model="fs.training.class">
+            <field name="name">IFR Autumn 2024</field>
+            <field name="code">IFR24A</field>
+            <field name="class_type_id" ref="fs_training.class_type_ir"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(months=2)).strftime('%Y-%m-%d')"/>
+            <field name="status">in_progress</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_fnpt2'))]"/>
+        </record>
+
+        <!-- Student Enrollments (Allocating all 15 students) -->
+        <!-- Class 4: IFR (2 students) -->
+        <record id="enrollment_student_4_ifr" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_4"/>
+            <field name="training_class_id" ref="class_ifr_autumn"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_8"/>
+            <field name="status">active</field>
+        </record>
+        <record id="enrollment_student_14" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_14"/>
+            <field name="training_class_id" ref="class_ifr_autumn"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_8"/>
+            <field name="status">active</field>
+        </record>
+
+        <!-- Class 1: Basic (6 students) -->
         <record id="enrollment_student_1" model="fs.student.enrollment">
             <field name="student_id" ref="fs_people.student_demo_1"/>
             <field name="training_class_id" ref="class_promo_2024_a"/>
             <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
             <field name="callsign">B24A-HAMDI</field>
             <field name="status">active</field>
-            <field name="required_hour_ids" eval="[
-                (5, 0, 0),
-                (0, 0, {'activity_id': ref('fs_training.activity_man_dual'), 'hours_logged': 15.5}),
-                (0, 0, {'activity_id': ref('fs_training.activity_man_solo'), 'hours_logged': 5.0}),
-                (0, 0, {'activity_id': ref('fs_training.activity_nav_dual'), 'hours_logged': 8.0})
-            ]"/>
         </record>
-
         <record id="enrollment_student_2" model="fs.student.enrollment">
             <field name="student_id" ref="fs_people.student_demo_2"/>
             <field name="training_class_id" ref="class_promo_2024_a"/>
@@ -148,24 +138,72 @@
             <field name="callsign">B24A-CHERIF</field>
             <field name="status">active</field>
         </record>
+        <record id="enrollment_student_6" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_6"/>
+            <field name="training_class_id" ref="class_promo_2024_a"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_4"/>
+            <field name="status">active</field>
+        </record>
+        <record id="enrollment_student_8" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_8"/>
+            <field name="training_class_id" ref="class_promo_2024_a"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_4"/>
+            <field name="status">active</field>
+        </record>
+        <record id="enrollment_student_10" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_10"/>
+            <field name="training_class_id" ref="class_promo_2024_a"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_6"/>
+            <field name="status">active</field>
+        </record>
+        <record id="enrollment_student_12" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_12"/>
+            <field name="training_class_id" ref="class_promo_2024_a"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_6"/>
+            <field name="status">active</field>
+        </record>
 
+        <!-- Class 2: PPL Draft (4 students) -->
         <record id="enrollment_student_3" model="fs.student.enrollment">
             <field name="student_id" ref="fs_people.student_demo_3"/>
             <field name="training_class_id" ref="class_ppl_winter"/>
             <field name="status">enrolled</field>
         </record>
+        <record id="enrollment_student_7" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_7"/>
+            <field name="training_class_id" ref="class_ppl_winter"/>
+            <field name="status">enrolled</field>
+        </record>
+        <record id="enrollment_student_9" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_9"/>
+            <field name="training_class_id" ref="class_ppl_winter"/>
+            <field name="status">enrolled</field>
+        </record>
+        <record id="enrollment_student_11" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_11"/>
+            <field name="training_class_id" ref="class_ppl_winter"/>
+            <field name="status">enrolled</field>
+        </record>
 
+        <!-- Class 3: CPL (3 students) -->
         <record id="enrollment_student_5_cpl" model="fs.student.enrollment">
             <field name="student_id" ref="fs_people.student_demo_5"/>
             <field name="training_class_id" ref="class_cpl_summer"/>
             <field name="instructor_id" ref="fs_people.instructor_demo_2"/>
-            <field name="callsign">CPL24S-SFAR</field>
             <field name="status">active</field>
         </record>
-
-
-
-
+        <record id="enrollment_student_13" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_13"/>
+            <field name="training_class_id" ref="class_cpl_summer"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_2"/>
+            <field name="status">active</field>
+        </record>
+        <record id="enrollment_student_15" model="fs.student.enrollment">
+            <field name="student_id" ref="fs_people.student_demo_15"/>
+            <field name="training_class_id" ref="class_cpl_summer"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_7"/>
+            <field name="status">active</field>
+        </record>
 
     </data>
 </odoo>

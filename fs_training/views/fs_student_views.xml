@@ -36,4 +36,43 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Inherit Student Kanban View -->
+    <record id="view_fs_student_kanban_inherit_training" model="ir.ui.view">
+        <field name="name">fs.student.kanban.inherit.training</field>
+        <field name="model">fs.student</field>
+        <field name="inherit_id" ref="fs_people.view_fs_student_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban" position="inside">
+                <field name="callsign"/>
+                <field name="current_class_code"/>
+                <field name="enrollment_status"/>
+                <field name="enrollment_progression"/>
+                <field name="enrollment_remaining_hours"/>
+                <field name="enrollment_expected_end_date"/>
+            </xpath>
+            <xpath expr="//*[hasclass('o_kanban_record_title')]" position="replace">
+                <strong class="o_kanban_record_title text-truncate fs-5">
+                    <t t-if="record.callsign.raw_value">[<field name="callsign"/>] </t><field name="name"/>
+                </strong>
+            </xpath>
+            <xpath expr="//div[hasclass('text-muted')][hasclass('small')]" position="inside">
+                <div t-if="record.current_class_code.raw_value" class="mt-2 p-1 bg-light border-top border-bottom">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="badge rounded-pill text-bg-info">
+                            <field name="current_class_code"/>
+                        </span>
+                        <field name="enrollment_status" widget="label_selection" options="{'classes': {'active': 'success', 'enrolled': 'info', 'graduated': 'warning'}}"/>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <field name="enrollment_progression" widget="progressbar" class="flex-grow-1" style="height: 8px;"/>
+                        <span class="small fw-bold text-nowrap"><field name="enrollment_remaining_hours" widget="float_time"/> left</span>
+                    </div>
+                    <div t-if="record.enrollment_expected_end_date.raw_value" class="x-small mt-1 text-end italic">
+                        Ends: <field name="enrollment_expected_end_date"/>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
 </odoo>

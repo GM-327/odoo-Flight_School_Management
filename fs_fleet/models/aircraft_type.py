@@ -85,6 +85,34 @@ class AircraftType(models.Model):
         string='Training Notes',
         help="Notes about using this type for training.",
     )
+
+    # Pricing
+    currency_id = fields.Many2one(
+        comodel_name='res.currency',
+        string='Currency',
+        default=lambda self: self.env.company.currency_id, #type: ignore
+    )
+    hour_price_solo = fields.Monetary(
+        string='Solo Hour Price',
+        currency_field='currency_id',
+        help="Hourly rate for solo flights.",
+    )
+    hour_price_dual = fields.Monetary(
+        string='Dual Hour Price',
+        currency_field='currency_id',
+        help="Hourly rate for dual (instructor) flights.",
+    )
+    hour_price_sim = fields.Monetary(
+        string='Simulator Hour Price',
+        currency_field='currency_id',
+        help="Hourly rate for simulator sessions.",
+    )
+    is_simulator = fields.Boolean(
+        string='Is Simulator',
+        related='category_id.is_simulator',
+        store=True,
+        readonly=True,
+    )
     
     # Related aircraft
     aircraft_ids = fields.One2many(

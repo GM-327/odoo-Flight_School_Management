@@ -18,6 +18,12 @@ class FsPilot(models.Model):
     _inherit = ['fs.person']
     _order = 'name'
 
+    department_id = fields.Many2one(
+        'fs.department',
+        string='Department',
+        tracking=True,
+    )
+
     # === Callsign ===
     callsign = fields.Char(
         string='Callsign',
@@ -48,7 +54,7 @@ class FsPilot(models.Model):
         string='Qualifications',
     )
     qualification_badges = fields.Html(
-        string='Qualifications',
+        string='Qualification Badges',
         compute='_compute_qualification_badges',
         sanitize=False,
     )
@@ -94,18 +100,55 @@ class FsPilot(models.Model):
             'target': 'new',
         }
     
-    @api.depends('qualification_ids.expiry_status', 'medical_status', 'english_status', 
-                 'security_clearance_status', 'insurance_status')
+    has_expired_qualification = fields.Boolean(
+        string='Has Expired Qualification',
+        compute='_compute_has_expired_qualification',
+        store=True,
+    )
+    earliest_expiry_date = fields.Date(
+        string='Earliest Expiry',
+        compute='_compute_has_expired_qualification',
+        store=True,
+        help="The most urgent expiry date among medical, english, security, insurance, and qualifications.",
+    )
+
+    @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date', 'medical_status', 
+                 'english_status', 'security_clearance_status', 'insurance_status')
     def _compute_has_expired_qualification(self):
-        """Check if any qualification or status is expired for row decoration."""
+        """Check if any qualification or status is expired and find earliest expiry."""
         for record in self:
             record.has_expired_qualification = (
                 any(qual.expiry_status == 'expired' for qual in record.qualification_ids) or  # type: ignore
-                record.medical_status == 'expired' or  # type: ignore
+                getattr(record, 'medical_status', False) == 'expired' or
                 record.english_status == 'expired' or  # type: ignore
                 record.security_clearance_status == 'expired' or  # type: ignore
                 record.insurance_status == 'expired'  # type: ignore
             )
+            
+            # Find earliest expiry date
+            expiries = []
+            med_exp = getattr(record, 'medical_expiry', False)
+            if med_exp:
+                expiries.append(med_exp)
+            
+            eng_exp = getattr(record, 'english_expiry', False)
+            if eng_exp:
+                expiries.append(eng_exp)
+                
+            sec_exp = getattr(record, 'security_clearance_expiry', False)
+            if sec_exp:
+                expiries.append(sec_exp)
+                
+            ins_exp = getattr(record, 'insurance_expiry', False)
+            if ins_exp:
+                expiries.append(ins_exp)
+                
+            for qual in record.qualification_ids:
+                q_exp = getattr(qual, 'expiry_date', False)
+                if q_exp:
+                    expiries.append(q_exp)
+            
+            record.earliest_expiry_date = min(expiries) if expiries else False
 
     # === English Proficiency ===
     english_level_id = fields.Many2one(

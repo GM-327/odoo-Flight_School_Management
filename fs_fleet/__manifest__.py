@@ -45,10 +45,10 @@ Depends on Flight School Core for security groups.
     ],
     'demo': [
         'demo/aircraft_demo.xml',
-        'demo/fs_fleet_new_demo.xml',
     ],
     'installable': True,
     'application': True,
     'auto_install': True,
     'sequence': 10,
+    'images': ['static/description/icon.svg'],
 }

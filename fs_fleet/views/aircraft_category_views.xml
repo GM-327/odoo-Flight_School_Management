@@ -15,6 +15,7 @@
                 <field name="code"/>
                 <field name="name"/>
                 <field name="aircraft_type_count" string="Types"/>
+                <field name="is_simulator" widget="boolean_toggle"/>
                 <field name="active" column_invisible="1"/>
             </list>
         </field>
@@ -32,6 +33,7 @@
                         <group string="Basic Information">
                             <field name="name" placeholder="e.g., Single-Engine Piston"/>
                             <field name="code" placeholder="e.g., SEP"/>
+                            <field name="is_simulator" widget="boolean_toggle"/>
                         </group>
                         <group string="Display">
                             <field name="color" widget="color_picker"/>

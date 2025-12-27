@@ -2,7 +2,7 @@
 <odoo>
     <data noupdate="0">
         <!-- 
-        Admin Staff Demo Data
+        Admin Staff Demo Data (8 Staff)
         =====================
         Demo administrative staff for testing.
         -->
@@ -13,7 +13,7 @@
             <field name="gender">female</field>
             <field name="birth_date">1975-04-12</field>
             <field name="service_number">ADM-001</field>
-            <field name="department">Management</field>
+            <field name="department_id" ref="fs_core.dept_mgmt"/>
             <field name="position">School Director</field>
             <field name="phone">+216 71 123 456</field>
             <field name="address">15 Avenue Habib Bourguiba, Tunis</field>
@@ -25,7 +25,7 @@
             <field name="gender">male</field>
             <field name="birth_date">1980-09-22</field>
             <field name="service_number">ADM-002</field>
-            <field name="department">Training</field>
+            <field name="department_id" ref="fs_core.dept_training"/>
             <field name="position">Head of Training Department</field>
             <field name="phone">+216 71 234 567</field>
             <field name="address">28 Rue de la Liberté, Tunis</field>
@@ -37,7 +37,7 @@
             <field name="gender">male</field>
             <field name="birth_date">1978-11-30</field>
             <field name="service_number">ADM-003</field>
-            <field name="department">Fleet Operations</field>
+            <field name="department_id" ref="fs_core.dept_ops"/>
             <field name="position">Fleet Manager</field>
             <field name="phone">+216 71 345 678</field>
             <field name="address">42 Avenue de Carthage, Tunis</field>
@@ -49,7 +49,7 @@
             <field name="gender">female</field>
             <field name="birth_date">1985-06-18</field>
             <field name="service_number">ADM-004</field>
-            <field name="department">Academic Affairs</field>
+            <field name="department_id" ref="fs_core.dept_admin"/>
             <field name="position">Registrar</field>
             <field name="phone">+216 71 456 789</field>
             <field name="address">89 Rue de Marseille, Tunis</field>
@@ -61,7 +61,7 @@
             <field name="gender">male</field>
             <field name="birth_date">1982-03-08</field>
             <field name="service_number">ADM-005</field>
-            <field name="department">Human Resources</field>
+            <field name="department_id" ref="fs_core.dept_admin"/>
             <field name="position">HR Manager</field>
             <field name="phone">+216 71 567 890</field>
             <field name="address">12 Avenue Mohamed V, Tunis</field>
@@ -73,10 +73,34 @@
             <field name="gender">female</field>
             <field name="birth_date">1988-12-15</field>
             <field name="service_number">ADM-006</field>
-            <field name="department">Safety &amp; Quality</field>
+            <field name="department_id" ref="fs_core.dept_ops"/>
             <field name="position">Safety Officer</field>
             <field name="phone">+216 71 678 901</field>
             <field name="address">56 Rue Charles de Gaulle, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 7: Accountant -->
+        <record id="admin_staff_demo_7" model="fs.admin.staff">
+            <field name="name">Mounir Bakri</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1984-05-10</field>
+            <field name="service_number">ADM-007</field>
+            <field name="department_id" ref="fs_core.dept_admin"/>
+            <field name="position">Accountant</field>
+            <field name="phone">+216 71 789 012</field>
+            <field name="address">78 Rue de Palestine, Tunis</field>
+        </record>
+
+        <!-- Admin Staff 8: IT Specialist -->
+        <record id="admin_staff_demo_8" model="fs.admin.staff">
+            <field name="name">Leila Sassi</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1990-02-28</field>
+            <field name="service_number">ADM-008</field>
+            <field name="department_id" ref="fs_core.dept_mgmt"/>
+            <field name="position">IT Specialist</field>
+            <field name="phone">+216 71 890 123</field>
+            <field name="address">102 Avenue de Paris, Tunis</field>
         </record>
 
     </data>

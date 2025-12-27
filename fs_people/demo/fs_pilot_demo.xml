@@ -2,7 +2,7 @@
 <odoo>
     <data noupdate="0">
         <!-- 
-        Pilot Demo Data
+        Pilot Demo Data (8 Pilots)
         ===============
         Demo pilots with various statuses for testing.
         -->
@@ -69,37 +69,110 @@
             <field name="phone">+216 97 333 444</field>
         </record>
 
+        <!-- Pilot 4 -->
+        <record id="pilot_demo_4" model="fs.pilot">
+            <field name="name">Anis Ben Amor</field>
+            <field name="callsign">GOLF</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1985-02-12</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_captain"/>
+            <field name="service_number">MIL-P-004</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2021-067</field>
+            <field name="license_issue_date">2021-01-15</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=100)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">850.0</field>
+            <field name="phone">+216 97 444 555</field>
+        </record>
+
+        <!-- Pilot 5 -->
+        <record id="pilot_demo_5" model="fs.pilot">
+            <field name="name">Hajer Gueddouda</field>
+            <field name="callsign">HOTEL</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1991-09-30</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_ppl"/>
+            <field name="license_number">PPL-TN-2023-012</field>
+            <field name="license_issue_date">2023-06-01</field>
+            <field name="english_level_id" ref="fs_people.english_level_4"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=8)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">120.0</field>
+            <field name="advance_payment">12000.0</field>
+            <field name="phone">+216 97 555 666</field>
+        </record>
+
+        <!-- Pilot 6 -->
+        <record id="pilot_demo_6" model="fs.pilot">
+            <field name="name">Tarek Jabir</field>
+            <field name="callsign">INDIA</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1978-03-25</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_atpl"/>
+            <field name="license_number">ATPL-TN-2010-001</field>
+            <field name="license_issue_date">2010-05-15</field>
+            <field name="english_level_id" ref="fs_people.english_level_6"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=50)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">8200.0</field>
+            <field name="phone">+216 97 666 777</field>
+        </record>
+
+        <!-- Pilot 7 -->
+        <record id="pilot_demo_7" model="fs.pilot">
+            <field name="name">Meriem Yahiaoui</field>
+            <field name="callsign">JULIET</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1994-11-02</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_lieutenant"/>
+            <field name="service_number">MIL-P-007</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2024-005</field>
+            <field name="license_issue_date">2024-02-01</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=300)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">250.0</field>
+            <field name="phone">+216 97 777 888</field>
+        </record>
+
+        <!-- Pilot 8 -->
+        <record id="pilot_demo_8" model="fs.pilot">
+            <field name="name">Firas Ben Mansour</field>
+            <field name="callsign">KILO</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1989-12-15</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_ppl"/>
+            <field name="license_number">PPL-TN-2021-099</field>
+            <field name="license_issue_date">2021-08-20</field>
+            <field name="english_level_id" ref="fs_people.english_level_4"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_2"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">180.0</field>
+            <field name="advance_payment">1500.0</field>
+            <field name="phone">+216 97 888 999</field>
+        </record>
+
         <!-- Pilot Qualifications -->
-        <!-- Khalil's qualifications -->
         <record id="qual_pilot1_sep" model="fs.person.qualification">
             <field name="pilot_id" ref="pilot_demo_1"/>
             <field name="qualification_id" ref="fs_people.qualification_sep"/>
             <field name="issue_date">2023-08-10</field>
             <field name="expiry_date">2025-08-31</field>
         </record>
-
-        <!-- Sami's qualifications -->
-        <record id="qual_pilot2_ir" model="fs.person.qualification">
-            <field name="pilot_id" ref="pilot_demo_2"/>
-            <field name="qualification_id" ref="fs_people.qualification_ir"/>
-            <field name="issue_date">2024-04-01</field>
-            <field name="expiry_date">2025-04-30</field>
-        </record>
-        <record id="qual_pilot2_me" model="fs.person.qualification">
-            <field name="pilot_id" ref="pilot_demo_2"/>
-            <field name="qualification_id" ref="fs_people.qualification_me"/>
-            <field name="issue_date">2023-10-15</field>
-            <field name="expiry_date" eval="(datetime.now() + relativedelta(days=18)).strftime('%Y-%m-%d')"/>
-        </record>
-
-        <!-- Leila's qualifications - one expired -->
-        <record id="qual_pilot3_sep" model="fs.person.qualification">
-            <field name="pilot_id" ref="pilot_demo_3"/>
+        <record id="qual_pilot4_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_4"/>
             <field name="qualification_id" ref="fs_people.qualification_sep"/>
-            <field name="issue_date">2022-11-25</field>
-            <field name="expiry_date" eval="(datetime.now() - relativedelta(days=20)).strftime('%Y-%m-%d')"/>
+            <field name="issue_date">2021-01-15</field>
+            <field name="expiry_date">2026-01-31</field>
         </record>
 
     </data>
 </odoo>
-

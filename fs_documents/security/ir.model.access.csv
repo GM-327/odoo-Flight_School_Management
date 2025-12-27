@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fs_document_entity_type_user,fs.document.entity.type.user,model_fs_document_entity_type,fs_core.group_flight_school_user,1,0,0,0
+access_fs_document_entity_type_manager,fs.document.entity.type.manager,model_fs_document_entity_type,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_document_type_user,fs.document.type.user,model_fs_document_type,fs_core.group_flight_school_user,1,0,0,0
+access_fs_document_type_manager,fs.document.type.manager,model_fs_document_type,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_document_user,fs.document.user,model_fs_document,fs_core.group_flight_school_user,1,0,0,0
+access_fs_document_instructor,fs.document.instructor,model_fs_document,fs_core.group_flight_school_instructor,1,1,1,0
+access_fs_document_manager,fs.document.manager,model_fs_document,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_document_version_user,fs.document.version.user,model_fs_document_version,fs_core.group_flight_school_user,1,0,0,0
+access_fs_document_version_instructor,fs.document.version.instructor,model_fs_document_version,fs_core.group_flight_school_instructor,1,1,1,0
+access_fs_document_version_manager,fs.document.version.manager,model_fs_document_version,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_document_upload_wizard_user,fs.document.upload.wizard.user,model_fs_document_upload_wizard,fs_core.group_flight_school_user,1,1,1,1

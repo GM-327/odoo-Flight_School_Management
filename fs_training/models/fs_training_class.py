@@ -18,7 +18,7 @@ class FsTrainingClass(models.Model):
     _name = 'fs.training.class'
     _description = 'Training Class'
     _inherit = ['mail.thread', 'mail.activity.mixin']
-    _order = 'start_date desc, name'
+    _order = 'expected_end_date, name'
 
     name = fields.Char(
         string='Class Name',

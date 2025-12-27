@@ -9,7 +9,7 @@
     <!-- Root Menu: People (standalone app menu) -->
     <menuitem id="menu_people_root"
               name="People"
-              web_icon="fs_people,static/description/icon.png"
+              web_icon="fs_people,static/description/icon.svg"
               sequence="15"/>
 
     <!-- Personnel submenu items -->

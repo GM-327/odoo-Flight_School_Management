@@ -12,3 +12,4 @@ from . import fs_instructor
 from . import fs_student
 from . import fs_pilot
 from . import fs_admin_staff
+from . import res_users

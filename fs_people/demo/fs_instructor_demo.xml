@@ -2,7 +2,7 @@
 <odoo>
     <data noupdate="0">
         <!-- 
-        Instructor Demo Data
+        Instructor Demo Data (8 Instructors)
         ====================
         Demo instructors with various statuses for testing.
         -->
@@ -67,55 +67,115 @@
             <field name="phone">+216 98 345 678</field>
         </record>
 
+        <!-- Instructor 4 -->
+        <record id="instructor_demo_4" model="fs.instructor">
+            <field name="name">Sami Khedira</field>
+            <field name="callsign">KILO</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1982-04-05</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_lieutenant_colonel"/>
+            <field name="service_number">MIL-004</field>
+            <field name="license_id" ref="fs_people.license_type_atpl"/>
+            <field name="license_number">ATPL-TN-2015-012</field>
+            <field name="license_issue_date">2015-02-10</field>
+            <field name="english_level_id" ref="fs_people.english_level_6"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=10)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">5500.0</field>
+            <field name="total_instruction_hours">3200.0</field>
+            <field name="phone">+216 98 444 555</field>
+        </record>
+
+        <!-- Instructor 5 -->
+        <record id="instructor_demo_5" model="fs.instructor">
+            <field name="name">Donia Samir</field>
+            <field name="callsign">SIERRA</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1992-07-20</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2022-099</field>
+            <field name="license_issue_date">2022-03-15</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=5)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">1200.0</field>
+            <field name="total_instruction_hours">450.0</field>
+            <field name="phone">+216 98 555 666</field>
+        </record>
+
+        <!-- Instructor 6 -->
+        <record id="instructor_demo_6" model="fs.instructor">
+            <field name="name">Karim Benzema</field>
+            <field name="callsign">ZORRO</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1987-12-19</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_captain"/>
+            <field name="service_number">MIL-006</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2016-123</field>
+            <field name="license_issue_date">2016-05-20</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=120)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">2800.0</field>
+            <field name="total_instruction_hours">1500.0</field>
+            <field name="phone">+216 98 666 777</field>
+        </record>
+
+        <!-- Instructor 7 -->
+        <record id="instructor_demo_7" model="fs.instructor">
+            <field name="name">Ines Boubakri</field>
+            <field name="callsign">QUEEN</field>
+            <field name="gender">female</field>
+            <field name="birth_date">1989-10-28</field>
+            <field name="is_military">False</field>
+            <field name="license_id" ref="fs_people.license_type_atpl"/>
+            <field name="license_number">ATPL-TN-2018-056</field>
+            <field name="license_issue_date">2018-09-01</field>
+            <field name="english_level_id" ref="fs_people.english_level_6"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=6)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">4200.0</field>
+            <field name="total_instruction_hours">1800.0</field>
+            <field name="phone">+216 98 777 888</field>
+        </record>
+
+        <!-- Instructor 8 -->
+        <record id="instructor_demo_8" model="fs.instructor">
+            <field name="name">Walid Khazri</field>
+            <field name="callsign">WOLF</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1984-06-15</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="fs_people.rank_major"/>
+            <field name="service_number">MIL-008</field>
+            <field name="license_id" ref="fs_people.license_type_cpl"/>
+            <field name="license_number">CPL-TN-2014-088</field>
+            <field name="license_issue_date">2014-07-22</field>
+            <field name="english_level_id" ref="fs_people.english_level_5"/>
+            <field name="medical_class_id" ref="fs_people.medical_class_1"/>
+            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=200)).strftime('%Y-%m-%d')"/>
+            <field name="total_flight_hours">3100.0</field>
+            <field name="total_instruction_hours">2100.0</field>
+            <field name="phone">+216 98 888 999</field>
+        </record>
+
         <!-- Instructor Qualifications -->
-        <!-- Ahmed's qualifications - all valid -->
         <record id="qual_instructor1_fi" model="fs.person.qualification">
             <field name="instructor_id" ref="instructor_demo_1"/>
             <field name="qualification_id" ref="fs_people.qualification_fi"/>
             <field name="issue_date">2020-06-15</field>
             <field name="expiry_date">2026-06-30</field>
         </record>
-        <record id="qual_instructor1_ir" model="fs.person.qualification">
-            <field name="instructor_id" ref="instructor_demo_1"/>
-            <field name="qualification_id" ref="fs_people.qualification_ir"/>
-            <field name="issue_date">2024-01-15</field>
-            <field name="expiry_date">2025-01-31</field>
-        </record>
-        <record id="qual_instructor1_sep" model="fs.person.qualification">
-            <field name="instructor_id" ref="instructor_demo_1"/>
-            <field name="qualification_id" ref="fs_people.qualification_sep"/>
-            <field name="issue_date">2023-03-20</field>
-            <field name="expiry_date">2025-03-31</field>
-        </record>
-
-        <!-- Mohamed's qualifications - some expiring -->
-        <record id="qual_instructor2_fi" model="fs.person.qualification">
-            <field name="instructor_id" ref="instructor_demo_2"/>
+        <record id="qual_instructor4_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_4"/>
             <field name="qualification_id" ref="fs_people.qualification_fi"/>
-            <field name="issue_date">2018-03-10</field>
-            <field name="expiry_date" eval="(datetime.now() + relativedelta(days=20)).strftime('%Y-%m-%d')"/>
-        </record>
-        <record id="qual_instructor2_iri" model="fs.person.qualification">
-            <field name="instructor_id" ref="instructor_demo_2"/>
-            <field name="qualification_id" ref="fs_people.qualification_iri"/>
-            <field name="issue_date">2022-05-01</field>
-            <field name="expiry_date">2025-05-31</field>
-        </record>
-
-        <!-- Fatma's qualifications - one expired -->
-        <record id="qual_instructor3_fi" model="fs.person.qualification">
-            <field name="instructor_id" ref="instructor_demo_3"/>
-            <field name="qualification_id" ref="fs_people.qualification_fi"/>
-            <field name="issue_date">2021-09-01</field>
-            <field name="expiry_date" eval="(datetime.now() - relativedelta(days=5)).strftime('%Y-%m-%d')"/>
-        </record>
-        <record id="qual_instructor3_sep" model="fs.person.qualification">
-            <field name="instructor_id" ref="instructor_demo_3"/>
-            <field name="qualification_id" ref="fs_people.qualification_sep"/>
-            <field name="issue_date">2023-06-15</field>
-            <field name="expiry_date">2025-06-30</field>
+            <field name="issue_date">2015-02-10</field>
+            <field name="expiry_date">2027-02-10</field>
         </record>
 
     </data>
 </odoo>
-

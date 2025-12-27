@@ -3,7 +3,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 
 class FsStudentEnrollment(models.Model):
@@ -25,6 +25,7 @@ class FsStudentEnrollment(models.Model):
         required=True,
         tracking=True,
         ondelete='restrict',
+        domain="['!', ('enrollment_ids.status', 'in', ['enrolled', 'active'])]",
     )
     training_class_id = fields.Many2one(
         comodel_name='fs.training.class',
@@ -217,6 +218,7 @@ class FsStudentEnrollment(models.Model):
         string='Progression (%)',
         compute='_compute_progression',
         store=True,
+        aggregator='avg',
         help="Percentage of minimum hours completed.",
     )
     notes = fields.Text(
@@ -380,9 +382,14 @@ class FsStudentEnrollment(models.Model):
                     )
 
     def action_graduate(self):
-        """Mark enrollment as graduated."""
+        """Mark enrollment as graduated. Checks for 100% completion."""
         today = fields.Date.context_today(self)
         for record in self:
+            if record.progression < 100.0:
+                raise UserError(
+                    f"Student '{record.student_id.name}' cannot graduate yet. " # type: ignore
+                    f"Syllabus completion is only {record.progression:.1f}%."
+                )
             if record.status in ('enrolled', 'active'):
                 record.status = 'graduated'
                 record.graduation_date = today
@@ -421,6 +428,18 @@ class FsStudentEnrollment(models.Model):
             'view_mode': 'form',
             'target': 'current',
         }
+    def action_open_enrollment(self):
+        """Open the enrollment form in a popup window."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Student Enrollment',
+            'res_model': 'fs.student.enrollment',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
+
 class FsEnrollmentHours(models.Model):
     """Flight hours logged per activity for an enrollment."""
 

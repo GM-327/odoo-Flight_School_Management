@@ -21,6 +21,10 @@
                 <field name="engine_type" optional="hide"/>
                 <field name="is_complex" widget="boolean_toggle"/>
                 <field name="aircraft_count" string="Fleet"/>
+                <field name="is_simulator" widget="boolean_toggle"/>
+                <field name="hour_price_solo" widget="monetary" optional="hide" invisible="is_simulator"/>
+                <field name="hour_price_dual" widget="monetary" optional="hide" invisible="is_simulator"/>
+                <field name="hour_price_sim" widget="monetary" optional="hide" invisible="not is_simulator"/>
                 <field name="active" column_invisible="1"/>
             </list>
         </field>
@@ -49,6 +53,7 @@
                         <group string="Classification">
                             <field name="category_id"/>
                             <field name="code" placeholder="ICAO code"/>
+                            <field name="is_simulator" readonly="1"/>
                             <field name="suitable_for_training"/>
                             <field name="color" widget="color_picker"/>
                             <field name="aircraft_count" string="In Fleet"/>
@@ -71,6 +76,14 @@
                                     <field name="is_high_performance" widget="boolean_toggle"/>
                                     <field name="suitable_for_training" widget="boolean_toggle"/>
                                 </group>
+                            </group>
+                        </page>
+                        <page string="Pricing" name="pricing">
+                            <group>
+                                <field name="currency_id" invisible="1"/>
+                                <field name="hour_price_solo" widget="monetary" invisible="is_simulator"/>
+                                <field name="hour_price_dual" widget="monetary" invisible="is_simulator"/>
+                                <field name="hour_price_sim" widget="monetary" invisible="not is_simulator"/>
                             </group>
                         </page>
                         <page string="Training Notes" name="training">

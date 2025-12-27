@@ -38,5 +38,15 @@
             <field name="description">Commercial pilot license for paid flying activities.</field>
         </record>
 
+        <!-- Airline Transport Pilot License -->
+        <record id="license_type_atpl" model="fs.license.type">
+            <field name="name">Airline Transport Pilot License</field>
+            <field name="code">ATPL</field>
+            <field name="sequence">30</field>
+            <field name="has_validity">False</field>
+            <field name="is_student_related">False</field>
+            <field name="description">Highest level of aircraft pilot certification.</field>
+        </record>
+
     </data>
 </odoo>

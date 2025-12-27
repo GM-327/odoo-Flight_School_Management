@@ -64,4 +64,5 @@ All personnel can optionally have Odoo user accounts for system access.
     'application': True,
     'auto_install': True,
     'sequence': 20,
+    'images': ['static/description/icon.svg'],
 }

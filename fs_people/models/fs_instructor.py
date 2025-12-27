@@ -14,6 +14,12 @@ class FsInstructor(models.Model):
     _inherit = ['fs.person']
     _order = 'name'
 
+    department_id = fields.Many2one(
+        'fs.department',
+        string='Department',
+        tracking=True,
+    )
+
     # === Callsign ===
     callsign = fields.Char(
         string='Callsign',
@@ -55,7 +61,7 @@ class FsInstructor(models.Model):
         string='Qualifications',
     )
     qualification_badges = fields.Html(
-        string='Qualifications',
+        string='Qualification Badges',
         compute='_compute_qualification_badges',
         sanitize=False,
     )
@@ -101,16 +107,41 @@ class FsInstructor(models.Model):
         compute='_compute_has_expired_qualification',
         store=True,
     )
+    earliest_expiry_date = fields.Date(
+        string='Earliest Expiry',
+        compute='_compute_has_expired_qualification',
+        store=True,
+        help="The most urgent expiry date among medical, english, and qualifications.",
+    )
     
-    @api.depends('qualification_ids.expiry_status', 'medical_status', 'english_status')
+    @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date', 
+                 'medical_expiry', 'english_expiry')
     def _compute_has_expired_qualification(self):
-        """Check if any qualification or status is expired for row decoration."""
+        """Check if any qualification or status is expired and find the earliest expiry date."""
         for record in self:
+            # Check for expiration
             record.has_expired_qualification = (
                 any(qual.expiry_status == 'expired' for qual in record.qualification_ids) or  # type: ignore
-                record.medical_status == 'expired' or  # type: ignore
-                record.english_status == 'expired'  # type: ignore
+                getattr(record, 'medical_status', False) == 'expired' or
+                getattr(record, 'english_status', False) == 'expired'
             )
+            
+            # Find earliest expiry date
+            expiries = []
+            med_exp = getattr(record, 'medical_expiry', False)
+            if med_exp:
+                expiries.append(med_exp)
+            
+            eng_exp = getattr(record, 'english_expiry', False)
+            if eng_exp:
+                expiries.append(eng_exp)
+                
+            for qual in record.qualification_ids:
+                q_exp = getattr(qual, 'expiry_date', False)
+                if q_exp:
+                    expiries.append(q_exp)
+            
+            record.earliest_expiry_date = min(expiries) if expiries else False
 
     # === English Proficiency ===
     english_level_id = fields.Many2one(

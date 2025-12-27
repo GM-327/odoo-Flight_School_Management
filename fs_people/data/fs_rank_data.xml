@@ -21,6 +21,12 @@
             <field name="sequence">30</field>
         </record>
         
+        <record id="rank_lieutenant" model="fs.rank">
+            <field name="name">Lieutenant</field>
+            <field name="code">LT</field>
+            <field name="sequence">35</field>
+        </record>
+        
         <record id="rank_captain" model="fs.rank">
             <field name="name">Captain</field>
             <field name="code">CPT</field>

@@ -12,6 +12,8 @@
                 <field name="color" widget="color_picker"/>
                 <field name="code"/>
                 <field name="name"/>
+                <field name="is_solo"/>
+                <field name="is_sim"/>
             </list>
         </field>
     </record>
@@ -27,6 +29,8 @@
                         <group>
                             <field name="name"/>
                             <field name="code"/>
+                            <field name="is_solo"/>
+                            <field name="is_sim"/>
                         </group>
                         <group>
                             <field name="color" widget="color_picker"/>
