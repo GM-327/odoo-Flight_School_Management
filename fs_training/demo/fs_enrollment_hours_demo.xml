@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+    <!-- 
+    Enrollment Hours Demo Data
+    ==========================
+    Updates the auto-created enrollment hours with realistic logged hours.
+    -->
+
+    <!-- Update hours for Student 1 (Youssef Hamdi) in Basic Class - 45 hours total -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Youssef Hamdi'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 25.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Youssef Hamdi'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 5.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Youssef Hamdi'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 10.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Youssef Hamdi'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 5.0}"/>
+    </function>
+
+    <!-- Update hours for Student 2 (Amel Cherif) in Basic Class - 78 hours advanced -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Amel Cherif'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 35.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Amel Cherif'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 12.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Amel Cherif'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 18.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Amel Cherif'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 8.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Amel Cherif'),
+            ('activity_id.discipline_id.code', '=', 'VSV'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 5.0}"/>
+    </function>
+
+    <!-- Update hours for Student 6 (Ahmed Mansour) - early stage -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Ahmed Mansour'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 8.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Ahmed Mansour'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 2.0}"/>
+    </function>
+
+    <!-- Update hours for Student 8 (Hamza Mejri) -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Hamza Mejri'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 15.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Hamza Mejri'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 3.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Hamza Mejri'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 5.0}"/>
+    </function>
+
+    <!-- Update hours for Student 10 (Mehdi Bouker) -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Mehdi Bouker'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 12.0}"/>
+    </function>
+
+    <!-- Update hours for Student 12 (Firas Gharbi) -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Firas Gharbi'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 18.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Firas Gharbi'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'SOLO'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 4.0}"/>
+    </function>
+
+    <!-- Update hours for IFR students -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Rim Mabrouk'),
+            ('activity_id.discipline_id.code', '=', 'IFR'),
+            ('activity_id.flight_type_id.code', '=', 'SIM'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 20.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Rim Mabrouk'),
+            ('activity_id.discipline_id.code', '=', 'IFR'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 15.0}"/>
+    </function>
+
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Anis Riahi'),
+            ('activity_id.discipline_id.code', '=', 'IFR'),
+            ('activity_id.flight_type_id.code', '=', 'SIM'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 25.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Anis Riahi'),
+            ('activity_id.discipline_id.code', '=', 'IFR'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 18.0}"/>
+    </function>
+
+    <!-- CPL students -->
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Nadia Sfar'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 8.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Nadia Sfar'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 10.0}"/>
+    </function>
+
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Ines Jlassi'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 25.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Ines Jlassi'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 30.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Ines Jlassi'),
+            ('activity_id.discipline_id.code', '=', 'IFR'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 10.0}"/>
+    </function>
+
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Mona Abidi'),
+            ('activity_id.discipline_id.code', '=', 'MAN'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 20.0}"/>
+    </function>
+    <function model="fs.enrollment.hours" name="write">
+        <value eval="[
+            ('enrollment_id.student_id.name', '=', 'Mona Abidi'),
+            ('activity_id.discipline_id.code', '=', 'NAV'),
+            ('activity_id.flight_type_id.code', '=', 'DUAL'),
+        ]" search="True"/>
+        <value eval="{'hours_logged': 25.0}"/>
+    </function>
+
+</odoo>

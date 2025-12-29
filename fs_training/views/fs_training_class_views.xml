@@ -70,31 +70,33 @@
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex gap-3 mb-4 mt-2 align-items-stretch">
-                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
-                            <span class="text-uppercase small fw-bold text-muted mb-1">Progress</span>
-                            <div class="d-flex align-items-baseline gap-1">
-                                <span class="fs-2 fw-bolder text-info"><field name="progress_percentage" widget="integer"/></span>
-                                <span class="fw-bold text-info">%</span>
+                    <group col="1">
+                        <div class="d-flex gap-3 align-items-stretch">
+                            <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                                <span class="text-uppercase small fw-bold text-muted mb-1">Progress</span>
+                                <div class="d-flex align-items-baseline gap-1">
+                                    <span class="fs-2 fw-bolder text-info"><field name="progress_percentage" widget="integer"/></span>
+                                    <span class="fw-bold text-info">%</span>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                                <span class="text-uppercase small fw-bold text-muted mb-1">Students</span>
+                                <span class="fs-2 fw-bolder text-primary"><field name="student_count"/></span>
+                            </div>
+                            <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                                <span class="text-uppercase small fw-bold text-muted mb-1">Graduated</span>
+                                <span class="fs-2 fw-bolder text-success"><field name="graduated_count"/></span>
+                            </div>
+                            <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
+                                <span class="text-uppercase small fw-bold text-muted mb-1">Dropped</span>
+                                <span class="fs-2 fw-bolder text-danger"><field name="dropped_count"/></span>
+                            </div>
+                            <div class="flex-grow-1 ms-3 p-3 border rounded bg-view shadow-sm d-flex flex-column justify-content-center">
+                                <label for="progress_percentage" string="Overall Class Progression" class="text-uppercase small fw-bold text-muted mb-2"/>
+                                <field name="progress_percentage" widget="progressbar" options="{'editable': false}" class="w-100"/>
                             </div>
                         </div>
-                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
-                            <span class="text-uppercase small fw-bold text-muted mb-1">Students</span>
-                            <span class="fs-2 fw-bolder text-primary"><field name="student_count"/></span>
-                        </div>
-                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
-                            <span class="text-uppercase small fw-bold text-muted mb-1">Graduated</span>
-                            <span class="fs-2 fw-bolder text-success"><field name="graduated_count"/></span>
-                        </div>
-                        <div class="d-flex flex-column align-items-center justify-content-center px-4 py-2 border rounded bg-view shadow-sm" style="min-width: 110px;">
-                            <span class="text-uppercase small fw-bold text-muted mb-1">Dropped</span>
-                            <span class="fs-2 fw-bolder text-danger"><field name="dropped_count"/></span>
-                        </div>
-                        <div class="flex-grow-1 ms-3 p-3 border rounded bg-view shadow-sm d-flex flex-column justify-content-center">
-                            <label for="progress_percentage" string="Overall Class Progression" class="text-uppercase small fw-bold text-muted mb-2"/>
-                            <field name="progress_percentage" widget="progressbar" options="{'editable': false}" class="w-100"/>
-                        </div>
-                    </div>
+                    </group>
                     <group>
                         <group string="Class Details">
                             <field name="class_type_id" options="{'no_create': True}"/>

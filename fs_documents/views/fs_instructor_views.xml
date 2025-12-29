@@ -45,8 +45,12 @@
             <!-- Add Documents Tab -->
             <xpath expr="//page[@name='notes']" position="after">
                 <page string="Documents" name="documents">
+                    <div class="mb-2">
+                        <button name="action_upload_document" type="object" 
+                                string="Upload Document" class="btn btn-primary" icon="fa-upload"/>
+                    </div>
                     <field name="document_ids" nolabel="1" context="{'default_instructor_id': id}">
-                        <list decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
+                        <list create="0" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
                             <field name="name"/>
                             <field name="document_type_id"/>
                             <field name="expiry_date"/>
@@ -60,6 +64,54 @@
                         </list>
                     </field>
                 </page>
+            </xpath>
+
+            <!-- Add document preview button next to ID number field -->
+            <xpath expr="//field[@name='identification_number']" position="replace">
+                <label for="identification_number"/>
+                <div class="o_row">
+                    <field name="identification_number"/>
+                    <button name="action_view_id_document" type="object" 
+                            icon="fa-file-text-o" title="Preview ID Document"
+                            class="btn-link p-0" invisible="not id_document_id"/>
+                    <span class="badge text-bg-secondary" invisible="id_document_id">not uploaded</span>
+                </div>
+            </xpath>
+
+            <!-- Add document preview button next to medical expiry -->
+            <xpath expr="//page[@name='medical']//field[@name='medical_expiry']/.." position="replace">
+                <div class="o_row">
+                    <field name="medical_expiry" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'"/>
+                    <field name="medical_status" widget="badge" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
+                    <button name="action_view_medical_document" type="object" 
+                            icon="fa-file-text-o" title="Preview Medical Document"
+                            class="btn-link p-0" invisible="not medical_document_id"/>
+                    <span class="badge text-bg-secondary" invisible="medical_document_id">not uploaded</span>
+                </div>
+            </xpath>
+
+            <!-- Add document preview button next to english expiry -->
+            <xpath expr="//page[@name='license']//field[@name='english_expiry']/.." position="replace">
+                <div class="o_row">
+                    <field name="english_expiry" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'"/>
+                    <field name="english_status" widget="badge" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'"/>
+                    <button name="action_view_english_document" type="object" 
+                            icon="fa-file-text-o" title="Preview English Document"
+                            class="btn-link p-0" invisible="not english_document_id"/>
+                    <span class="badge text-bg-secondary" invisible="english_document_id">not uploaded</span>
+                </div>
+            </xpath>
+
+            <!-- Add document preview button next to license number -->
+            <xpath expr="//page[@name='license']//field[@name='license_number']" position="replace">
+                <label for="license_number"/>
+                <div class="o_row">
+                    <field name="license_number"/>
+                    <button name="action_view_license_document" type="object" 
+                            icon="fa-file-text-o" title="Preview License Document"
+                            class="btn-link p-0" invisible="not license_document_id"/>
+                    <span class="badge text-bg-secondary" invisible="license_document_id">not uploaded</span>
+                </div>
             </xpath>
         </field>
     </record>

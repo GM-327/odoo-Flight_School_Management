@@ -69,6 +69,12 @@ class FsDocument(models.Model):
         ondelete='cascade',
         index=True,
     )
+    class_type_id = fields.Many2one(
+        comodel_name='fs.class.type',
+        string='Class Type',
+        ondelete='cascade',
+        index=True,
+    )
 
     # === Versioning ===
     version_ids = fields.One2many(
@@ -141,27 +147,91 @@ class FsDocument(models.Model):
         default=True,
     )
 
-    # === Constraints ===
-    _sql_constraints = [
-        ('unique_document_student', 
-         'UNIQUE(document_type_id, student_id)', 
-         'A document of this type already exists for this student!'),
-        ('unique_document_instructor', 
-         'UNIQUE(document_type_id, instructor_id)', 
-         'A document of this type already exists for this instructor!'),
-        ('unique_document_pilot', 
-         'UNIQUE(document_type_id, pilot_id)', 
-         'A document of this type already exists for this pilot!'),
-        ('unique_document_class', 
-         'UNIQUE(document_type_id, training_class_id)', 
-         'A document of this type already exists for this class!'),
-    ]
+    # === Computed Entity Info for Views ===
+    related_entity_name = fields.Char(
+        string='Belongs To',
+        compute='_compute_related_entity_info',
+        store=True,
+    )
+    related_entity_type = fields.Selection(
+        selection=[
+            ('student', 'Student'),
+            ('instructor', 'Instructor'),
+            ('pilot', 'Pilot'),
+            ('training_class', 'Training Class'),
+            ('admin_task', 'Admin Task'),
+            ('class_type', 'Class Type'),
+        ],
+        string='Entity Type',
+        compute='_compute_related_entity_info',
+        store=True,
+    )
 
-    @api.depends('document_type_id', 'document_type_id.name')
-    def _compute_name(self):
-        """Document name = Document Type name."""
+    @api.depends('student_id', 'instructor_id', 'pilot_id', 'training_class_id', 'admin_task_id', 'class_type_id')
+    def _compute_related_entity_info(self):
+        """Compute the name and type of the related entity for unified display."""
         for record in self:
-            record.name = record.document_type_id.name if record.document_type_id else ''  # type: ignore
+            name = False
+            etype = False
+            
+            if record.student_id:
+                name = record.student_id.display_name
+                etype = 'student'
+            elif record.instructor_id:
+                name = record.instructor_id.display_name
+                etype = 'instructor'
+            elif record.pilot_id:
+                name = record.pilot_id.display_name
+                etype = 'pilot'
+            elif record.training_class_id:
+                name = record.training_class_id.display_name
+                etype = 'training_class'
+            elif record.admin_task_id:
+                name = record.admin_task_id.display_name
+                etype = 'admin_task'
+            elif record.class_type_id:
+                name = record.class_type_id.display_name
+                etype = 'class_type'
+                
+            record.related_entity_name = name
+            record.related_entity_type = etype
+
+    # === Constraints ===
+    _unique_document_student = models.Constraint(
+        'UNIQUE(document_type_id, student_id)',
+        'A document of this type already exists for this student!',
+    )
+    _unique_document_instructor = models.Constraint(
+        'UNIQUE(document_type_id, instructor_id)',
+        'A document of this type already exists for this instructor!',
+    )
+    _unique_document_pilot = models.Constraint(
+        'UNIQUE(document_type_id, pilot_id)',
+        'A document of this type already exists for this pilot!',
+    )
+    _unique_document_class = models.Constraint(
+        'UNIQUE(document_type_id, training_class_id)',
+        'A document of this type already exists for this class!',
+    )
+    _unique_document_class_type = models.Constraint(
+        'UNIQUE(document_type_id, class_type_id)',
+        'A document of this type already exists for this class type!',
+    )
+    _unique_document_admin_task = models.Constraint(
+        'UNIQUE(document_type_id, admin_task_id)',
+        'A document of this type already exists for this admin task!',
+    )
+
+    @api.depends('document_type_id', 'document_type_id.name', 'admin_task_id', 'admin_task_id.name')
+    def _compute_name(self):
+        """Document name = Admin Task name (for admin docs) or Document Type name."""
+        for record in self:
+            name = ''
+            if record.admin_task_id:
+                name = record.admin_task_id.display_name
+            elif record.document_type_id:
+                name = record.document_type_id.display_name
+            record.name = name or 'New Document'
 
     @api.depends('version_ids', 'version_ids.is_current')
     def _compute_current_version(self):
@@ -229,15 +299,21 @@ class FsDocument(models.Model):
         }
 
     def action_add_version(self):
-        """Open wizard to add a new version."""
+        """Open the upload wizard to add a new version.
+        
+        Prefills the wizard with current document data and skips to Step 2.
+        """
         self.ensure_one()
         return {
-            'name': 'Add New Version',
+            'name': 'Update Document',
             'type': 'ir.actions.act_window',
-            'res_model': 'fs.document.version',
+            'res_model': 'fs.document.upload.wizard',
             'view_mode': 'form',
             'target': 'new',
-            'context': {'default_document_id': self.id},
+            'context': {
+                'default_document_id': self.id,
+                'default_state': 'upload', # Start at Step 2
+            }
         }
 
     @api.model
@@ -264,3 +340,53 @@ class FsDocument(models.Model):
             'document_type_id': document_type_id,
             entity_field: entity_id,
         })
+
+    def action_open_upload_wizard(self):
+        """Open the upload wizard, using entity-specific view if context has an entity.
+        
+        Called from the Upload Document button in list/kanban views.
+        Detects if we're coming from an entity-filtered view and opens the appropriate wizard.
+        """
+        # Check for entity context keys
+        context_keys = [
+            'default_student_id',
+            'default_instructor_id', 
+            'default_pilot_id',
+            'default_training_class_id',
+            'default_class_type_id',
+            'default_admin_task_id',
+        ]
+        
+        has_entity = any(self._context.get(key) for key in context_keys)
+        
+        if has_entity:
+            # Use entity-specific wizard view
+            view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id
+        else:
+            # Use generic wizard view
+            view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_form').id
+        
+        return {
+            'name': 'Upload Document',
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.document.upload.wizard',
+            'view_mode': 'form',
+            'view_id': view_id,
+            'target': 'new',
+            'context': dict(self._context),
+        }
+
+    def action_open_preview(self):
+        """Open a popup preview of the current version."""
+        self.ensure_one()
+        return {
+            'name': 'Document Preview',
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.document',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('fs_documents.view_fs_document_preview').id,
+            'target': 'new',
+            'context': {'dialog_size': 'extra-large'},
+        }
+

@@ -26,7 +26,7 @@
             </xpath>
 
             <!-- Replace License Type with Current Class in Dashboard -->
-            <xpath expr="//div[hasclass('mb-3')][hasclass('p-2')]//field[@name='license_id']/ancestor::div[hasclass('col')]" position="replace">
+            <xpath expr="//div[hasclass('p-2')][hasclass('bg-light')]//field[@name='license_id']/ancestor::div[hasclass('col')]" position="replace">
                 <div class="col px-3 border-start" invisible="is_military">
                     <div class="text-uppercase small fw-bold text-muted mb-1">Current Class</div>
                     <div class="h4 mb-0 text-secondary text-nowrap">

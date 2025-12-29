@@ -26,6 +26,7 @@ This module provides:
     'website': '',
     'license': 'LGPL-3',
     'depends': [
+        'web',
         'fs_core',
         'fs_people',
         'fs_training',
@@ -45,9 +46,19 @@ This module provides:
         'views/fs_instructor_views.xml',
         'views/fs_pilot_views.xml',
         'views/fs_training_class_views.xml',
+        'views/fs_class_type_views.xml',
+        'views/fs_admin_task_views.xml',
         'views/menu_views.xml',
     ],
-    'demo': [],
+    'assets': {
+        'web.assets_backend': [
+            'fs_documents/static/src/css/document_view.css',
+            'fs_documents/static/src/js/document_resizer.js',
+        ],
+    },
+    'demo': [
+        'demo/fs_documents_demo.xml',
+    ],
     'installable': True,
     'application': True,
     'auto_install': True,

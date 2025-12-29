@@ -31,6 +31,11 @@ class FsAdminTaskTemplate(models.Model):
         string='Active',
         default=True,
     )
+    is_default = fields.Boolean(
+        string='Default Task',
+        default=False,
+        help="If enabled, this task will be automatically added to every new class type.",
+    )
 
 
 class FsClassTypeAdminTask(models.Model):

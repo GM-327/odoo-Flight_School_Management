@@ -35,4 +35,10 @@
               parent="menu_fs_documents_config"
               action="action_fs_document_type"
               sequence="10"/>
+
+    <menuitem id="menu_fs_document_entity_type"
+              name="Entity Types"
+              parent="menu_fs_documents_config"
+              action="action_fs_document_entity_type"
+              sequence="20"/>
 </odoo>

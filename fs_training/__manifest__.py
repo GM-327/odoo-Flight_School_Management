@@ -62,6 +62,7 @@ This module provides:
     },
     'demo': [
         'demo/fs_training_demo.xml',
+        'demo/fs_training_extended_demo.xml',
     ],
     'installable': True,
     'application': True,

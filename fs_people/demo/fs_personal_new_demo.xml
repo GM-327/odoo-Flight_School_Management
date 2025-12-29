@@ -1,6 +1,151 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
-        <!-- Extra demo data can be added here -->
+        <!-- Extended People Demo - More Qualifications -->
+
+        <!-- More Instructor Qualifications -->
+        <record id="qual_instructor2_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2018-03-10</field>
+            <field name="expiry_date">2027-03-10</field>
+        </record>
+        <record id="qual_instructor2_iri" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_iri"/>
+            <field name="issue_date">2019-06-01</field>
+            <field name="expiry_date">2025-06-01</field>
+        </record>
+        <record id="qual_instructor3_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_3"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2021-09-01</field>
+            <field name="expiry_date" eval="(datetime.now() + relativedelta(days=45)).strftime('%Y-%m-%d')"/>
+        </record>
+        <record id="qual_instructor4_iri" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_4"/>
+            <field name="qualification_id" ref="fs_people.qualification_iri"/>
+            <field name="issue_date">2016-02-10</field>
+            <field name="expiry_date">2028-02-10</field>
+        </record>
+        <record id="qual_instructor4_cri" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_4"/>
+            <field name="qualification_id" ref="fs_people.qualification_cri"/>
+            <field name="issue_date">2017-05-15</field>
+            <field name="expiry_date">2026-05-15</field>
+        </record>
+        <record id="qual_instructor5_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_5"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2022-03-15</field>
+            <field name="expiry_date">2025-03-15</field>
+        </record>
+        <record id="qual_instructor6_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_6"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2016-05-20</field>
+            <field name="expiry_date">2025-05-20</field>
+        </record>
+        <record id="qual_instructor7_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_7"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2018-09-01</field>
+            <field name="expiry_date">2027-09-01</field>
+        </record>
+        <record id="qual_instructor7_iri" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_7"/>
+            <field name="qualification_id" ref="fs_people.qualification_iri"/>
+            <field name="issue_date">2019-12-01</field>
+            <field name="expiry_date">2025-12-01</field>
+        </record>
+        <record id="qual_instructor8_fi" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_8"/>
+            <field name="qualification_id" ref="fs_people.qualification_fi"/>
+            <field name="issue_date">2014-07-22</field>
+            <field name="expiry_date">2026-07-22</field>
+        </record>
+
+        <!-- Type Ratings for Instructors -->
+        <record id="qual_instructor1_sep" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_1"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2020-06-15</field>
+            <field name="expiry_date">2026-06-15</field>
+        </record>
+        <record id="qual_instructor2_sep" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2023-01-01</field>
+            <field name="expiry_date">2025-01-01</field>
+        </record>
+        <record id="qual_instructor4_me" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_4"/>
+            <field name="qualification_id" ref="fs_people.qualification_me"/>
+            <field name="issue_date">2015-02-10</field>
+            <field name="expiry_date">2025-02-10</field>
+        </record>
+        <record id="qual_instructor7_me" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_demo_7"/>
+            <field name="qualification_id" ref="fs_people.qualification_me"/>
+            <field name="issue_date">2020-03-01</field>
+            <field name="expiry_date">2026-03-01</field>
+        </record>
+
+        <!-- More Pilot Qualifications -->
+        <record id="qual_pilot2_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2019-04-20</field>
+            <field name="expiry_date">2025-04-20</field>
+        </record>
+        <record id="qual_pilot2_ir" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_2"/>
+            <field name="qualification_id" ref="fs_people.qualification_ir"/>
+            <field name="issue_date">2020-10-15</field>
+            <field name="expiry_date">2025-10-15</field>
+        </record>
+        <record id="qual_pilot3_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_3"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2020-11-25</field>
+            <field name="expiry_date" eval="(datetime.now() - relativedelta(days=5)).strftime('%Y-%m-%d')"/>
+        </record>
+        <record id="qual_pilot5_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_5"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2023-06-01</field>
+            <field name="expiry_date">2025-06-01</field>
+        </record>
+        <record id="qual_pilot6_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_6"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2022-05-15</field>
+            <field name="expiry_date">2026-05-15</field>
+        </record>
+        <record id="qual_pilot6_me" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_6"/>
+            <field name="qualification_id" ref="fs_people.qualification_me"/>
+            <field name="issue_date">2012-03-01</field>
+            <field name="expiry_date">2026-03-01</field>
+        </record>
+        <record id="qual_pilot6_ir" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_6"/>
+            <field name="qualification_id" ref="fs_people.qualification_ir"/>
+            <field name="issue_date">2023-05-15</field>
+            <field name="expiry_date">2025-05-15</field>
+        </record>
+        <record id="qual_pilot7_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_7"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2024-02-01</field>
+            <field name="expiry_date">2026-02-01</field>
+        </record>
+        <record id="qual_pilot8_sep" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_demo_8"/>
+            <field name="qualification_id" ref="fs_people.qualification_sep"/>
+            <field name="issue_date">2021-08-20</field>
+            <field name="expiry_date" eval="(datetime.now() + relativedelta(days=30)).strftime('%Y-%m-%d')"/>
+        </record>
+
     </data>
 </odoo>

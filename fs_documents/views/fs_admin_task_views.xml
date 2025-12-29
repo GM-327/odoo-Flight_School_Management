@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Admin Task Form View -->
+    <record id="view_fs_admin_task_form_inherit_docs" model="ir.ui.view">
+        <field name="name">fs.admin.task.form.inherit.docs</field>
+        <field name="model">fs.admin.task</field>
+        <field name="inherit_id" ref="fs_training.view_admin_task_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="document_ids" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//sheet/*[1]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_documents" type="object" 
+                            class="oe_stat_button" icon="fa-file-text-o">
+                        <field name="document_count" widget="statinfo" string="Documents"/>
+                    </button>
+                </div>
+            </xpath>
+
+            <xpath expr="//group" position="after">
+                <notebook>
+                    <page string="Documents" name="documents">
+                        <div class="mb-2">
+                            <button name="action_upload_document" type="object" 
+                                    string="Upload Document" class="btn btn-primary" icon="fa-upload"/>
+                        </div>
+                        <field name="document_ids" nolabel="1">
+                            <list create="0" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
+                                <field name="name"/>
+                                <field name="document_type_id"/>
+                                <field name="expiry_date"/>
+                                <field name="expiry_status" widget="badge" 
+                                       decoration-danger="expiry_status == 'expired'" 
+                                       decoration-warning="expiry_status == 'expiring'" 
+                                       decoration-success="expiry_status == 'valid'" 
+                                       decoration-muted="expiry_status == 'no_expiry'"/>
+                                <field name="version_count" string="Ver."/>
+                                <field name="filename"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+</odoo>

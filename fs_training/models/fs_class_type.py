@@ -113,13 +113,21 @@ class FsClassType(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Auto-add default requirements on create if none provided."""
-        default_reqs = self.env['fs.class.requirement'].search([('is_default', '=', True)])
-        if default_reqs:
-            for vals in vals_list:
-                if not vals.get('requirement_ids'):
-                    # Using command (6, 0, ids) is the standard Odoo way to set M2M relations in vals
-                    vals['requirement_ids'] = [(6, 0, default_reqs.ids)]
+        """Auto-add default requirements and admin tasks on create if none provided."""
+        default_reqs: 'FsClassRequirement' = self.env['fs.class.requirement'].search([('is_default', '=', True)])  # type: ignore
+        default_tasks: 'FsAdminTaskTemplate' = self.env['fs.admin.task.template'].search([('is_default', '=', True)])  # type: ignore
+        for vals in vals_list:
+            # Auto-add default requirements if none provided
+            if default_reqs and not vals.get('requirement_ids'):
+                # Using command (6, 0, ids) is the standard Odoo way to set M2M relations in vals
+                vals['requirement_ids'] = [(6, 0, default_reqs.ids)]
+            # Auto-add default admin tasks if none provided
+            if default_tasks and not vals.get('admin_task_ids'):
+                # Using command (0, 0, vals) to create intermediate records linking to templates
+                vals['admin_task_ids'] = [
+                    (0, 0, {'template_id': task.id, 'sequence': task.sequence})
+                    for task in default_tasks
+                ]
         return super().create(vals_list)
 
 

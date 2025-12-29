@@ -9,3 +9,5 @@ from . import fs_student
 from . import fs_instructor
 from . import fs_pilot
 from . import fs_training_class
+from . import fs_class_type
+from . import fs_admin_task

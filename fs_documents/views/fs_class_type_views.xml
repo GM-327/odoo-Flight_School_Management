@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inherit Class Type Form View -->
+    <record id="view_class_type_form_inherit_docs" model="ir.ui.view">
+        <field name="name">fs.class.type.form.inherit.docs</field>
+        <field name="model">fs.class.type</field>
+        <field name="inherit_id" ref="fs_training.view_class_type_form"/>
+        <field name="arch" type="xml">
+            <!-- Replace the standard Char reference_document with the Many2one reference_document_id -->
+            <xpath expr="//field[@name='reference_document']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='reference_document']" position="after">
+                <field name="reference_document_id" options="{'no_create': True}"/>
+                <label for="ip_document_reference" invisible="not reference_document_id"/>
+                <div class="o_row" invisible="not reference_document_id">
+                    <field name="ip_document_reference"/>
+                    <button name="action_open_ip_document" type="object" 
+                            icon="fa-file-text-o" title="Preview IP Document"
+                            class="btn-link"/>
+                </div>
+            </xpath>
+
+            <!-- Add Documents Smart Button -->
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_documents" type="object" 
+                            class="oe_stat_button" icon="fa-file-text-o"
+                            help="View all documents related to this class type">
+                        <field name="document_count" widget="statinfo" string="Documents"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

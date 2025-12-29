@@ -12,6 +12,7 @@
                 <field name="applies_to_ids" widget="many2many_tags"/>
                 <field name="has_expiry"/>
                 <field name="expiry_field"/>
+                <field name="display_field"/>
             </list>
         </field>
     </record>
@@ -30,10 +31,10 @@
                             <field name="code"/>
                             <field name="applies_to_ids" widget="many2many_tags"/>
                         </group>
-                        <group string="Expiry Settings">
+                        <group string="Settings">
                             <field name="has_expiry"/>
-                            <field name="expiry_field" invisible="not has_expiry"
-                                   placeholder="e.g., medical_expiry"/>
+                            <field name="expiry_field" invisible="not has_expiry"/>
+                            <field name="display_field"/>
                             <field name="active" widget="boolean_toggle"/>
                         </group>
                     </group>
@@ -73,6 +74,35 @@
                 Create your first document type
             </p>
             <p>Document types categorize documents and control expiry syncing.</p>
+        </field>
+    </record>
+
+    <!-- Document Entity Type Tree View -->
+    <record id="view_fs_document_entity_type_tree" model="ir.ui.view">
+        <field name="name">fs.document.entity.type.list</field>
+        <field name="model">fs.document.entity.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Document Entity Type Action -->
+    <record id="action_fs_document_entity_type" model="ir.actions.act_window">
+        <field name="name">Entity Types</field>
+        <field name="res_model">fs.document.entity.type</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a new entity type
+            </p>
+            <p>
+                Entity types define what kind of records documents can be attached to
+                (e.g., Student, Instructor, Aircraft).
+            </p>
         </field>
     </record>
 </odoo>

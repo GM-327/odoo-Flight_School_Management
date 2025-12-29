@@ -23,8 +23,12 @@
             <!-- Add Documents Tab -->
             <xpath expr="//notebook" position="inside">
                 <page string="Documents" name="documents">
+                    <div class="mb-2">
+                        <button name="action_upload_document" type="object" 
+                                string="Upload Document" class="btn btn-primary" icon="fa-upload"/>
+                    </div>
                     <field name="document_ids" nolabel="1" context="{'default_training_class_id': id}">
-                        <list decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
+                        <list create="0" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'">
                             <field name="name"/>
                             <field name="document_type_id"/>
                             <field name="expiry_date"/>
@@ -38,6 +42,16 @@
                         </list>
                     </field>
                 </page>
+            </xpath>
+
+            <!-- Add document fields to admin tasks list -->
+            <xpath expr="//field[@name='admin_task_ids']/list/field[@name='notes']" position="after">
+                <field name="document_reference" optional="show"/>
+                <button name="action_open_document" type="object" 
+                        icon="fa-file-text-o" title="See Document"
+                        invisible="not document_reference"/>
+                <field name="document_filename" optional="hide"/>
+                <field name="document_count" string="Docs" optional="hide"/>
             </xpath>
         </field>
     </record>

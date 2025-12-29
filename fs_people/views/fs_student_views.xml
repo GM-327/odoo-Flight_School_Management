@@ -64,81 +64,79 @@
                         </h1>
                     </div>
 
-                    <div class="mb-3 p-2 bg-light border rounded shadow-sm">
-    <div class="row g-0 align-items-center text-center">
-        <div class="col px-3">
-            <field name="medical_status" invisible="1"/>
-            <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
-                <i class="fa fa-medkit fa-2x text-danger" title="Medical Expired" invisible="medical_status != 'expired'"/>
-                <i class="fa fa-medkit fa-2x text-warning" title="Medical Expiring" invisible="medical_status != 'expiring'"/>
-                <i class="fa fa-medkit fa-2x text-success" title="Medical Valid" invisible="medical_status != 'valid'"/>
-                <i class="fa fa-medkit fa-2x text-muted" title="Medical No Info" invisible="medical_status != 'no_expiry'"/>
-            </div>
-            <div class="h6 fw-bold mb-0">Medical</div>
-            <div class="small text-muted text-nowrap"><field name="medical_expiry" nolabel="1"/></div>
-        </div>
-
-        <div class="col px-3 border-start">
-            <field name="license_expiry_status" invisible="1"/>
-            <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
-                <i class="fa fa-id-card fa-2x text-danger" title="License Expired" invisible="license_expiry_status != 'expired'"/>
-                <i class="fa fa-id-card fa-2x text-warning" title="License Expiring" invisible="license_expiry_status != 'expiring'"/>
-                <i class="fa fa-id-card fa-2x text-success" title="License Valid" invisible="license_expiry_status != 'valid'"/>
-                <i class="fa fa-id-card fa-2x text-muted" title="License No Info" invisible="license_expiry_status != 'no_expiry'"/>
-            </div>
-            <div class="h6 fw-bold mb-0">License</div>
-            <div class="small text-muted text-nowrap"><field name="license_expiry" nolabel="1"/></div>
-        </div>
-
-        <div class="col px-3 border-start" invisible="is_military">
-            <field name="security_clearance_status" invisible="1"/>
-            <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
-                <i class="fa fa-shield fa-2x text-danger" title="Security Expired" invisible="security_clearance_status != 'expired'"/>
-                <i class="fa fa-shield fa-2x text-warning" title="Security Expiring" invisible="security_clearance_status != 'expiring'"/>
-                <i class="fa fa-shield fa-2x text-success" title="Security Valid" invisible="security_clearance_status != 'valid'"/>
-                <i class="fa fa-shield fa-2x text-muted" title="Security No Info" invisible="security_clearance_status != 'no_expiry'"/>
-            </div>
-            <div class="h6 fw-bold mb-0">Security</div>
-            <div class="small text-muted text-nowrap"><field name="security_clearance_expiry" nolabel="1"/></div>
-        </div>
-
-        <div class="col px-3 border-start" invisible="is_military">
-            <field name="insurance_status" invisible="1"/>
-            <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
-                <i class="fa fa-umbrella fa-2x text-danger" title="Insurance Expired" invisible="insurance_status != 'expired'"/>
-                <i class="fa fa-umbrella fa-2x text-warning" title="Insurance Expiring" invisible="insurance_status != 'expiring'"/>
-                <i class="fa fa-umbrella fa-2x text-success" title="Insurance Valid" invisible="insurance_status != 'valid'"/>
-                <i class="fa fa-umbrella fa-2x text-muted" title="Insurance No Info" invisible="insurance_status != 'no_expiry'"/>
-            </div>
-            <div class="h6 fw-bold mb-0">Insurance</div>
-            <div class="small text-muted text-nowrap"><field name="insurance_expiry" nolabel="1"/></div>
-        </div>
-    </div>
-
-    <div class="mt-3 pt-3 border-top row g-0 text-center">
-        <div class="col px-3">
-            <div class="text-uppercase small fw-bold text-muted mb-1">Total Experience</div>
-            <div class="h4 mb-0 text-primary text-nowrap"><field name="total_flight_hours" widget="float_time"/></div>
-        </div>
-        <div class="col px-3 border-start">
-            <div class="text-uppercase small fw-bold text-muted mb-1">Solo Hours</div>
-            <div class="h4 mb-0 text-success text-nowrap"><field name="solo_hours" widget="float_time"/></div>
-        </div>
-        <div class="col px-3 border-start" invisible="is_military">
-            <div class="text-uppercase small fw-bold text-muted mb-1">Account Balance</div>
-            <div class="h4 mb-0 text-warning d-flex justify-content-center align-items-center gap-1" style="white-space: nowrap !important;">
-                <field name="advance_payment" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-            </div>
-            <field name="currency_id" invisible="1"/>
-        </div>
-        <div class="col px-3 border-start" invisible="is_military">
-            <div class="text-uppercase small fw-bold text-muted mb-1">License Type</div>
-            <div class="h4 mb-0 text-secondary text-nowrap">
-                <field name="license_id" readonly="1" options="{'no_open': True}"/>
-            </div>
-        </div>
-    </div>
-</div>
+                    <group col="1">
+                        <div class="p-2 bg-light border rounded shadow-sm">
+                            <div class="row g-0 align-items-center text-center">
+                                <div class="col px-3">
+                                    <field name="medical_status" invisible="1"/>
+                                    <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
+                                        <i class="fa fa-medkit fa-2x text-danger" title="Medical Expired" invisible="medical_status != 'expired'"/>
+                                        <i class="fa fa-medkit fa-2x text-warning" title="Medical Expiring" invisible="medical_status != 'expiring'"/>
+                                        <i class="fa fa-medkit fa-2x text-success" title="Medical Valid" invisible="medical_status != 'valid'"/>
+                                        <i class="fa fa-medkit fa-2x text-muted" title="Medical No Info" invisible="medical_status != 'no_expiry'"/>
+                                    </div>
+                                    <div class="h6 fw-bold mb-0">Medical</div>
+                                    <div class="small text-muted text-nowrap"><field name="medical_expiry" nolabel="1"/></div>
+                                </div>
+                                <div class="col px-3 border-start">
+                                    <field name="license_expiry_status" invisible="1"/>
+                                    <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
+                                        <i class="fa fa-id-card fa-2x text-danger" title="License Expired" invisible="license_expiry_status != 'expired'"/>
+                                        <i class="fa fa-id-card fa-2x text-warning" title="License Expiring" invisible="license_expiry_status != 'expiring'"/>
+                                        <i class="fa fa-id-card fa-2x text-success" title="License Valid" invisible="license_expiry_status != 'valid'"/>
+                                        <i class="fa fa-id-card fa-2x text-muted" title="License No Info" invisible="license_expiry_status != 'no_expiry'"/>
+                                    </div>
+                                    <div class="h6 fw-bold mb-0">License</div>
+                                    <div class="small text-muted text-nowrap"><field name="license_expiry" nolabel="1"/></div>
+                                </div>
+                                <div class="col px-3 border-start" invisible="is_military">
+                                    <field name="security_clearance_status" invisible="1"/>
+                                    <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
+                                        <i class="fa fa-shield fa-2x text-danger" title="Security Expired" invisible="security_clearance_status != 'expired'"/>
+                                        <i class="fa fa-shield fa-2x text-warning" title="Security Expiring" invisible="security_clearance_status != 'expiring'"/>
+                                        <i class="fa fa-shield fa-2x text-success" title="Security Valid" invisible="security_clearance_status != 'valid'"/>
+                                        <i class="fa fa-shield fa-2x text-muted" title="Security No Info" invisible="security_clearance_status != 'no_expiry'"/>
+                                    </div>
+                                    <div class="h6 fw-bold mb-0">Security</div>
+                                    <div class="small text-muted text-nowrap"><field name="security_clearance_expiry" nolabel="1"/></div>
+                                </div>
+                                <div class="col px-3 border-start" invisible="is_military">
+                                    <field name="insurance_status" invisible="1"/>
+                                    <div class="d-flex align-items-center justify-content-center mb-1" style="height: 2.6rem;">
+                                        <i class="fa fa-umbrella fa-2x text-danger" title="Insurance Expired" invisible="insurance_status != 'expired'"/>
+                                        <i class="fa fa-umbrella fa-2x text-warning" title="Insurance Expiring" invisible="insurance_status != 'expiring'"/>
+                                        <i class="fa fa-umbrella fa-2x text-success" title="Insurance Valid" invisible="insurance_status != 'valid'"/>
+                                        <i class="fa fa-umbrella fa-2x text-muted" title="Insurance No Info" invisible="insurance_status != 'no_expiry'"/>
+                                    </div>
+                                    <div class="h6 fw-bold mb-0">Insurance</div>
+                                    <div class="small text-muted text-nowrap"><field name="insurance_expiry" nolabel="1"/></div>
+                                </div>
+                            </div>
+                            <div class="mt-3 pt-3 border-top row g-0 text-center">
+                                <div class="col px-3">
+                                    <div class="text-uppercase small fw-bold text-muted mb-1">Total Experience</div>
+                                    <div class="h4 mb-0 text-primary text-nowrap"><field name="total_flight_hours" widget="float_time"/></div>
+                                </div>
+                                <div class="col px-3 border-start">
+                                    <div class="text-uppercase small fw-bold text-muted mb-1">Solo Hours</div>
+                                    <div class="h4 mb-0 text-success text-nowrap"><field name="solo_hours" widget="float_time"/></div>
+                                </div>
+                                <div class="col px-3 border-start" invisible="is_military">
+                                    <div class="text-uppercase small fw-bold text-muted mb-1">Account Balance</div>
+                                    <div class="h4 mb-0 text-warning d-flex justify-content-center align-items-center gap-1" style="white-space: nowrap !important;">
+                                        <field name="advance_payment" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    </div>
+                                    <field name="currency_id" invisible="1"/>
+                                </div>
+                                <div class="col px-3 border-start" invisible="is_military">
+                                    <div class="text-uppercase small fw-bold text-muted mb-1">License Type</div>
+                                    <div class="h4 mb-0 text-secondary text-nowrap">
+                                        <field name="license_id" readonly="1" options="{'no_open': True}"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
 
 
                     <notebook>

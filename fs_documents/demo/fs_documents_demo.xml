@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- 
+        Documents Demo Data
+        ===================
+        Document records for testing. Since versions require actual files,
+        we create documents without versions - users can upload files manually.
+        The document types and links are created to show the document management structure.
+        -->
+
+        <!-- ============================================ -->
+        <!-- STUDENT DOCUMENTS -->
+        <!-- ============================================ -->
+
+        <!-- Student 1: Youssef Hamdi -->
+        <record id="doc_student_1_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_1"/>
+            <field name="notes">Medical certificate pending upload</field>
+        </record>
+        <record id="doc_student_1_sc" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_student_card"/>
+            <field name="student_id" ref="fs_people.student_demo_1"/>
+        </record>
+        <record id="doc_student_1_id" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_id"/>
+            <field name="student_id" ref="fs_people.student_demo_1"/>
+        </record>
+
+        <!-- Student 2: Amel Cherif -->
+        <record id="doc_student_2_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_2"/>
+        </record>
+        <record id="doc_student_2_sc" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_student_card"/>
+            <field name="student_id" ref="fs_people.student_demo_2"/>
+        </record>
+
+        <!-- Student 3: Omar Ghannouchi (civilian) -->
+        <record id="doc_student_3_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_3"/>
+        </record>
+        <record id="doc_student_3_security" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_security"/>
+            <field name="student_id" ref="fs_people.student_demo_3"/>
+        </record>
+        <record id="doc_student_3_insurance" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_insurance"/>
+            <field name="student_id" ref="fs_people.student_demo_3"/>
+        </record>
+
+        <!-- Student 4: Rim Mabrouk -->
+        <record id="doc_student_4_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_4"/>
+        </record>
+        <record id="doc_student_4_sc" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_student_card"/>
+            <field name="student_id" ref="fs_people.student_demo_4"/>
+        </record>
+
+        <!-- Student 5: Nadia Sfar -->
+        <record id="doc_student_5_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_5"/>
+        </record>
+        <record id="doc_student_5_insurance" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_insurance"/>
+            <field name="student_id" ref="fs_people.student_demo_5"/>
+        </record>
+
+        <!-- Students 6-10 -->
+        <record id="doc_student_6_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_6"/>
+        </record>
+        <record id="doc_student_8_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="student_id" ref="fs_people.student_demo_8"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- INSTRUCTOR DOCUMENTS -->
+        <!-- ============================================ -->
+
+        <record id="doc_instructor_1_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
+        </record>
+        <record id="doc_instructor_1_license" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_license"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
+        </record>
+        <record id="doc_instructor_1_english" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_english"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
+        </record>
+        <record id="doc_instructor_1_id" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_id"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_1"/>
+        </record>
+
+        <record id="doc_instructor_2_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_2"/>
+        </record>
+        <record id="doc_instructor_2_license" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_license"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_2"/>
+        </record>
+
+        <record id="doc_instructor_3_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_3"/>
+        </record>
+        <record id="doc_instructor_3_english" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_english"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_3"/>
+        </record>
+
+        <record id="doc_instructor_4_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_4"/>
+        </record>
+        <record id="doc_instructor_4_license" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_license"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_4"/>
+        </record>
+
+        <record id="doc_instructor_5_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_5"/>
+        </record>
+        <record id="doc_instructor_6_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_6"/>
+        </record>
+        <record id="doc_instructor_7_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_7"/>
+        </record>
+        <record id="doc_instructor_7_license" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_license"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_7"/>
+        </record>
+        <record id="doc_instructor_8_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="instructor_id" ref="fs_people.instructor_demo_8"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- PILOT DOCUMENTS -->
+        <!-- ============================================ -->
+
+        <record id="doc_pilot_1_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_1"/>
+        </record>
+        <record id="doc_pilot_1_license" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_license"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_1"/>
+        </record>
+        <record id="doc_pilot_1_english" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_english"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_1"/>
+        </record>
+        <record id="doc_pilot_1_insurance" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_insurance"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_1"/>
+        </record>
+
+        <record id="doc_pilot_2_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_2"/>
+        </record>
+
+        <record id="doc_pilot_3_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_3"/>
+        </record>
+        <record id="doc_pilot_3_security" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_security"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_3"/>
+        </record>
+
+        <record id="doc_pilot_4_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_4"/>
+        </record>
+        <record id="doc_pilot_5_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_5"/>
+        </record>
+        <record id="doc_pilot_6_medical" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_medical"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_6"/>
+        </record>
+        <record id="doc_pilot_6_license" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_license"/>
+            <field name="pilot_id" ref="fs_people.pilot_demo_6"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- TRAINING CLASS DOCUMENTS -->
+        <!-- ============================================ -->
+
+        <record id="doc_class_alpha_admin" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_admin"/>
+            <field name="training_class_id" ref="fs_training.class_promo_2024_a"/>
+            <field name="notes">Opening request documentation</field>
+        </record>
+        <record id="doc_class_cpl_admin" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_admin"/>
+            <field name="training_class_id" ref="fs_training.class_cpl_summer"/>
+        </record>
+        <record id="doc_class_ifr_admin" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_admin"/>
+            <field name="training_class_id" ref="fs_training.class_ifr_autumn"/>
+        </record>
+
+        <!-- ============================================ -->
+        <!-- CLASS TYPE DOCUMENTS (IP) -->
+        <!-- ============================================ -->
+
+        <record id="doc_class_type_basic_ip" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_IP"/>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="notes">Instruction Permanente for Basic Training</field>
+        </record>
+        <record id="doc_class_type_ppl_ip" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_IP"/>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="notes">PPL Course Instruction Permanente</field>
+        </record>
+        <record id="doc_class_type_cpl_ip" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_IP"/>
+            <field name="class_type_id" ref="fs_training.class_type_cpl"/>
+            <field name="notes">CPL Course Instruction Permanente</field>
+        </record>
+        <record id="doc_class_type_ir_ip" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_IP"/>
+            <field name="class_type_id" ref="fs_training.class_type_ir"/>
+            <field name="notes">IR Course Instruction Permanente</field>
+        </record>
+        <record id="doc_class_type_advanced_ip" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_IP"/>
+            <field name="class_type_id" ref="fs_training.class_type_advanced"/>
+            <field name="notes">Advanced Training Instruction Permanente</field>
+        </record>
+        <record id="doc_class_type_fi_ip" model="fs.document">
+            <field name="document_type_id" ref="fs_documents.document_type_IP"/>
+            <field name="class_type_id" ref="fs_training.class_type_fi"/>
+            <field name="notes">FI Course Instruction Permanente</field>
+        </record>
+
+    </data>
+</odoo>

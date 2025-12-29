@@ -66,10 +66,30 @@ class FsDocumentType(models.Model):
         default=True,
         help="Whether documents of this type have an expiry date.",
     )
-    expiry_field = fields.Char(
+    expiry_field = fields.Selection(
+        selection=[
+            ('medical_expiry', 'Medical Expiry'),
+            ('license_expiry', 'License Expiry'),
+            ('english_expiry', 'English Proficiency Expiry'),
+            ('security_clearance_expiry', 'Security Clearance Expiry'),
+            ('insurance_expiry', 'Insurance Expiry'),
+        ],
         string='Sync Expiry To Field',
-        help="Field name on target model to sync expiry TO (e.g., medical_expiry). "
+        help="Field on target model to sync expiry date TO. "
              "When a document's expiry changes, the related entity's field will be updated.",
+    )
+    display_field = fields.Selection(
+        selection=[
+            ('identification_number', 'ID Number'),
+            ('medical_expiry', 'Medical Expiry'),
+            ('license_expiry', 'License Expiry'),
+            ('license_number', 'License Number'),
+            ('english_expiry', 'English Proficiency Expiry'),
+            ('security_clearance_expiry', 'Security Clearance Expiry'),
+            ('insurance_expiry', 'Insurance Expiry'),
+        ],
+        string='Display Next To Field',
+        help="Field on entity form where the document preview icon should appear.",
     )
     sequence = fields.Integer(
         string='Sequence',

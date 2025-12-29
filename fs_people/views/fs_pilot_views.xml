@@ -69,9 +69,10 @@
                         </h2>
                     </div>
 
-                    <div class="mb-3 p-2 bg-light border rounded shadow-sm">
-                        <div class="d-flex align-items-center justify-content-between gap-2">
-                            <div class="text-center flex-fill" >
+                    <group col="1">
+                        <div class="p-2 bg-light border rounded shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="text-center flex-fill" >
                                 <field name="medical_status" invisible="1"/>
                                 <i class="fa fa-medkit fa-2x mb-1 text-danger" title="Medical Expired" invisible="medical_status != 'expired'"/>
                                 <i class="fa fa-medkit fa-2x mb-1 text-warning" title="Medical Expiring" invisible="medical_status != 'expiring'"/>
@@ -114,8 +115,9 @@
                                 invisible="not qualification_ids">
                             <div class="text-uppercase small fw-bold text-muted mb-2">Active Ratings &amp; Qualifications</div>
                             <field name="qualification_badges" nolabel="1"/>
-                        </button>
-                    </div>
+                            </button>
+                        </div>
+                    </group>
 
                     <notebook>
                         <page string="Overview" name="dashboard">

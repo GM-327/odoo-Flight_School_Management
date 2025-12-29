@@ -9,18 +9,31 @@
             <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student'), ref('entity_type_instructor'), ref('entity_type_pilot')])]"/>
             <field name="has_expiry">True</field>
             <field name="expiry_field">medical_expiry</field>
+            <field name="display_field">medical_expiry</field>
             <field name="sequence">10</field>
         </record>
 
-        <!-- License Copy - applies to Student, Instructor, Pilot -->
+        <!-- Student Card Copy - applies to Student only -->
+        <record id="document_type_student_card" model="fs.document.type">
+            <field name="name">Student Card Copy</field>
+            <field name="code">SC</field>
+            <field name="description">Copy of student pilot card</field>
+            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student')])]"/>
+            <field name="has_expiry">True</field>
+            <field name="expiry_field">license_expiry</field>
+            <field name="display_field">license_expiry</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- License Copy - applies to instructors/pilots (non-expiring licenses) -->
         <record id="document_type_license" model="fs.document.type">
             <field name="name">License Copy</field>
             <field name="code">LIC</field>
-            <field name="description">Copy of pilot or student license</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student'), ref('entity_type_instructor'), ref('entity_type_pilot')])]"/>
-            <field name="has_expiry">True</field>
-            <field name="expiry_field">license_expiry</field>
-            <field name="sequence">20</field>
+            <field name="description">Copy of instructor/pilot license</field>
+            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_instructor'), ref('entity_type_pilot')])]"/>
+            <field name="has_expiry">False</field>
+            <field name="display_field">license_number</field>
+            <field name="sequence">25</field>
         </record>
 
         <!-- Insurance Certificate - applies to Student, Pilot -->
@@ -31,27 +44,30 @@
             <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student'), ref('entity_type_pilot')])]"/>
             <field name="has_expiry">True</field>
             <field name="expiry_field">insurance_expiry</field>
+            <field name="display_field">insurance_expiry</field>
             <field name="sequence">30</field>
         </record>
 
-        <!-- Security Clearance - applies to Student, Instructor, Pilot -->
+        <!-- Security Clearance - applies to Student, Pilot -->
         <record id="document_type_security" model="fs.document.type">
             <field name="name">Security Clearance</field>
             <field name="code">SEC</field>
             <field name="description">Security clearance document</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student'), ref('entity_type_instructor'), ref('entity_type_pilot')])]"/>
+            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student'), ref('entity_type_pilot')])]"/>
             <field name="has_expiry">True</field>
             <field name="expiry_field">security_clearance_expiry</field>
+            <field name="display_field">security_clearance_expiry</field>
             <field name="sequence">40</field>
         </record>
 
-        <!-- ID Document - applies to all persons -->
+        <!-- ID Document - applies to all persons, no expiry -->
         <record id="document_type_id" model="fs.document.type">
             <field name="name">ID Document</field>
             <field name="code">ID</field>
             <field name="description">National ID, passport, or military ID</field>
             <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student'), ref('entity_type_instructor'), ref('entity_type_pilot')])]"/>
-            <field name="has_expiry">True</field>
+            <field name="has_expiry">False</field>
+            <field name="display_field">identification_number</field>
             <field name="sequence">50</field>
         </record>
 
@@ -63,47 +79,29 @@
             <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_instructor'), ref('entity_type_pilot')])]"/>
             <field name="has_expiry">True</field>
             <field name="expiry_field">english_expiry</field>
+            <field name="display_field">english_expiry</field>
             <field name="sequence">60</field>
         </record>
 
-        <!-- Training Certificate - applies to Student -->
-        <record id="document_type_training_cert" model="fs.document.type">
-            <field name="name">Training Certificate</field>
-            <field name="code">CERT</field>
-            <field name="description">Training completion certificate</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_student')])]"/>
-            <field name="has_expiry">False</field>
-            <field name="sequence">70</field>
-        </record>
-
-        <!-- Class Documentation - applies to Training Class -->
-        <record id="document_type_class" model="fs.document.type">
-            <field name="name">Class Documentation</field>
-            <field name="code">CLASS</field>
-            <field name="description">Training class related documents</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_training_class')])]"/>
-            <field name="has_expiry">False</field>
-            <field name="sequence">80</field>
-        </record>
-
-        <!-- Admin Document - applies to Admin Task -->
+        <!-- Admin Document - applies to Training Class (can optionally link to specific admin task) -->
         <record id="document_type_admin" model="fs.document.type">
             <field name="name">Admin Document</field>
             <field name="code">ADMIN</field>
-            <field name="description">Administrative task related documents</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_admin_task')])]"/>
+            <field name="description">Administrative task related documents (e.g., signed forms, approvals)</field>
+            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_training_class')])]"/>
             <field name="has_expiry">False</field>
             <field name="sequence">90</field>
         </record>
 
-        <!-- Other - applies to Other -->
-        <record id="document_type_other" model="fs.document.type">
-            <field name="name">Other</field>
-            <field name="code">OTHER</field>
-            <field name="description">Miscellaneous documents</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_other')])]"/>
+        <!-- IP - applies to Class Type -->
+        <record id="document_type_IP" model="fs.document.type">
+            <field name="name">Instruction Permanente</field>
+            <field name="code">IP</field>
+            <field name="description">Instruction Permanente</field>
+            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_class_type')])]"/>
             <field name="has_expiry">False</field>
             <field name="sequence">100</field>
         </record>
     </data>
 </odoo>
+

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- Extended Training Demo Data -->
+
+        <!-- More Class Requirements -->
+        <record id="req_valid_insurance" model="fs.class.requirement">
+            <field name="name">Valid Insurance</field>
+            <field name="category">insurance</field>
+            <field name="is_military">False</field>
+            <field name="is_civilian">True</field>
+        </record>
+        <record id="req_english_4" model="fs.class.requirement">
+            <field name="name">ELP Level 4+</field>
+            <field name="category">english</field>
+            <field name="is_military">True</field>
+            <field name="is_civilian">True</field>
+        </record>
+        <record id="req_ppl_holder" model="fs.class.requirement">
+            <field name="name">PPL Holder</field>
+            <field name="category">license</field>
+            <field name="is_military">False</field>
+            <field name="is_civilian">True</field>
+        </record>
+
+        <!-- More Admin Task Templates -->
+        <record id="task_template_equipment" model="fs.admin.task.template">
+            <field name="name">Issue Flight Equipment</field>
+            <field name="sequence">50</field>
+            <field name="description">Issue headsets, flight bags, kneeboard, etc.</field>
+        </record>
+        <record id="task_template_nav_kit" model="fs.admin.task.template">
+            <field name="name">Issue Navigation Kit</field>
+            <field name="sequence">60</field>
+            <field name="description">Issue charts, plotters, E6B computer.</field>
+        </record>
+        <record id="task_template_photos" model="fs.admin.task.template">
+            <field name="name">Student ID Photos</field>
+            <field name="sequence">15</field>
+            <field name="description">Collect passport photos for badges.</field>
+        </record>
+        <record id="task_template_progress_review" model="fs.admin.task.template">
+            <field name="name">Progress Review Meeting</field>
+            <field name="sequence">200</field>
+            <field name="description">Mid-course progress review with instructors.</field>
+        </record>
+        <record id="task_template_final_exam" model="fs.admin.task.template">
+            <field name="name">Final Examination</field>
+            <field name="sequence">400</field>
+            <field name="description">Schedule and conduct final skill test.</field>
+        </record>
+
+        <!-- More Training Classes -->
+        <record id="class_basic_2025_a" model="fs.training.class">
+            <field name="name">Basic 2025-Alpha</field>
+            <field name="code">BAS25A</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="start_date" eval="(datetime.now() + relativedelta(months=1)).strftime('%Y-%m-%d')"/>
+            <field name="status">draft</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa28'))]"/>
+            <field name="notes">Upcoming basic training class for 2025</field>
+        </record>
+
+        <record id="class_advanced_2024" model="fs.training.class">
+            <field name="name">Advanced 2024</field>
+            <field name="code">ADV24</field>
+            <field name="class_type_id" ref="fs_training.class_type_advanced"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(months=4)).strftime('%Y-%m-%d')"/>
+            <field name="status">in_progress</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa34'))]"/>
+        </record>
+
+        <record id="class_fi_course_2024" model="fs.training.class">
+            <field name="name">FI Course 2024</field>
+            <field name="code">FI24</field>
+            <field name="class_type_id" ref="fs_training.class_type_fi"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(weeks=6)).strftime('%Y-%m-%d')"/>
+            <field name="status">in_progress</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa28'))]"/>
+            <field name="notes">Flight Instructor course for licensed pilots</field>
+        </record>
+
+        <record id="class_cpl_ir_2024" model="fs.training.class">
+            <field name="name">CPL/IR Combined 2024</field>
+            <field name="code">CPLIR24</field>
+            <field name="class_type_id" ref="fs_training.class_type_cpl_ir"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(months=5)).strftime('%Y-%m-%d')"/>
+            <field name="status">in_progress</field>
+            <field name="aircraft_type_ids" eval="[(4, ref('fs_fleet.aircraft_type_pa34')), (4, ref('fs_fleet.aircraft_type_fnpt2'))]"/>
+        </record>
+
+        <record id="class_ppl_spring_completed" model="fs.training.class">
+            <field name="name">PPL Spring 2024</field>
+            <field name="code">PPL24S</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="start_date" eval="(datetime.now() - relativedelta(months=8)).strftime('%Y-%m-%d')"/>
+            <field name="actual_end_date" eval="(datetime.now() - relativedelta(months=5)).strftime('%Y-%m-%d')"/>
+            <field name="status">completed</field>
+            <field name="notes">Successfully completed class</field>
+        </record>
+
+        <!-- Flight Missions for Basic Training -->
+        <record id="mission_basic_1" model="fs.flight.mission">
+            <field name="name">BAS-01 Familiarization</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">10</field>
+            <field name="objectives">Aircraft familiarization, effects of controls</field>
+        </record>
+        <record id="mission_basic_2" model="fs.flight.mission">
+            <field name="name">BAS-02 Straight &amp; Level</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">20</field>
+            <field name="objectives">Straight and level flight, power settings</field>
+        </record>
+        <record id="mission_basic_3" model="fs.flight.mission">
+            <field name="name">BAS-03 Climbing &amp; Descending</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="mission_basic_4" model="fs.flight.mission">
+            <field name="name">BAS-04 Turns</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="mission_basic_5" model="fs.flight.mission">
+            <field name="name">BAS-05 Slow Flight</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="mission_basic_6" model="fs.flight.mission">
+            <field name="name">BAS-06 Stalls</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="mission_basic_7" model="fs.flight.mission">
+            <field name="name">BAS-07 Circuit Training</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="mission_basic_solo_1" model="fs.flight.mission">
+            <field name="name">BAS-S01 First Solo</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_solo"/>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">100</field>
+            <field name="objectives">First solo flight - 3 circuits</field>
+        </record>
+        <record id="mission_basic_nav_1" model="fs.flight.mission">
+            <field name="name">BAS-N01 Nav Intro</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_nav_dual"/>
+            <field name="duration_hours">2.0</field>
+            <field name="sequence">150</field>
+        </record>
+        <record id="mission_basic_exam" model="fs.flight.mission">
+            <field name="name">BAS-EXAM Final Check</field>
+            <field name="class_type_id" ref="fs_training.class_type_basic"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">500</field>
+            <field name="is_exam">True</field>
+        </record>
+
+        <!-- Flight Missions for PPL -->
+        <record id="mission_ppl_1" model="fs.flight.mission">
+            <field name="name">PPL-01 Effects of Controls</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="mission_ppl_2" model="fs.flight.mission">
+            <field name="name">PPL-02 Taxiing</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="mission_ppl_solo" model="fs.flight.mission">
+            <field name="name">PPL-SOLO First Solo</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="activity_id" ref="fs_training.activity_man_solo"/>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">80</field>
+        </record>
+        <record id="mission_ppl_nav_xc" model="fs.flight.mission">
+            <field name="name">PPL-NAV XC Dual</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="activity_id" ref="fs_training.activity_nav_dual"/>
+            <field name="duration_hours">3.0</field>
+            <field name="sequence">120</field>
+        </record>
+        <record id="mission_ppl_skill_test" model="fs.flight.mission">
+            <field name="name">PPL Skill Test</field>
+            <field name="class_type_id" ref="fs_training.class_type_ppl"/>
+            <field name="activity_id" ref="fs_training.activity_man_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">500</field>
+            <field name="is_exam">True</field>
+        </record>
+
+        <!-- Flight Missions for IFR -->
+        <record id="mission_ir_sim_1" model="fs.flight.mission">
+            <field name="name">IR-SIM01 Instrument Scan</field>
+            <field name="class_type_id" ref="fs_training.class_type_ir"/>
+            <field name="activity_id" ref="fs_training.activity_ifr_sim"/>
+            <field name="duration_hours">2.0</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="mission_ir_sim_2" model="fs.flight.mission">
+            <field name="name">IR-SIM02 Holds</field>
+            <field name="class_type_id" ref="fs_training.class_type_ir"/>
+            <field name="activity_id" ref="fs_training.activity_ifr_sim"/>
+            <field name="duration_hours">2.0</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="mission_ir_flight_1" model="fs.flight.mission">
+            <field name="name">IR-F01 ILS Approach</field>
+            <field name="class_type_id" ref="fs_training.class_type_ir"/>
+            <field name="activity_id" ref="fs_training.activity_ifr_dual"/>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="mission_ir_skill_test" model="fs.flight.mission">
+            <field name="name">IR Skill Test</field>
+            <field name="class_type_id" ref="fs_training.class_type_ir"/>
+            <field name="activity_id" ref="fs_training.activity_ifr_dual"/>
+            <field name="duration_hours">2.0</field>
+            <field name="sequence">200</field>
+            <field name="is_exam">True</field>
+        </record>
+
+    </data>
+</odoo>

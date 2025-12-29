@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="fs_documents.KanbanButtons" t-inherit="web.KanbanButtons" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_kanban_buttons')]" position="inside">
+            <button type="button" 
+                    class="btn btn-primary o_fs_document_upload_btn ms-1" 
+                    t-on-click="onClickUploadDocument">
+                <i class="fa fa-upload me-1"/> Upload Document
+            </button>
+        </xpath>
+    </t>
+</templates>

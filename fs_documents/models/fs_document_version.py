@@ -126,23 +126,30 @@ class FsDocumentVersion(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         """Create version, auto-increment version number, and set as current."""
+        # Detect document IDs being updated to unset their previous current versions
+        doc_ids_to_unset = set()
         for vals in vals_list:
-            document_id = vals.get('document_id')
-            if document_id:
-                # Get max version number for this document
-                max_version = self.search([
-                    ('document_id', '=', document_id),
-                ], order='version_number desc', limit=1)
-                vals['version_number'] = (max_version.version_number + 1) if max_version else 1
-
-                # Unset current flag on existing versions
-                self.search([
-                    ('document_id', '=', document_id),
-                    ('is_current', '=', True),
-                ]).write({'is_current': False})
-
-                # Set this as current
+            doc_id = vals.get('document_id')
+            if doc_id:
+                doc_ids_to_unset.add(doc_id)
+                # Auto-set as current version
                 vals['is_current'] = True
+                
+                # Auto-calculate version number if not provided
+                if not vals.get('version_number'):
+                    max_version = self.search([
+                        ('document_id', '=', doc_id),
+                    ], order='version_number desc', limit=1)
+                    vals['version_number'] = (max_version.version_number + 1) if max_version else 1
+
+        # Unset current flag on existing versions for these documents
+        if doc_ids_to_unset:
+            existing_current = self.search([
+                ('document_id', 'in', list(doc_ids_to_unset)),
+                ('is_current', '=', True),
+            ])
+            if existing_current:
+                existing_current.write({'is_current': False})
 
         records = super().create(vals_list)
         
@@ -153,6 +160,14 @@ class FsDocumentVersion(models.Model):
 
     def write(self, vals):
         """Update version and sync if expiry changed."""
+        if vals.get('is_current'):
+            for record in self:
+                self.search([
+                    ('document_id', '=', record.document_id.id),
+                    ('id', '!=', record.id),
+                    ('is_current', '=', True),
+                ]).write({'is_current': False})
+        
         result = super().write(vals)
         if 'expiry_date' in vals:
             # If this is the current version, sync to related entity
@@ -171,3 +186,20 @@ class FsDocumentVersion(models.Model):
         self.is_current = True
         # Sync expiry to related entity
         self.document_id.sync_expiry_to_related()  # type: ignore
+
+    def action_open_preview(self):
+        """Open a popup preview of this specific version.
+        
+        Reuses the document preview view logic by displaying this version.
+        """
+        self.ensure_one()
+        return {
+            'name': f'Preview: {self.document_id.name} (v{self.version_number})',  # type: ignore
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.document.version',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('fs_documents.view_fs_document_version_preview').id,  # type: ignore
+            'target': 'new',
+            'context': {'dialog_size': 'extra-large'},
+        }

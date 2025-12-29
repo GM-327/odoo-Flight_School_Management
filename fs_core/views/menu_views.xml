@@ -66,49 +66,42 @@
         </field>
     </record>
 
-    <!-- Configuration Menu -->
-    <menuitem id="menu_config_root"
-              name="Configuration"
-              parent="menu_flight_school_root"
-              sequence="10"
-              groups="group_flight_school_manager"/>
-
-    <!-- General Settings under Configuration -->
+    <!-- General Settings -->
     <menuitem id="menu_config_general"
               name="General Settings"
-              parent="menu_config_root"
+              parent="menu_flight_school_root"
               action="action_res_config_settings"
               sequence="1"
               groups="group_flight_school_admin"/>
 
-    <!-- Users under Configuration -->
+    <!-- Users Settings -->
     <menuitem id="menu_config_users"
               name="Users"
-              parent="menu_config_root"
+              parent="menu_flight_school_root"
               action="action_fs_users"
               sequence="2"
               groups="group_flight_school_manager"/>
 
-    <!-- Departments under Configuration -->
+    <!-- Departments Settings -->
     <menuitem id="menu_config_departments"
               name="Departments"
-              parent="menu_config_root"
+              parent="menu_flight_school_root"
               action="action_fs_department"
               sequence="3"
               groups="group_flight_school_admin"/>
 
-    <!-- Roles under Configuration -->
+    <!-- Roles Settings -->
     <menuitem id="menu_config_roles"
               name="Roles"
-              parent="menu_config_root"
+              parent="menu_flight_school_root"
               action="action_fs_groups"
               sequence="10"
               groups="group_flight_school_manager"/>
 
-    <!-- Privileges under Configuration -->
+    <!-- Privileges Settings -->
     <menuitem id="menu_config_privileges"
               name="Privileges"
-              parent="menu_config_root"
+              parent="menu_flight_school_root"
               action="action_fs_privileges"
               sequence="4"
               groups="group_flight_school_manager"/>

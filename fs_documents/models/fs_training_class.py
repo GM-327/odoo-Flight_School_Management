@@ -37,3 +37,16 @@ class FsTrainingClass(models.Model):
             'domain': [('training_class_id', '=', self.id)],
             'context': {'default_training_class_id': self.id},
         }
+
+    def action_upload_document(self):
+        """Open document upload wizard with this training class pre-selected."""
+        self.ensure_one()
+        return {
+            'name': 'Upload Document',
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.document.upload.wizard',
+            'view_mode': 'form',
+            'view_id': self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id,
+            'target': 'new',
+            'context': {'default_training_class_id': self.id},
+        }

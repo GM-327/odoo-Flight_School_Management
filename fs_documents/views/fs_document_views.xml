@@ -5,14 +5,22 @@
         <field name="name">fs.document.list</field>
         <field name="model">fs.document</field>
         <field name="arch" type="xml">
-            <list decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'" sample="1">
+            <list create="0" decoration-danger="expiry_status == 'expired'" decoration-warning="expiry_status == 'expiring'" sample="1">
+                <header>
+                    <button name="action_open_upload_wizard" 
+                            string="Upload Document" type="object" 
+                            class="btn btn-primary" icon="fa-upload"
+                            display="always"/>
+                </header>
                 <field name="name"/>
                 <field name="document_type_id"/>
-                <field name="student_id" optional="hide"/>
-                <field name="instructor_id" optional="hide"/>
-                <field name="pilot_id" optional="hide"/>
-                <field name="training_class_id" optional="hide"/>
-                <field name="issue_date" optional="show"/>
+                <field name="related_entity_name" string="Belongs To"/>
+                <field name="related_entity_type" string="Type" widget="badge" 
+                       decoration-info="related_entity_type == 'student'"
+                       decoration-warning="related_entity_type == 'instructor'"
+                       decoration-success="related_entity_type == 'pilot'"
+                       decoration-muted="related_entity_type in ['training_class', 'class_type', 'admin_task']"/>
+                <field name="issue_date" optional="hide"/>
                 <field name="expiry_date" optional="show"/>
                 <field name="expiry_status" widget="badge" 
                        decoration-danger="expiry_status == 'expired'" 
@@ -30,103 +38,207 @@
         <field name="name">fs.document.form</field>
         <field name="model">fs.document</field>
         <field name="arch" type="xml">
-            <form>
+            <form create="0">
                 <sheet>
-                    <field name="expiry_status" invisible="1"/>
-                    <div class="alert alert-danger text-center o_form_header shadow-sm mb-3" 
-                         invisible="expiry_status != 'expired'" role="alert">
-                        <i class="fa fa-exclamation-triangle me-2" title="Warning"/> 
-                        <strong>Document Expired!</strong> This document has passed its expiry date.
-                    </div>
-                    <div class="alert alert-warning text-center o_form_header shadow-sm mb-3" 
-                         invisible="expiry_status != 'expiring'" role="alert">
-                        <i class="fa fa-clock-o me-2" title="Warning"/> 
-                        <strong>Expiring Soon:</strong> This document will expire soon.
-                    </div>
-
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_versions" type="object" 
-                                class="oe_stat_button" icon="fa-history">
+                        <button name="action_view_versions" type="object" class="oe_stat_button" icon="fa-history">
                             <field name="version_count" widget="statinfo" string="Versions"/>
                         </button>
+                        <button name="action_open_preview" type="object" class="oe_stat_button" icon="fa-eye">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Full</span>
+                                <span class="o_stat_text">Preview</span>
+                            </div>
+                        </button>
                     </div>
-                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <field name="expiry_status" invisible="1"/>
+                    <field name="file" invisible="1"/>
+                    <field name="file_type" invisible="1"/>
                     
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" readonly="1"/>
-                        </h1>
-                    </div>
-
-                    <group>
-                        <group string="Document Type">
-                            <field name="document_type_id" readonly="id" options="{'no_create': True}"/>
-                            <field name="reference"/>
-                            <field name="issue_date"/>
-                            <label for="expiry_date"/>
-                            <div class="o_row">
-                                <field name="expiry_date" 
-                                       decoration-danger="expiry_status == 'expired'" 
-                                       decoration-warning="expiry_status == 'expiring'"/>
-                                <field name="expiry_status" widget="badge" 
-                                       decoration-danger="expiry_status == 'expired'" 
-                                       decoration-warning="expiry_status == 'expiring'" 
-                                       decoration-success="expiry_status == 'valid'" 
-                                       decoration-muted="expiry_status == 'no_expiry'"/>
+                    <div class="o_document_form_container">
+                        <!-- Left Column: Form Content -->
+                        <div class="o_document_form_main flex-grow-1">
+                            <div class="alert alert-danger text-center o_form_header shadow-sm mb-2 p-1" 
+                                 invisible="expiry_status != 'expired'" role="alert">
+                                <i class="fa fa-exclamation-triangle me-2" title="Warning"/> 
+                                <strong>Expired!</strong>
                             </div>
-                        </group>
-                        <group string="Related To">
-                            <field name="student_id" options="{'no_create': True}"/>
-                            <field name="instructor_id" options="{'no_create': True}"/>
-                            <field name="pilot_id" options="{'no_create': True}"/>
-                            <field name="training_class_id" options="{'no_create': True}"/>
-                            <field name="admin_task_id" options="{'no_create': True}"/>
-                            <field name="active" widget="boolean_toggle"/>
-                        </group>
-                    </group>
-
-                    <notebook>
-                        <page string="Current File" name="current_file">
-                            <div class="mb-3">
-                                <button name="action_add_version" type="object" class="btn btn-primary" icon="fa-plus">
-                                    Upload New Version
-                                </button>
+                            <div class="alert alert-warning text-center o_form_header shadow-sm mb-2 p-1" 
+                                 invisible="expiry_status != 'expiring'" role="alert">
+                                <i class="fa fa-clock-o me-2" title="Warning"/> 
+                                <strong>Expiring Soon</strong>
                             </div>
-                            <group>
-                                <group>
-                                    <field name="filename" readonly="1"/>
-                                    <field name="file_type" readonly="1"/>
-                                    <field name="file" filename="filename" widget="binary" readonly="1"/>
+
+
+                            <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                            
+                            <div class="oe_title">
+                                <h1 class="d-flex align-items-center">
+                                    <field name="name" readonly="1" class="text-truncate"/>
+                                    <field name="active" widget="boolean_toggle" class="ms-2 mt-1"/>
+                                </h1>
+                            </div>
+
+                            <group class="o_document_compact_group pb-0">
+                                <group string="Main Info">
+                                    <field name="document_type_id" readonly="id" options="{'no_create': True}"/>
+                                    <field name="reference" placeholder="Ref/Serial #"/>
+                                    <field name="issue_date"/>
+                                    <field name="expiry_date" 
+                                           decoration-danger="expiry_status == 'expired'" 
+                                           decoration-warning="expiry_status == 'expiring'"/>
                                 </group>
-                                <group invisible="file_type != 'image'">
-                                    <field name="file" widget="image" class="oe_avatar" readonly="1" nolabel="1"/>
+                                <group string="Related To">
+                                    <field name="related_entity_type" readonly="1"/>
+                                    <field name="related_entity_name" string="Entity" readonly="1"/>
+                                    <field name="student_id" invisible="1"/>
+                                    <field name="instructor_id" invisible="1"/>
+                                    <field name="pilot_id" invisible="1"/>
+                                    <field name="training_class_id" invisible="1"/>
+                                    <field name="class_type_id" invisible="1"/>
+                                    <field name="admin_task_id" invisible="1"/>
                                 </group>
                             </group>
-                        </page>
-                        <page string="Version History" name="versions">
-                            <field name="version_ids" nolabel="1">
-                                <list decoration-bf="is_current" create="0">
-                                    <field name="version_number"/>
-                                    <field name="reference"/>
-                                    <field name="issue_date"/>
-                                    <field name="expiry_date"/>
-                                    <field name="filename"/>
-                                    <field name="file_type"/>
-                                    <field name="upload_date"/>
-                                    <field name="uploaded_by_id"/>
-                                    <field name="is_current"/>
-                                    <button name="action_set_as_current" type="object" 
-                                            string="Set Current" icon="fa-check"
-                                            invisible="is_current"/>
-                                </list>
-                            </field>
-                        </page>
-                        <page string="Notes" name="notes">
-                            <field name="notes" nolabel="1" placeholder="Add notes about this document..."/>
-                        </page>
-                    </notebook>
+
+                            <notebook class="mt-2">
+                                <page string="Latest Version" name="current_file">
+                                    <div class="mb-2 d-flex gap-1">
+                                        <button name="action_add_version" type="object" class="btn btn-sm btn-primary" icon="fa-plus">
+                                            Update File
+                                        </button>
+                                        <button name="action_open_preview" type="object" class="btn btn-sm btn-secondary" icon="fa-eye">
+                                            Popup View
+                                        </button>
+                                    </div>
+                                    <group col="4">
+                                        <field name="filename" readonly="1" class="text-truncate"/>
+                                        <field name="file" filename="filename" widget="binary" readonly="1" string="Download"/>
+                                    </group>
+                                    <field name="notes" placeholder="Detailed notes..."/>
+                                </page>
+                            </notebook>
+                        </div>
+
+                        <!-- Splitter Handle -->
+                        <div class="o_document_splitter_handle" title="Drag to resize"/>
+
+                        <!-- Right Column: Vertical Preview -->
+                        <div class="o_document_form_preview">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h5 class="mb-0 text-muted small uppercase fw-bold">Current Document</h5>
+                                <field name="file_type" widget="badge" 
+                                       decoration-info="file_type == 'image'"
+                                       decoration-danger="file_type == 'pdf'"/>
+                            </div>
+                            <div class="o_document_preview_container border rounded bg-white">
+                                <!-- PDF Preview -->
+                                <div invisible="file_type != 'pdf'">
+                                    <field name="file" widget="pdf_viewer" nolabel="1"/>
+                                </div>
+                                <!-- Image Preview -->
+                                <div invisible="file_type != 'image'" class="text-center overflow-auto d-flex align-items-center justify-content-center">
+                                    <field name="file" widget="image" nolabel="1" class="img-fluid rounded"/>
+                                </div>
+                                <!-- Fallback -->
+                                <div invisible="not file or file_type in ['pdf', 'image']" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted p-4">
+                                    <i class="fa fa-info-circle mb-2 fa-3x" title="Info"/>
+                                    <div class="text-center small">Preview not available for this format.</div>
+                                </div>
+                                <div invisible="file" class="h-100 d-flex flex-column align-items-center justify-content-center text-muted border-dashed p-4">
+                                    <i class="fa fa-cloud-upload mb-2 fa-3x" title="Upload"/>
+                                    <div>No file uploaded.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </sheet>
                 <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Document Version List View -->
+    <record id="view_fs_document_version_list" model="ir.ui.view">
+        <field name="name">fs.document.version.list</field>
+        <field name="model">fs.document.version</field>
+        <field name="arch" type="xml">
+            <list create="0" decoration-bf="is_current" sample="1" default_order="version_number desc">
+                <field name="version_number" width="40px" string="#"/>
+                <field name="reference"/>
+                <field name="issue_date"/>
+                <field name="expiry_date"/>
+                <field name="filename" string="Filename"/>
+                <field name="upload_date"/>
+                <field name="uploaded_by_id" widget="many2one_avatar_user"/>
+                <field name="is_current" widget="boolean_favorite" string="Active"/>
+                <button name="action_open_preview" type="object" 
+                        title="Preview" icon="fa-eye" class="text-primary"/>
+                <button name="action_set_as_current" type="object" 
+                        string="Set as Current" icon="fa-check"
+                        invisible="is_current" class="text-success"
+                        confirm="Are you sure you want to restore this version as the current one?"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Document Preview Form View (minimalist) -->
+    <record id="view_fs_document_preview" model="ir.ui.view">
+        <field name="name">fs.document.preview</field>
+        <field name="model">fs.document</field>
+        <field name="arch" type="xml">
+            <form string="Document Preview" class="o_document_portrait_view" size="large">
+                <sheet class="d-flex flex-column h-100 pb-0">
+                    <field name="file_type" invisible="1"/>
+                    <field name="filename" invisible="1"/>
+                    <!-- Removed internal header to maximize vertical space -->
+                    <!-- PDF Preview -->
+                    <div invisible="file_type != 'pdf'" class="o_document_pdf_content flex-grow-1 d-flex flex-column" style="min-height: 0;">
+                        <field name="file" widget="pdf_viewer" nolabel="1" class="h-100 w-100"/>
+                    </div>
+                    <!-- Image Preview -->
+                    <div invisible="file_type != 'image'" class="text-center flex-grow-1">
+                        <field name="file" widget="image" nolabel="1" class="img-fluid rounded"/>
+                    </div>
+                    <!-- Fallback for other files -->
+                    <div invisible="file_type in ['pdf', 'image']" class="alert alert-info text-center flex-grow-1" role="alert">
+                        <p>This file type cannot be previewed directly.</p>
+                        <field name="file" filename="filename" widget="binary" string="Download File"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Document Version Preview View -->
+    <record id="view_fs_document_version_preview" model="ir.ui.view">
+        <field name="name">fs.document.version.preview</field>
+        <field name="model">fs.document.version</field>
+        <field name="arch" type="xml">
+            <form string="Version Preview" class="o_document_portrait_view" size="large">
+                <sheet class="d-flex flex-column h-100 pb-0">
+                    <field name="file_type" invisible="1"/>
+                    <field name="filename" invisible="1"/>
+                    <!-- Removed internal header to maximize vertical space -->
+                    <!-- PDF Preview -->
+                    <div invisible="file_type != 'pdf'" class="o_document_pdf_content flex-grow-1 d-flex flex-column" style="min-height: 0;">
+                        <field name="file" widget="pdf_viewer" nolabel="1" class="h-100 w-100"/>
+                    </div>
+                    <!-- Image Preview -->
+                    <div invisible="file_type != 'image'" class="text-center">
+                        <field name="file" widget="image" nolabel="1" class="img-fluid shadow-sm rounded border"/>
+                    </div>
+                    <!-- Fallback for other files -->
+                    <div invisible="file_type in ['pdf', 'image']" class="alert alert-info text-center" role="alert">
+                        <p>This file type cannot be previewed directly.</p>
+                        <field name="file" filename="filename" widget="binary" string="Download File"/>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
             </form>
         </field>
     </record>
@@ -174,24 +286,27 @@
             <search>
                 <field name="name"/>
                 <field name="document_type_id"/>
-                <field name="student_id"/>
-                <field name="instructor_id"/>
-                <field name="pilot_id"/>
-                <field name="training_class_id"/>
+                <field name="related_entity_name"/>
+                <field name="related_entity_type"/>
                 <separator/>
                 <filter name="filter_expired" string="Expired" domain="[('expiry_status', '=', 'expired')]"/>
                 <filter name="filter_expiring" string="Expiring Soon" domain="[('expiry_status', '=', 'expiring')]"/>
                 <filter name="filter_valid" string="Valid" domain="[('expiry_status', '=', 'valid')]"/>
                 <separator/>
-                <filter name="filter_students" string="Student Documents" domain="[('student_id', '!=', False)]"/>
-                <filter name="filter_instructors" string="Instructor Documents" domain="[('instructor_id', '!=', False)]"/>
-                <filter name="filter_pilots" string="Pilot Documents" domain="[('pilot_id', '!=', False)]"/>
-                <filter name="filter_classes" string="Class Documents" domain="[('training_class_id', '!=', False)]"/>
+                <filter name="filter_students" string="Students" domain="[('related_entity_type', '=', 'student')]"/>
+                <filter name="filter_instructors" string="Instructors" domain="[('related_entity_type', '=', 'instructor')]"/>
+                <filter name="filter_pilots" string="Pilots" domain="[('related_entity_type', '=', 'pilot')]"/>
+                <filter name="filter_classes" string="Training Classes" domain="[('related_entity_type', '=', 'training_class')]"/>
+                <filter name="filter_class_types" string="Class Types" domain="[('related_entity_type', '=', 'class_type')]"/>
+                <filter name="filter_admin_tasks" string="Admin Tasks" domain="[('related_entity_type', '=', 'admin_task')]"/>
                 <separator/>
                 <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
-                <separator/>
-                <filter name="group_type" string="Document Type" context="{'group_by': 'document_type_id'}"/>
-                <filter name="group_status" string="Expiry Status" context="{'group_by': 'expiry_status'}"/>
+                <group>
+                    <filter name="group_type" string="Document Type" context="{'group_by': 'document_type_id'}"/>
+                    <filter name="group_entity_type" string="Entity Type" context="{'group_by': 'related_entity_type'}"/>
+                    <filter name="group_entity" string="Owner" context="{'group_by': 'related_entity_name'}"/>
+                    <filter name="group_status" string="Expiry Status" context="{'group_by': 'expiry_status'}"/>
+                </group>
             </search>
         </field>
     </record>
@@ -201,11 +316,19 @@
         <field name="name">fs.document.kanban</field>
         <field name="model">fs.document</field>
         <field name="arch" type="xml">
-            <kanban sample="1">
+            <kanban create="0" sample="1">
+                <header>
+                    <button name="action_open_upload_wizard" 
+                            string="Upload Document" type="object" 
+                            class="btn btn-primary" icon="fa-upload"
+                            display="always"/>
+                </header>
                 <field name="id"/>
                 <field name="name"/>
                 <field name="document_type_id"/>
                 <field name="document_type_code"/>
+                <field name="related_entity_name"/>
+                <field name="related_entity_type"/>
                 <field name="expiry_date"/>
                 <field name="expiry_status"/>
                 <field name="file_type"/>
@@ -228,17 +351,25 @@
                             <div class="flex-grow-1 overflow-hidden">
                                 <div class="d-flex justify-content-between align-items-baseline mb-1">
                                     <strong class="o_kanban_record_title text-truncate">
-                                        <field name="name"/>
+                                        <i class="fa fa-user me-1" t-if="record.related_entity_type.raw_value in ['student', 'instructor', 'pilot']" title="Person"/>
+                                        <i class="fa fa-university me-1" t-else="" title="Entity"/>
+                                        <field name="related_entity_name"/>
                                     </strong>
                                     <span class="badge rounded-pill ms-2" 
                                           t-att-class="record.expiry_status.raw_value == 'expired' ? 'text-bg-danger' : (record.expiry_status.raw_value == 'expiring' ? 'text-bg-warning' : (record.expiry_status.raw_value == 'valid' ? 'text-bg-success' : 'text-bg-secondary'))">
                                         <field name="expiry_status"/>
                                     </span>
                                 </div>
+                                <div class="mb-1 text-truncate text-muted">
+                                    <field name="name"/>
+                                </div>
                                 <div class="text-muted small">
                                     <span class="badge text-bg-light border"><field name="document_type_code"/></span>
+                                    <span class="badge text-bg-info ms-1" t-if="record.related_entity_type.raw_value == 'student'">Student</span>
+                                    <span class="badge text-bg-warning ms-1" t-if="record.related_entity_type.raw_value == 'instructor'">Instructor</span>
+                                    <span class="badge text-bg-success ms-1" t-if="record.related_entity_type.raw_value == 'pilot'">Pilot</span>
                                     <t t-if="record.expiry_date.raw_value">
-                                        <br/><i class="fa fa-calendar me-1"/>Expires: <field name="expiry_date"/>
+                                        <br/><i class="fa fa-calendar me-1" title="Expiry Date"/>Expires: <field name="expiry_date"/>
                                     </t>
                                 </div>
                             </div>
@@ -254,12 +385,17 @@
         <field name="name">All Documents</field>
         <field name="res_model">fs.document</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="context">{}</field>
+        <field name="context">{'search_default_group_type': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Upload your first document
             </p>
             <p>Manage scanned documents with version control and expiry tracking.</p>
+            <p>
+                <button name="%(fs_documents.action_fs_document_upload_wizard)d" 
+                        string="Upload Document" type="action" 
+                        class="btn btn-primary"/>
+            </p>
         </field>
     </record>
 
