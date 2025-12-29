@@ -46,6 +46,7 @@ All personnel can optionally have Odoo user accounts for system access.
         'views/fs_english_level_views.xml',
         'views/fs_medical_class_views.xml',
         # Views - Personnel
+        'views/fs_people_dashboard_views.xml',
         'views/fs_instructor_views.xml',
         'views/fs_student_views.xml',
         'views/fs_pilot_views.xml',

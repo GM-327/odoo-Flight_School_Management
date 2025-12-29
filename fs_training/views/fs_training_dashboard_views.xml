@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Training Dashboard Views
+    ========================
+    Dashboard providing at-a-glance KPIs for training management.
+    -->
+
+    <!-- Dashboard Form View -->
+    <record id="view_fs_training_dashboard_form" model="ir.ui.view">
+        <field name="name">fs.training.dashboard.form</field>
+        <field name="model">fs.training.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Training Dashboard" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h1>
+                                <span class="fa fa-graduation-cap text-success me-3" title="Academic"/> Academic Command
+                            </h1>
+                            <div class="text-end" style="width: 300px;">
+                                <div class="text-muted small text-uppercase fw-bold mb-1">Active Class Progression</div>
+                                <field name="class_progression" widget="progressbar" options="{'current_value': 'class_progression', 'max_value': 100, 'editable': false}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0 bg-success text-white p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="h3 mb-0 fw-bold"><field name="enrolment_total"/></div>
+                                        <div class="small opacity-75">Total Enrollments</div>
+                                    </div>
+                                    <span class="fa fa-book fa-3x opacity-25" title="Enrollments"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_classes_in_progress" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-info text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="class_in_progress"/></div>
+                                            <div class="small opacity-75">In Progress</div>
+                                        </div>
+                                        <span class="fa fa-play fa-2x opacity-50" title="In Progress"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_classes_overdue" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-danger text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="class_overdue"/></div>
+                                            <div class="small opacity-75">Overdue Tasks</div>
+                                        </div>
+                                        <span class="fa fa-warning fa-2x opacity-50" title="Overdue"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_admin_tasks_pending" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-secondary text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="admin_tasks_pending"/></div>
+                                            <div class="small opacity-75">Admin Backlog</div>
+                                        </div>
+                                        <span class="fa fa-tasks fa-2x opacity-50" title="Admin Backlog"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Layout for Details and Stats -->
+                    <div class="row g-4 mb-5">
+                        <div class="col-md-8">
+                            <div class="card border-0 shadow-sm bg-white rounded-3">
+                                <div class="card-header bg-white py-3 border-bottom">
+                                    <h5 class="card-title mb-0 fw-bold text-dark">Class Distribution &amp; Health</h5>
+                                </div>
+                                <div class="card-body" style="height: 400px;">
+                                    <field name="class_distribution" widget="dashboard_graph" graph_type="bar" class="h-100"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100 bg-white rounded-3">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                    <h5 class="fw-bold mb-0 text-dark">Quick Actions</h5>
+                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <div class="list-group list-group-flush">
+                                        <button name="action_view_classes_draft" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                             <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-secondary-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-file-text-o text-secondary" title="Draft"/>
+                                                </div>
+                                                <span class="text-muted">Draft Classes</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-light text-dark border shadow-sm"><field name="class_draft"/></span>
+                                        </button>
+                                        <button name="action_view_enrollments_active" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                             <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-success-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-user-check text-success" title="Active"/>
+                                                </div>
+                                                <span class="text-muted">Active Students</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-success-light text-success shadow-sm"><field name="enrollment_active"/></span>
+                                        </button>
+                                        <button name="action_view_enrollments_enrolled" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                             <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-user-plus text-warning" title="Pending"/>
+                                                </div>
+                                                <span class="text-muted">Waitlist/Pending</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-warning-light text-warning shadow-sm"><field name="enrollment_enrolled"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_fs_training_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">fs.training.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fs_training_dashboard_form"/>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

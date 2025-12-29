@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Fleet Dashboard Views
+    =====================
+    Dashboard providing at-a-glance KPIs for fleet management.
+    -->
+
+    <!-- Dashboard Form View -->
+    <record id="view_fs_fleet_dashboard_form" model="ir.ui.view">
+        <field name="name">fs.fleet.dashboard.form</field>
+        <field name="model">fs.fleet.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Fleet Dashboard" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h1>
+                                <span class="fa fa-plane text-primary me-3" title="Fleet"/> Fleet Operations Control
+                            </h1>
+                            <div class="text-end" style="width: 300px;">
+                                <div class="text-muted small text-uppercase fw-bold mb-1">Fleet Availability</div>
+                                <field name="fleet_availability" widget="progressbar" options="{'current_value': 'fleet_availability', 'max_value': 100, 'editable': false}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0 bg-primary text-white p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="h3 mb-0 fw-bold"><field name="fleet_total"/></div>
+                                        <div class="small opacity-75">Fleet Strength</div>
+                                    </div>
+                                    <span class="fa fa-plane fa-3x opacity-25" title="Total Fleet"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_aircraft_available" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-success text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="aircraft_available"/></div>
+                                            <div class="small opacity-75">Ready for Flight</div>
+                                        </div>
+                                        <span class="fa fa-check-circle fa-2x opacity-50" title="Available Aircraft"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_aircraft_maintenance" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-warning text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="aircraft_maintenance"/></div>
+                                            <div class="small opacity-75">In Hangar</div>
+                                        </div>
+                                        <span class="fa fa-wrench fa-2x opacity-50" title="Maintenance"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_aircraft_grounded" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-danger text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="aircraft_grounded"/></div>
+                                            <div class="small opacity-75">Grounded/AOG</div>
+                                        </div>
+                                        <span class="fa fa-anchor fa-2x opacity-50" title="Grounded Aircraft"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Operational Details -->
+                    <div class="row g-4 mb-5">
+                        <!-- Maintenance & Technical -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100 bg-white rounded-3">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                    <h5 class="fw-bold mb-0 text-dark">
+                                        <i class="fa fa-gears text-warning me-2" title="Technical"/> Tech &amp; Maintenance
+                                    </h5>
+                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <div class="list-group list-group-flush">
+                                        <button name="action_view_maintenance_overdue" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-danger-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-exclamation-triangle text-danger" title="Overdue"/>
+                                                </div>
+                                                <span class="text-muted">Overdue Inspection</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-danger shadow-sm"><field name="maintenance_overdue"/></span>
+                                        </button>
+                                        <button name="action_view_maintenance_due_soon" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-hourglass-half text-warning" title="Due Soon"/>
+                                                </div>
+                                                <span class="text-muted">Due Within 100hrs/30d</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-warning text-dark shadow-sm"><field name="maintenance_due_soon"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Legal & Compliance -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100 bg-white rounded-3">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                    <h5 class="fw-bold mb-0 text-dark">
+                                        <i class="fa fa-certificate text-info me-2" title="Legal"/> Compliance &amp; Legal
+                                    </h5>
+                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <div class="list-group list-group-flush">
+                                        <button name="action_view_cert_expired" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-danger-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-times text-danger" title="Expired"/>
+                                                </div>
+                                                <span class="text-muted">Expired Documents</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-danger shadow-sm"><field name="cert_expired"/></span>
+                                        </button>
+                                        <button name="action_view_cert_expiring" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-clock-o text-warning" title="Expiring Soon"/>
+                                                </div>
+                                                <span class="text-muted">Legal Expiries Near</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-warning text-dark shadow-sm"><field name="cert_expiring"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Analytics -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 bg-white rounded-3 h-100">
+                                <div class="card-header bg-white py-3 border-bottom">
+                                    <h5 class="card-title mb-0 fw-bold text-dark">Fleet Composition</h5>
+                                </div>
+                                <div class="card-body" style="height: 350px;">
+                                    <field name="type_distribution" widget="dashboard_graph" graph_type="bar" class="h-100"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm border-0 bg-white rounded-3 h-100">
+                                <div class="card-header bg-white py-3 border-bottom">
+                                    <h5 class="card-title mb-0 fw-bold text-dark">Asset Status Hub</h5>
+                                </div>
+                                <div class="card-body" style="height: 350px;">
+                                    <field name="status_distribution" widget="dashboard_graph" graph_type="bar" class="h-100"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_fs_fleet_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">fs.fleet.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fs_fleet_dashboard_form"/>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

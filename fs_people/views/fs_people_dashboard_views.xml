@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    People Dashboard Views
+    ======================
+    Dashboard providing at-a-glance KPIs for personnel management.
+    -->
+
+    <!-- Dashboard Form View -->
+    <record id="view_fs_people_dashboard_form" model="ir.ui.view">
+        <field name="name">fs.people.dashboard.form</field>
+        <field name="model">fs.people.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="People Dashboard" create="0" edit="0" delete="0">
+                <sheet>
+                    <div class="oe_title mb-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <h1>
+                                <span class="fa fa-users text-primary me-3" title="Personnel"/> Personnel Command Center
+                            </h1>
+                            <div class="text-end" style="width: 300px;">
+                                <div class="text-muted small text-uppercase fw-bold mb-1">Global Compliance Health</div>
+                                <field name="compliance_health" widget="progressbar" options="{'current_value': 'compliance_health', 'max_value': 100, 'editable': false}"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Row -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0 bg-primary text-white p-3 h-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="h3 mb-0 fw-bold"><field name="personnel_total"/></div>
+                                        <div class="small opacity-75">Active Personnel</div>
+                                    </div>
+                                    <span class="fa fa-users fa-3x opacity-25" title="Total Personnel"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_instructors" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-success text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="instructor_total"/></div>
+                                            <div class="small opacity-75">Instructors</div>
+                                        </div>
+                                        <span class="fa fa-graduation-cap fa-2x opacity-50" title="Instructors"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_students" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-info text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="student_total"/></div>
+                                            <div class="small opacity-75">Active Students</div>
+                                        </div>
+                                        <span class="fa fa-user fa-2x opacity-50" title="Students"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button name="action_view_pilots" type="object" class="btn p-0 text-start w-100 h-100">
+                                <div class="card shadow-sm border-0 bg-secondary text-white p-3 h-100 hover-elevate">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="h3 mb-0 fw-bold"><field name="pilot_total"/></div>
+                                            <div class="small opacity-75">Operational Pilots</div>
+                                        </div>
+                                        <span class="fa fa-plane fa-2x opacity-50" title="Pilots"/>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Operations -->
+                    <div class="row g-4 mb-5">
+                        <!-- Instructors Detail -->
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100 bg-white rounded-3">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                    <h5 class="fw-bold mb-0 text-dark">
+                                        <i class="fa fa-graduation-cap text-success me-2" title="Instructors"/> Instructor Alerts
+                                    </h5>
+                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <div class="list-group list-group-flush">
+                                        <button name="action_view_instructors_expired" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-danger-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-times text-danger" title="Expired"/>
+                                                </div>
+                                                <span class="text-muted">Expired Credentials</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-danger shadow-sm"><field name="instructor_expired"/></span>
+                                        </button>
+                                        <button name="action_view_instructors_expiring" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-clock-o text-warning" title="Expiring Soon"/>
+                                                </div>
+                                                <span class="text-muted">Expiring Soon</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-warning text-dark shadow-sm"><field name="instructor_expiring"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Students Detail -->
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100 bg-white rounded-3">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                    <h5 class="fw-bold mb-0 text-dark">
+                                        <i class="fa fa-user text-info me-2" title="Students"/> Student Compliance
+                                    </h5>
+                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <div class="list-group list-group-flush">
+                                        <button name="action_view_students_expired" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-danger-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-shield text-danger" title="Critical Issue"/>
+                                                </div>
+                                                <span class="text-muted">Critical Issues</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-danger shadow-sm"><field name="student_expired"/></span>
+                                        </button>
+                                        <button name="action_view_students_expiring" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-refresh text-warning" title="Renewal Due"/>
+                                                </div>
+                                                <span class="text-muted">Renewals Due</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-warning text-dark shadow-sm"><field name="student_expiring"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                         <!-- Pilots Detail -->
+                        <div class="col-md-4">
+                            <div class="card border-0 shadow-sm h-100 bg-white rounded-3">
+                                <div class="card-header bg-transparent border-0 pt-4 px-4">
+                                    <h5 class="fw-bold mb-0 text-dark">
+                                        <i class="fa fa-plane text-secondary me-2" title="Pilots"/> Pilot Readiness
+                                    </h5>
+                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <div class="list-group list-group-flush">
+                                        <button name="action_view_pilots_expired" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-danger-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-anchor text-danger" title="Grounded"/>
+                                                </div>
+                                                <span class="text-muted">Grounded Pilots</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-danger shadow-sm"><field name="pilot_expired"/></span>
+                                        </button>
+                                        <button name="action_view_pilots_expiring" type="object" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center border-0 px-0 py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fa fa-calendar-check-o text-warning" title="Medical Due"/>
+                                                </div>
+                                                <span class="text-muted">Medicals Due</span>
+                                            </div>
+                                            <span class="badge rounded-pill bg-warning text-dark shadow-sm"><field name="pilot_expiring"/></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Analytics Section -->
+                    <div class="row mt-5">
+                        <div class="col-12 text-center mb-4">
+                            <h2 class="text-muted fw-light">Visual Analytics</h2>
+                            <hr class="w-25 mx-auto"/>
+                        </div>
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100 border-0 bg-white rounded-3">
+                                <div class="card-header bg-white py-3 border-bottom">
+                                    <h5 class="card-title mb-0 fw-bold text-dark">Personnel Distribution</h5>
+                                </div>
+                                <div class="card-body bg-white" style="height: 350px;">
+                                    <field name="student_distribution" widget="dashboard_graph" graph_type="bar" class="h-100"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm h-100 border-0 bg-white rounded-3">
+                                <div class="card-header bg-white py-3 border-bottom">
+                                    <h5 class="card-title mb-0 fw-bold text-dark">Medical Readiness</h5>
+                                </div>
+                                <div class="card-body bg-white" style="height: 350px;">
+                                    <field name="instructor_distribution" widget="dashboard_graph" graph_type="bar" class="h-100"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_fs_people_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">fs.people.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fs_people_dashboard_form"/>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

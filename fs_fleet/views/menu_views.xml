@@ -12,6 +12,13 @@
               web_icon="fs_fleet,static/description/icon.svg"
               sequence="20"/>
 
+    <!-- Dashboard -->
+    <menuitem id="menu_fleet_dashboard"
+              name="Dashboard"
+              parent="menu_fleet_root"
+              action="action_fs_fleet_dashboard"
+              sequence="1"/>
+
     <!-- Fleet submenu items -->
     <menuitem id="menu_aircraft"
               name="Aircraft"

@@ -10,3 +10,4 @@ access_fs_document_version_user,fs.document.version.user,model_fs_document_versi
 access_fs_document_version_instructor,fs.document.version.instructor,model_fs_document_version,fs_core.group_flight_school_instructor,1,1,1,0
 access_fs_document_version_manager,fs.document.version.manager,model_fs_document_version,fs_core.group_flight_school_manager,1,1,1,1
 access_fs_document_upload_wizard_user,fs.document.upload.wizard.user,model_fs_document_upload_wizard,fs_core.group_flight_school_user,1,1,1,1
+access_fs_documents_dashboard_user,fs.documents.dashboard.user,model_fs_documents_dashboard,fs_core.group_flight_school_user,1,1,1,0

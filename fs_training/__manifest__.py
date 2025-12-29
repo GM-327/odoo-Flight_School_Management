@@ -49,6 +49,7 @@ This module provides:
         'views/fs_flight_mission_views.xml',
         'views/fs_admin_task_views.xml',
         # Views - Training
+        'views/fs_training_dashboard_views.xml',
         'views/fs_training_class_views.xml',
         'views/fs_student_enrollment_views.xml',
         'views/fs_student_views.xml',

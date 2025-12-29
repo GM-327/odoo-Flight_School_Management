@@ -12,6 +12,13 @@
               web_icon="fs_training,static/description/icon.svg"
               sequence="25"/>
 
+    <!-- Dashboard -->
+    <menuitem id="menu_training_dashboard"
+              name="Dashboard"
+              parent="menu_training_root"
+              action="action_fs_training_dashboard"
+              sequence="1"/>
+
     <!-- Main menu items -->
     <menuitem id="menu_training_classes"
               name="Training Classes"

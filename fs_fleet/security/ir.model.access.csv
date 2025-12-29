@@ -11,3 +11,4 @@ access_aircraft_user,fs.aircraft user,model_fs_aircraft,fs_core.group_flight_sch
 access_aircraft_instructor,fs.aircraft instructor,model_fs_aircraft,fs_core.group_flight_school_instructor,1,0,0,0
 access_aircraft_manager,fs.aircraft manager,model_fs_aircraft,fs_core.group_flight_school_manager,1,1,1,0
 access_aircraft_admin,fs.aircraft admin,model_fs_aircraft,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_fleet_dashboard_user,fs.fleet.dashboard.user,model_fs_fleet_dashboard,fs_core.group_flight_school_user,1,1,1,0

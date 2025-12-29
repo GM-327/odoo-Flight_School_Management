@@ -380,11 +380,36 @@
         </field>
     </record>
 
+    <!-- Document Graph View -->
+    <record id="view_fs_document_graph" model="ir.ui.view">
+        <field name="name">fs.document.graph</field>
+        <field name="model">fs.document</field>
+        <field name="arch" type="xml">
+            <graph string="Documents Analysis" sample="1">
+                <field name="document_type_id"/>
+                <field name="related_entity_type"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Document Pivot View -->
+    <record id="view_fs_document_pivot" model="ir.ui.view">
+        <field name="name">fs.document.pivot</field>
+        <field name="model">fs.document</field>
+        <field name="arch" type="xml">
+            <pivot string="Documents Analysis" sample="1">
+                <field name="document_type_id" type="row"/>
+                <field name="related_entity_type" type="row"/>
+                <field name="expiry_status" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
     <!-- Document Actions -->
     <record id="action_fs_document" model="ir.actions.act_window">
         <field name="name">All Documents</field>
         <field name="res_model">fs.document</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
         <field name="context">{'search_default_group_type': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

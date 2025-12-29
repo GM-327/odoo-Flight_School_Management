@@ -319,11 +319,36 @@
         </field>
     </record>
 
+    <!-- Instructor Graph View -->
+    <record id="view_fs_instructor_graph" model="ir.ui.view">
+        <field name="name">fs.instructor.graph</field>
+        <field name="model">fs.instructor</field>
+        <field name="arch" type="xml">
+            <graph string="Instructors Analysis" sample="1">
+                <field name="department_id"/>
+                <field name="medical_status"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Instructor Pivot View -->
+    <record id="view_fs_instructor_pivot" model="ir.ui.view">
+        <field name="name">fs.instructor.pivot</field>
+        <field name="model">fs.instructor</field>
+        <field name="arch" type="xml">
+            <pivot string="Instructors Analysis" sample="1">
+                <field name="department_id" type="row"/>
+                <field name="medical_status" type="col"/>
+                <field name="total_instruction_hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
     <!-- Instructor Action -->
     <record id="action_fs_instructor" model="ir.actions.act_window">
         <field name="name">Instructors</field>
         <field name="res_model">fs.instructor</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

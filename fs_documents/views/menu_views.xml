@@ -6,6 +6,13 @@
               web_icon="fs_documents,static/description/icon.svg"
               sequence="50"/>
 
+    <!-- Dashboard -->
+    <menuitem id="menu_documents_dashboard"
+              name="Dashboard"
+              parent="menu_fs_documents_root"
+              action="action_fs_documents_dashboard"
+              sequence="1"/>
+
     <menuitem id="menu_fs_document_all"
               name="All Documents"
               parent="menu_fs_documents_root"

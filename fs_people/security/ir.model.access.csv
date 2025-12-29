@@ -31,3 +31,4 @@ access_fs_admin_staff_admin,fs.admin.staff.admin,model_fs_admin_staff,fs_core.gr
 access_fs_person_qualification_user,fs.person.qualification.user,model_fs_person_qualification,fs_core.group_flight_school_user,1,0,0,0
 access_fs_person_qualification_manager,fs.person.qualification.manager,model_fs_person_qualification,fs_core.group_flight_school_manager,1,1,1,0
 access_fs_person_qualification_admin,fs.person.qualification.admin,model_fs_person_qualification,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_people_dashboard_user,fs.people.dashboard.user,model_fs_people_dashboard,fs_core.group_flight_school_user,1,1,1,0

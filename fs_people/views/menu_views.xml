@@ -12,6 +12,13 @@
               web_icon="fs_people,static/description/icon.svg"
               sequence="15"/>
 
+    <!-- Dashboard -->
+    <menuitem id="menu_people_dashboard"
+              name="Dashboard"
+              parent="menu_people_root"
+              action="action_fs_people_dashboard"
+              sequence="1"/>
+
     <!-- Personnel submenu items -->
     <menuitem id="menu_instructors"
               name="Instructors"

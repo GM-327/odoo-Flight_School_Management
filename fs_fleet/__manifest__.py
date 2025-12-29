@@ -38,6 +38,7 @@ Depends on Flight School Core for security groups.
         'data/aircraft_category_data.xml',
         'data/aircraft_type_data.xml',
         # Views
+        'views/fs_fleet_dashboard_views.xml',
         'views/aircraft_category_views.xml',
         'views/aircraft_type_views.xml',
         'views/aircraft_views.xml',

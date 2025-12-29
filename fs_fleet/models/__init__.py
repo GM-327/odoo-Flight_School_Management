@@ -5,3 +5,4 @@
 from . import aircraft_category
 from . import aircraft_type
 from . import aircraft
+from . import fs_fleet_dashboard

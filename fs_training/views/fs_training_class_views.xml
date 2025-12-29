@@ -259,11 +259,38 @@
         </field>
     </record>
 
+    <!-- Graph View -->
+    <record id="view_training_class_graph" model="ir.ui.view">
+        <field name="name">fs.training.class.graph</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <graph string="Training Classes Analysis" sample="1">
+                <field name="class_type_id"/>
+                <field name="status"/>
+                <field name="student_count" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_training_class_pivot" model="ir.ui.view">
+        <field name="name">fs.training.class.pivot</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <pivot string="Training Classes Analysis" sample="1">
+                <field name="class_type_id" type="row"/>
+                <field name="status" type="col"/>
+                <field name="student_count" type="measure"/>
+                <field name="progress_percentage" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
     <!-- Action -->
     <record id="action_training_class" model="ir.actions.act_window">
         <field name="name">Training Classes</field>
         <field name="res_model">fs.training.class</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">kanban,list,form,graph,pivot</field>
         <field name="domain">[('status', '!=', 'cancelled')]</field>
         <field name="context">{}</field>
         <field name="help" type="html">

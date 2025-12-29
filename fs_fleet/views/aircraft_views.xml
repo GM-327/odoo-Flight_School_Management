@@ -243,11 +243,37 @@
         </field>
     </record>
 
+    <!-- Graph View -->
+    <record id="view_aircraft_graph" model="ir.ui.view">
+        <field name="name">fs.aircraft.graph</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <graph string="Fleet Analysis" sample="1">
+                <field name="status"/>
+                <field name="aircraft_type_id"/>
+                <field name="total_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_aircraft_pivot" model="ir.ui.view">
+        <field name="name">fs.aircraft.pivot</field>
+        <field name="model">fs.aircraft</field>
+        <field name="arch" type="xml">
+            <pivot string="Fleet Analysis" sample="1">
+                <field name="aircraft_type_id" type="row"/>
+                <field name="status" type="col"/>
+                <field name="total_hours" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
     <!-- Action -->
     <record id="action_aircraft" model="ir.actions.act_window">
         <field name="name">Fleet</field>
         <field name="res_model">fs.aircraft</field>
-        <field name="view_mode">kanban,list,form,calendar</field>
+        <field name="view_mode">kanban,list,form,calendar,graph,pivot</field>
         <field name="context">{'search_default_active': 1, 'search_default_no_simulators': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

@@ -30,3 +30,4 @@ access_student_enrollment_manager,fs.student.enrollment.manager,model_fs_student
 access_enrollment_hours_user,fs.enrollment.hours.user,model_fs_enrollment_hours,fs_core.group_flight_school_user,1,0,0,0
 access_enrollment_hours_instructor,fs.enrollment.hours.instructor,model_fs_enrollment_hours,fs_core.group_flight_school_instructor,1,1,1,0
 access_enrollment_hours_manager,fs.enrollment.hours.manager,model_fs_enrollment_hours,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_training_dashboard_user,fs.training.dashboard.user,model_fs_training_dashboard,fs_core.group_flight_school_user,1,1,1,0

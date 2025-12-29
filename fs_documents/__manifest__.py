@@ -40,6 +40,7 @@ This module provides:
         # Wizards
         'wizard/fs_document_upload_wizard_views.xml',
         # Views
+        'views/fs_documents_dashboard_views.xml',
         'views/fs_document_type_views.xml',
         'views/fs_document_views.xml',
         'views/fs_student_views.xml',
