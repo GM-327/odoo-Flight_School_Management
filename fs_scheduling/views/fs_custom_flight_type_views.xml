@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_custom_flight_type_tree" model="ir.ui.view">
+        <field name="name">fs.custom.flight.type.list</field>
+        <field name="model">fs.custom.flight.type</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="default_duration" widget="float_time"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_fs_custom_flight_type" model="ir.actions.act_window">
+        <field name="name">Custom Flight Types</field>
+        <field name="res_model">fs.custom.flight.type</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

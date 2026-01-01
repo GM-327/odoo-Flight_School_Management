@@ -3,7 +3,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 {
-    'name': 'People',
+    'name': 'Flight School People',
     'version': '19.0.1.0.1',
     'category': 'Aviation/Flight School',
     'summary': 'Personnel management for flight schools',
@@ -51,6 +51,7 @@ All personnel can optionally have Odoo user accounts for system access.
         'views/fs_student_views.xml',
         'views/fs_pilot_views.xml',
         'views/fs_person_qualification_views.xml',
+        'views/fs_instructor_availability_views.xml',
         'views/fs_admin_staff_views.xml',
         'views/menu_views.xml',
     ],

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_scheduling_wizard_form" model="ir.ui.view">
+        <field name="name">fs.scheduling.wizard.form</field>
+        <field name="model">fs.scheduling.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Scheduling Wizard">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="callsign_prefix"/>
+                        </group>
+                        <group>
+                            <field name="next_callsign_number"/>
+                            <div class="text-muted" colspan="2">
+                                Flights will be numbered sequentially starting from the next available number.
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="students" string="Eligible Students">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="enrollment_id" options="{'no_create': True}"/>
+                                    <field name="student_id"/>
+                                    <field name="mission_id" required="1" options="{'no_create': True}"/>
+                                    <field name="instructor_id" required="1" options="{'no_create': True}"/>
+                                    <field name="aircraft_id" required="1" options="{'no_create': True}"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="duration" widget="float_time"/>
+                                    <field name="is_solo" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="action_schedule" string="Schedule Missions" type="object" class="oe_highlight" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_scheduling_wizard" model="ir.actions.act_window">
+        <field name="name">Create Schedule</field>
+        <field name="res_model">fs.scheduling.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_fs_scheduling_wizard"
+              name="Create Schedule"
+              parent="menu_fs_scheduling_board"
+              action="action_fs_scheduling_wizard"
+              sequence="5"/>
+</odoo>

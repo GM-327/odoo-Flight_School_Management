@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fs_scheduled_flight_user,fs.scheduled.flight.user,model_fs_scheduled_flight,fs_core.group_fs_user,1,1,1,1
+access_fs_cancellation_reason_user,fs.cancellation.reason.user,model_fs_cancellation_reason,fs_core.group_fs_user,1,1,1,1
+access_fs_custom_flight_type_user,fs.custom.flight.type.user,model_fs_custom_flight_type,fs_core.group_fs_user,1,1,1,1

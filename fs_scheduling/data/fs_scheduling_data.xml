@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default Cancellation Reasons -->
+    <record id="cancellation_reason_weather" model="fs.cancellation.reason">
+        <field name="name">Bad Weather / METAR</field>
+    </record>
+    <record id="cancellation_reason_aircraft" model="fs.cancellation.reason">
+        <field name="name">Aircraft Technical Issue</field>
+    </record>
+    <record id="cancellation_reason_student" model="fs.cancellation.reason">
+        <field name="name">Student Unavailable</field>
+    </record>
+    <record id="cancellation_reason_instructor" model="fs.cancellation.reason">
+        <field name="name">Instructor Unavailable</field>
+    </record>
+    <record id="cancellation_reason_notam" model="fs.cancellation.reason">
+        <field name="name">NOTAM / Airspace Restriction</field>
+    </record>
+
+    <!-- Default Config Parameters -->
+    <record id="config_param_callsign_prefix" model="ir.config_parameter">
+        <field name="key">flight_school.mission_callsign_prefix</field>
+        <field name="value">ABS</field>
+    </record>
+    <record id="config_param_buffer_minutes" model="ir.config_parameter">
+        <field name="key">flight_school.scheduling_buffer_minutes</field>
+        <field name="value">15</field>
+    </record>
+    <record id="config_param_time_slot_minutes" model="ir.config_parameter">
+        <field name="key">flight_school.scheduling_time_slot_minutes</field>
+        <field name="value">15</field>
+    </record>
+</odoo>

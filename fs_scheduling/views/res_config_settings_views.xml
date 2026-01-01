@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_scheduling" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.scheduling</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="25"/>
+        <field name="inherit_id" ref="fs_core.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@id='fs_management_settings']" position="after">
+                <h2 groups="fs_core.group_fs_manager">Scheduling</h2>
+                <div class="row mt16 o_settings_container" id="fs_scheduling_settings" groups="fs_core.group_fs_manager">
+                    <!-- Callsign Prefix -->
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <label for="fs_mission_callsign_prefix"/>
+                            <div class="text-muted">
+                                Default prefix for flight mission callsigns (e.g. ABS).
+                            </div>
+                            <field name="fs_mission_callsign_prefix"/>
+                        </div>
+                    </div>
+                    <!-- Buffer Minutes -->
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <label for="fs_scheduling_buffer_minutes"/>
+                            <div class="text-muted">
+                                Buffer time in minutes between consecutive missions.
+                            </div>
+                            <field name="fs_scheduling_buffer_minutes"/>
+                        </div>
+                    </div>
+                    <!-- Time Slot Granularity -->
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <label for="fs_scheduling_time_slot_minutes"/>
+                            <div class="text-muted">
+                                Minimum time slot increment for scheduling.
+                            </div>
+                            <field name="fs_scheduling_time_slot_minutes"/>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="action_fs_scheduling_config_settings" model="ir.actions.act_window">
+        <field name="name">Settings</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'fs_scheduling', 'bin_size': False}</field>
+    </record>
+</odoo>

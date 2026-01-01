@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Main Menu: Scheduling -->
+    <menuitem id="menu_fs_scheduling_root"
+              name="Scheduling"
+              parent="fs_core.menu_fs_root"
+              sequence="50"/>
+
+    <!-- Schedule Submenus -->
+    <menuitem id="menu_fs_scheduling_board"
+              name="Scheduling Board"
+              parent="menu_fs_scheduling_root"
+              sequence="10"/>
+
+    <menuitem id="menu_fs_scheduled_flight_tomorrow"
+              name="Tomorrow's Flights"
+              parent="menu_fs_scheduling_board"
+              action="action_fs_scheduled_flight_tomorrow"
+              sequence="10"/>
+
+    <menuitem id="menu_fs_scheduled_flight_all"
+              name="All Flights"
+              parent="menu_fs_scheduling_board"
+              action="action_fs_scheduled_flight_all"
+              sequence="20"/>
+
+    <!-- Configuration Submenus -->
+    <menuitem id="menu_fs_scheduling_config"
+              name="Configuration"
+              parent="menu_fs_scheduling_root"
+              sequence="100"/>
+
+    <menuitem id="menu_fs_cancellation_reason"
+              name="Cancellation Reasons"
+              parent="menu_fs_scheduling_config"
+              action="action_fs_cancellation_reason"
+              sequence="10"/>
+
+    <menuitem id="menu_fs_custom_flight_type"
+              name="Custom Flight Types"
+              parent="menu_fs_scheduling_config"
+              action="action_fs_custom_flight_type"
+              sequence="20"/>
+
+    <menuitem id="menu_fs_scheduling_settings"
+              name="Settings"
+              parent="menu_fs_scheduling_config"
+              action="action_fs_scheduling_config_settings"
+              sequence="100"/>
+</odoo>

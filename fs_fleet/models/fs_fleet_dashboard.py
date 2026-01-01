@@ -155,12 +155,12 @@ class FsFleetDashboard(models.TransientModel):
         # Type distribution (by manufacturer)
         type_data = []
         # Group by manufacturer
-        grouped_data = Aircraft.read_group([], ['manufacturer'], ['manufacturer'])
-        for group in grouped_data:
-            label = group['manufacturer'] or 'Unknown'
+        grouped_data = Aircraft._read_group([], groupby=['manufacturer'], aggregates=['__count'])
+        for manufacturer, count in grouped_data:
+            label = manufacturer or 'Unknown'
             type_data.append({
                 'label': label,
-                'value': group['manufacturer_count'],
+                'value': count,
                 'type': 'future'
             })
         

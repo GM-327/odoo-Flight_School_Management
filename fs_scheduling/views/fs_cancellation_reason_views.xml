@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_cancellation_reason_tree" model="ir.ui.view">
+        <field name="name">fs.cancellation.reason.list</field>
+        <field name="model">fs.cancellation.reason</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_fs_cancellation_reason" model="ir.actions.act_window">
+        <field name="name">Cancellation Reasons</field>
+        <field name="res_model">fs.cancellation.reason</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

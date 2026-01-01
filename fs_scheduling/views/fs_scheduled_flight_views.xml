@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_fs_scheduled_flight_tree" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.list</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status == 'cancelled'" decoration-success="status == 'completed'" decoration-info="status == 'confirmed'" sample="1">
+                <field name="date"/>
+                <field name="callsign"/>
+                <field name="start_time" widget="float_time"/>
+                <field name="duration" widget="float_time"/>
+                <field name="aircraft_id"/>
+                <field name="student_id"/>
+                <field name="instructor_id"/>
+                <field name="mission_id"/>
+                <field name="status" widget="badge" decoration-warning="status == 'scheduled'" decoration-info="status == 'confirmed'" decoration-success="status == 'completed'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_fs_scheduled_flight_form" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.form</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" invisible="status != 'scheduled'" class="oe_highlight"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="status in ['completed', 'cancelled']"/>
+                    <field name="status" widget="statusbar" statusbar_visible="scheduled,confirmed,in_progress,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="callsign" placeholder="e.g. ABS0001 or ADD"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="timing" string="Timing">
+                            <field name="date"/>
+                            <field name="start_time" widget="float_time"/>
+                            <field name="duration" widget="float_time"/>
+                            <field name="end_time" widget="float_time" readonly="1"/>
+                        </group>
+                        <group name="resources" string="Resources">
+                            <field name="aircraft_id" options="{'no_create': True}"/>
+                            <field name="enrollment_id" options="{'no_create': True}"/>
+                            <field name="student_id"/>
+                            <field name="instructor_id" options="{'no_create': True}"/>
+                            <field name="instructor2_id" options="{'no_create': True}"/>
+                        </group>
+                        <group name="mission" string="Mission Details">
+                            <field name="mission_id" invisible="custom_activity_id" options="{'no_create': True}"/>
+                            <field name="custom_activity_id" invisible="mission_id" options="{'no_create': True}"/>
+                            <field name="discipline_id"/>
+                            <field name="is_exam" invisible="1"/>
+                            <field name="is_solo" widget="boolean_toggle"/>
+                        </group>
+                        <group name="execution" string="Execution (Future)" invisible="status not in ['in_progress', 'completed']">
+                            <field name="actual_start"/>
+                            <field name="actual_end"/>
+                            <field name="actual_duration" widget="float_time"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="notes" string="Notes">
+                            <field name="notes" placeholder="Additional instructions or notes..."/>
+                        </page>
+                        <page name="cancellation" string="Cancellation" invisible="status != 'cancelled'">
+                            <group>
+                                <field name="cancellation_reason_id" required="status == 'cancelled'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Timeline View -->
+    <record id="view_fs_scheduled_flight_timeline" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.timeline</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="type">timeline</field>
+        <field name="arch" type="xml">
+            <timeline date_start="start_datetime"
+                      date_stop="end_datetime"
+                      default_group_by="aircraft_id"
+                      event_open_popup="true"
+                      mode="day"
+                      colors="#e9ecef: status == 'cancelled'; #28a745: status == 'completed'; #007bff: status == 'confirmed'; #ffc107: status == 'scheduled'">
+                <field name="callsign"/>
+                <field name="student_id"/>
+                <field name="instructor_id"/>
+                <field name="aircraft_registration"/>
+                <templates>
+                    <t t-name="timeline-item">
+                        <div class="d-flex flex-column p-1">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong t-esc="record.callsign"/>
+                                <small class="text-muted" t-esc="record.aircraft_registration"/>
+                            </div>
+                            <div class="d-flex align-items-center gap-1 mt-1">
+                                <i class="fa fa-user-circle small text-muted"/>
+                                <span class="small" t-esc="record.student_id[1]"/>
+                            </div>
+                            <t t-if="record.instructor_id">
+                                <div class="d-flex align-items-center gap-1">
+                                    <i class="fa fa-graduation-cap small text-muted"/>
+                                    <span class="small italic text-truncate" t-esc="record.instructor_id[1]"/>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                </templates>
+            </timeline>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_fs_scheduled_flight_search" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.search</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="callsign"/>
+                <field name="student_id"/>
+                <field name="instructor_id"/>
+                <field name="aircraft_id"/>
+                <field name="date"/>
+                <filter string="Scheduled" name="scheduled" domain="[('status', '=', 'scheduled')]"/>
+                <filter string="Confirmed" name="confirmed" domain="[('status', '=', 'confirmed')]"/>
+                <filter string="In Progress" name="in_progress" domain="[('status', '=', 'in_progress')]"/>
+                <filter string="Today" name="today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter string="Tomorrow" name="tomorrow" domain="[('date', '=', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Aircraft" name="group_by_aircraft" context="{'group_by': 'aircraft_id'}"/>
+                    <filter string="Instructor" name="group_by_instructor" context="{'group_by': 'instructor_id'}"/>
+                    <filter string="Date" name="group_by_date" context="{'group_by': 'date'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Actions -->
+    <record id="action_fs_scheduled_flight_tomorrow" model="ir.actions.act_window">
+        <field name="name">Tomorrow's Flights</field>
+        <field name="res_model">fs.scheduled.flight</field>
+        <field name="view_mode">timeline,list,form</field>
+        <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
+        <field name="context">{'search_default_tomorrow': 1, 'search_default_group_by_aircraft': 1}</field>
+    </record>
+
+    <record id="action_fs_scheduled_flight_all" model="ir.actions.act_window">
+        <field name="name">All Flights</field>
+        <field name="res_model">fs.scheduled.flight</field>
+        <field name="view_mode">list,timeline,form</field>
+        <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
+        <field name="context">{'search_default_group_by_date': 1}</field>
+    </record>
+</odoo>

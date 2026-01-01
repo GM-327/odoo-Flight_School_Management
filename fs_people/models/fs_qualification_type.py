@@ -32,6 +32,11 @@ class FsQualificationType(models.Model):
     description = fields.Text(
         string='Description',
     )
+    is_examinator = fields.Boolean(
+        string='Examinator Qualification',
+        default=False,
+        help="If checked, instructors with this qualification can conduct exam missions.",
+    )
     active = fields.Boolean(
         string='Active',
         default=True,
