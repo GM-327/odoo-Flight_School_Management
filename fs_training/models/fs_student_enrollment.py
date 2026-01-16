@@ -2,7 +2,7 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
 
 
@@ -12,6 +12,7 @@ class FsStudentEnrollment(models.Model):
     _name = 'fs.student.enrollment'
     _description = 'Student Enrollment'
     _inherit = ['mail.thread', 'mail.activity.mixin']
+    _rec_name = 'callsign'
     _order = 'training_class_id, student_id'
 
     _unique_student_class = models.Constraint(
@@ -42,10 +43,31 @@ class FsStudentEnrollment(models.Model):
         domain="[('active', '=', True)]",
         help="Instructor assigned to supervise this student in this class.",
     )
+    class_aircraft_type_ids = fields.Many2many(
+        related='training_class_id.aircraft_type_ids',
+        string='Class Aircraft Types',
+    )
+    aircraft_type_id = fields.Many2one(
+        comodel_name='fs.aircraft.type',
+        string='Assigned Aircraft Type',
+        tracking=True,
+        ondelete='restrict',
+        domain="[('id', 'in', class_aircraft_type_ids)]",
+        help="Specific aircraft type assigned to this student. Required when class has multiple aircraft types.",
+    )
     callsign = fields.Char(
         string='Callsign',
         help="Student's callsign for this class. Auto-suggested as ClassCode + Letter (e.g., CPL24A).",
     )
+    display_name = fields.Char(compute='_compute_display_name', store=True)
+
+    @api.depends('callsign', 'student_id.name')
+    def _compute_display_name(self):
+        for record in self:
+            if record.callsign:
+                record.display_name = record.callsign
+            else:
+                record.display_name = record.student_id.name or _("New Enrollment") # type: ignore
 
     @api.onchange('training_class_id', 'student_id')
     def _onchange_student_id_suggest_callsign(self):

@@ -3,27 +3,33 @@
     <!-- Main Menu: Scheduling -->
     <menuitem id="menu_fs_scheduling_root"
               name="Scheduling"
-              parent="fs_core.menu_fs_root"
-              sequence="50"/>
-
-    <!-- Schedule Submenus -->
-    <menuitem id="menu_fs_scheduling_board"
-              name="Scheduling Board"
-              parent="menu_fs_scheduling_root"
-              sequence="10"/>
+              web_icon="fs_scheduling,static/description/icon.png"
+              sequence="30"/>
 
     <menuitem id="menu_fs_scheduled_flight_tomorrow"
               name="Tomorrow's Flights"
-              parent="menu_fs_scheduling_board"
+              parent="menu_fs_scheduling_root"
               action="action_fs_scheduled_flight_tomorrow"
               sequence="10"/>
 
+    <menuitem id="menu_fs_scheduled_flight_all_board"
+              name="All Flights (Board)"
+              parent="menu_fs_scheduling_root"
+              action="action_fs_scheduled_flight_all_board"
+              sequence="15"/>
+
     <menuitem id="menu_fs_scheduled_flight_all"
-              name="All Flights"
-              parent="menu_fs_scheduling_board"
+              name="All Flights (List)"
+              parent="menu_fs_scheduling_root"
               action="action_fs_scheduled_flight_all"
               sequence="20"/>
 
+    <menuitem id="menu_fs_scheduling_wizard"
+              name="Create Schedule"
+              parent="menu_fs_scheduling_root"
+              action="action_fs_scheduling_wizard"
+              sequence="90"/>
+              
     <!-- Configuration Submenus -->
     <menuitem id="menu_fs_scheduling_config"
               name="Configuration"
@@ -41,6 +47,12 @@
               parent="menu_fs_scheduling_config"
               action="action_fs_custom_flight_type"
               sequence="20"/>
+
+    <menuitem id="menu_fs_flight_route"
+              name="Routes &amp; Areas"
+              parent="menu_fs_scheduling_config"
+              action="action_fs_flight_route"
+              sequence="30"/>
 
     <menuitem id="menu_fs_scheduling_settings"
               name="Settings"

@@ -29,6 +29,18 @@ class FsPilot(models.Model):
         string='Callsign',
         help="Callsign for the pilot.",
     )
+    display_name = fields.Char(
+        string='Display Name',
+        compute='_compute_display_name',
+    )
+
+    @api.depends('name', 'callsign')
+    def _compute_display_name(self):
+        for record in self:
+            if record.callsign:
+                record.display_name = record.callsign  # type: ignore
+            else:
+                record.display_name = record.name or ''  # type: ignore
 
     # === License & Qualifications ===
     license_id = fields.Many2one(

@@ -53,6 +53,7 @@ All personnel can optionally have Odoo user accounts for system access.
         'views/fs_person_qualification_views.xml',
         'views/fs_instructor_availability_views.xml',
         'views/fs_admin_staff_views.xml',
+        'views/res_config_settings_views.xml',
         'views/menu_views.xml',
     ],
     'demo': [

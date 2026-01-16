@@ -14,3 +14,4 @@ from . import fs_student_enrollment
 from . import fs_student
 from . import fs_instructor
 from . import fs_training_dashboard
+from . import res_config_settings

@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View for Wizard Line (Add Mission popup) -->
+    <record id="view_fs_scheduling_wizard_line_form" model="ir.ui.view">
+        <field name="name">fs.scheduling.wizard.line.form</field>
+        <field name="model">fs.scheduling.wizard.line</field>
+        <field name="arch" type="xml">
+            <form string="Add Mission">
+                <sheet>
+                    <!-- Hero Section -->
+                    <div class="card border-0 rounded-3 shadow-sm mb-4" 
+                         style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); overflow: hidden; position: relative; color: white;">
+                        <div class="card-body p-4 position-relative" style="z-index: 1;">
+                            <div class="row align-items-center">
+                                <div class="col-auto d-none d-md-block">
+                                    <div class="bg-white bg-opacity-25 rounded-circle p-3 shadow-sm" style="backdrop-filter: blur(8px);">
+                                        <i class="fa fa-plus-circle fa-2x text-white" title="Add Mission"/>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h2 class="fw-bold mb-1">Add New Mission</h2>
+                                    <p class="mb-0 opacity-75">Configure mission details. Time and aircraft will be assigned automatically in Step 3.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Left Column: Mission Type -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 bg-light rounded-3 h-100 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                        <i class="fa fa-sliders text-primary me-2" title="Configuration"/>1️⃣ Mission Type
+                                    </h5>
+                                    <div class="text-muted small mb-3">
+                                        <i class="fa fa-info-circle me-1" title="Info"/>Select category first, then fill in crew details.
+                                    </div>
+                                    <group>
+                                        <field name="flight_category" widget="radio" options="{'horizontal': false}"/>
+                                    </group>
+                                    
+                                    <!-- Added Mission toggle (always visible) -->
+                                    <div class="mt-3 pt-3 border-top">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <span class="small fw-bold text-muted mb-0 o_form_label">Added Mission (ADD)</span>
+                                            <field name="is_added_mission" widget="boolean_toggle" nolabel="1"
+                                                   help="If enabled, callsign will be 'ADD'"/>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Hidden fields -->
+                                    <field name="wizard_id" invisible="1"/>
+                                    <field name="sequence" invisible="1"/>
+                                    <field name="training_class_code" invisible="1"/>
+                                    <field name="class_type_id" invisible="1"/>
+                                    <field name="aircraft_type_ids" invisible="1"/>
+                                    <field name="is_sim" invisible="1"/>
+                                    <field name="is_exam" invisible="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Column: Crew Selection (Pilot 1 / Pilot 2) -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3 h-100">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-4 border-bottom pb-2">
+                                        <i class="fa fa-users text-primary me-2" title="Crew"/>2️⃣ Flight Crew
+                                    </h5>
+                                    
+                                    <!-- PILOT 1 Section -->
+                                    <div class="mb-4">
+                                        <span class="o_form_label fw-bold text-muted small mb-2 d-block">
+                                            <i class="fa fa-user me-1" title="Pilot 1"/>PILOT 1
+                                        </span>
+                                        
+                                        <!-- Unified Crew Member Selector -->
+                                        <div class="p-2 bg-light rounded-3 mb-2 border">
+                                            <field name="pilot1_crew_id" 
+                                                   options="{'no_create': True}" 
+                                                   placeholder="Select Crew Member..."
+                                                   domain="flight_category == 'staff_training' and [('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('has_expired_qualification', '=', False)]"/>
+                                        </div>
+                                        
+                                        <div class="d-flex align-items-center gap-2 mt-2">
+                                            <span class="small text-muted">Function:</span>
+                                            <field name="pilot1_function" class="oe_inline"/>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-3"/>
+
+                                    <!-- PILOT 2 Section -->
+                                    <div>
+                                        <span class="o_form_label fw-bold text-muted small mb-2 d-block">
+                                            <i class="fa fa-user-plus me-1" title="Pilot 2"/>PILOT 2
+                                        </span>
+                                        
+                                        <!-- Unified Crew Member Selector -->
+                                        <div class="p-2 bg-light rounded-3 mb-2 border">
+                                            <field name="pilot2_crew_id" 
+                                                   options="{'no_create': True}" 
+                                                   placeholder="Select Crew Member..."
+                                                   domain="flight_category == 'staff_training' and [('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('has_expired_qualification', '=', False)]"/>
+                                        </div>
+                                        
+                                        <div class="d-flex align-items-center gap-2 mt-2">
+                                            <span class="small text-muted">Function:</span>
+                                            <field name="pilot1_function" invisible="1"/>
+                                            <field name="pilot2_function" class="oe_inline"/>
+                                        </div>
+                                        
+                                        <div class="text-muted small mt-2 d-flex align-items-center"
+                                             invisible="pilot2_function != 'supervisor'">
+                                            <i class="fa fa-info-circle me-1" title="Info"/> Supervisor monitors from ground (no flight hours logged).
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Mission Details -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3 h-100">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                        <i class="fa fa-plane text-primary me-2" title="Mission"/>3️⃣ Mission Details
+                                    </h5>
+                                    
+                                    <!-- For Student Training: require syllabus mission -->
+                                    <div invisible="flight_category != 'student_training'">
+                                        <div class="text-muted small mb-3">
+                                            <i class="fa fa-info-circle me-1" title="Info"/>Select a mission from the training syllabus.
+                                        </div>
+                                        <group>
+                                            <field name="mission_id" 
+                                                   options="{'no_create': True}"
+                                                   domain="[('class_type_id', '=', class_type_id)]"
+                                                   required="flight_category == 'student_training'"/>
+                                            <field name="route_id" 
+                                                   options="{'no_create': True}"
+                                                   string="Route / Area"/>
+                                            <field name="duration" widget="float_time"/>
+                                            <field name="flight_type_id" string="Flight Type" readonly="1"/>
+                                        </group>
+                                    </div>
+                                    
+                                    <!-- For Staff Training: use Flight Activity or Custom Activity -->
+                                    <div invisible="flight_category != 'staff_training'">
+                                        <div class="text-muted small mb-3">
+                                            <i class="fa fa-info-circle me-1" title="Info"/>Select a Flight Activity OR a Custom Activity.
+                                        </div>
+                                        <group>
+                                            <field name="activity_id" 
+                                                   string="Flight Activity"
+                                                   options="{'no_create': True}"
+                                                   invisible="custom_activity_id"/>
+                                            <field name="custom_activity_id" 
+                                                   string="Custom Activity"
+                                                   options="{'no_create': True}"
+                                                   invisible="activity_id"/>
+                                            <field name="aircraft_type_ids" 
+                                                   string="Aircraft Types"
+                                                   widget="many2many_tags"
+                                                   options="{'no_create': True}"
+                                                   required="flight_category == 'staff_training'"/>
+                                            <field name="route_id" 
+                                                   options="{'no_create': True}"
+                                                   string="Route / Area"/>
+                                            <field name="duration" widget="float_time"/>
+                                            <field name="flight_type_id" string="Flight Type"/>
+                                        </group>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning for Exam Missions -->
+                    <div role="status" invisible="not is_exam" 
+                         class="mt-4"
+                         style="background: rgba(255,193,7,0.1); display: flex; align-items: center; border-radius: 0.5rem; padding: 1rem;">
+                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning" title="Warning"/>
+                        <div>
+                            <h6 class="fw-bold mb-1">EXAM MISSION</h6>
+                            <p class="mb-0 small">This mission requires an instructor with valid <strong>Examinator Qualifications</strong>.</p>
+                        </div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button string="Add to Schedule" type="object" name="action_save_and_close" class="btn-primary" icon="fa-check"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

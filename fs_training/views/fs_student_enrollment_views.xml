@@ -17,6 +17,7 @@
                 <field name="student_id"/>
                 <field name="training_class_id"/>
                 <field name="instructor_id" optional="show"/>
+                <field name="aircraft_type_id" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show"
                        decoration-danger="medical_status == 'expired'"
                        decoration-warning="medical_status == 'expiring'"
@@ -87,6 +88,8 @@
                         <group string="General Information" name="main_info">
                             <field name="training_class_id" options="{'no_create': True}"/>
                             <field name="instructor_id" options="{'no_create': True}"/>
+                            <field name="class_aircraft_type_ids" invisible="1"/>
+                            <field name="aircraft_type_id" options="{'no_create': True}"/>
                             <field name="student_phone"/>
                         </group>
                         <group string="Training Progress" name="metrics">

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_flight_route_tree" model="ir.ui.view">
+        <field name="name">fs.flight.route.list</field>
+        <field name="model">fs.flight.route</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" sample="1" default_order="sequence">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_flight_route_search" model="ir.ui.view">
+        <field name="name">fs.flight.route.search</field>
+        <field name="model">fs.flight.route</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Inactive" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_fs_flight_route" model="ir.actions.act_window">
+        <field name="name">Routes &amp; Areas</field>
+        <field name="res_model">fs.flight.route</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_fs_flight_route_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first flight route or area!
+            </p>
+            <p>
+                Define working areas (like North Area, South Area) or specific routes.
+                Use the handle to reorder them as they should appear in dropdowns.
+            </p>
+        </field>
+    </record>
+</odoo>

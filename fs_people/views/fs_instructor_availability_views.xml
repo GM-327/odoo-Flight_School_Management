@@ -17,15 +17,14 @@
         <field name="name">fs.instructor.availability.search</field>
         <field name="model">fs.instructor.availability</field>
         <field name="arch" type="xml">
-            <search>
+            <search string="Instructor Availability">
                 <field name="instructor_id"/>
                 <field name="date"/>
                 <filter string="Unavailable" name="unavailable" domain="[('is_available', '=', False)]"/>
                 <filter string="Today" name="today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Instructor" name="group_by_instructor" context="{'group_by': 'instructor_id'}"/>
-                    <filter string="Date" name="group_by_date" context="{'group_by': 'date:day'}"/>
-                </group>
+                <separator/>
+                <filter string="Instructor" name="group_by_instructor" context="{'group_by': 'instructor_id'}"/>
+                <filter string="Date" name="group_by_date" context="{'group_by': 'date:day'}"/>
             </search>
         </field>
     </record>

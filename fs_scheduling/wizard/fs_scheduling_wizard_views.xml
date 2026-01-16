@@ -1,58 +1,308 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Main Scheduling Wizard Form View -->
     <record id="view_fs_scheduling_wizard_form" model="ir.ui.view">
         <field name="name">fs.scheduling.wizard.form</field>
         <field name="model">fs.scheduling.wizard</field>
         <field name="arch" type="xml">
-            <form string="Scheduling Wizard">
+            <form string="Mission Scheduling Wizard">
+                <field name="state" invisible="1"/>
+                <header>
+                    <!-- Step 1 buttons -->
+                    <button name="action_next_step" string="Generate Schedule →" type="object" 
+                            class="btn-primary" icon="fa-arrow-right"
+                            invisible="state != 'step1'"/>
+                    
+                    <!-- Step 2 buttons -->
+                    <button name="action_previous_step" string="← Back" type="object" 
+                            class="btn-secondary" icon="fa-arrow-left"
+                            invisible="state != 'step2'"/>
+                    <button name="action_next_step" string="Assign Schedule →" type="object" 
+                            class="btn-primary" icon="fa-clock-o"
+                            invisible="state != 'step2'"/>
+                    
+                    <!-- Step 3 buttons -->
+                    <button name="action_previous_step" string="← Back to Edit" type="object" 
+                            class="btn-secondary" icon="fa-arrow-left"
+                            invisible="state != 'step3'"/>
+                    <button name="action_schedule" string="Create Flights ✓" type="object" 
+                            class="btn-success" icon="fa-check"
+                            invisible="state != 'step3'"/>
+                    
+                    <field name="state" widget="statusbar" statusbar_visible="step1,step2,step3"/>
+                </header>
                 <sheet>
-                    <group>
-                        <group>
-                            <field name="date"/>
-                            <field name="callsign_prefix"/>
-                        </group>
-                        <group>
-                            <field name="next_callsign_number"/>
-                            <div class="text-muted" colspan="2">
-                                Flights will be numbered sequentially starting from the next available number.
+                    <!-- Step 1: Selection - Modern & UX Friendly -->
+                    <div invisible="state != 'step1'" class="o_fs_scheduling_wizard_step">
+                        <!-- Hero Section with Gradient -->
+                        <div class="card border-0 rounded-3 shadow-sm mb-4" 
+                             style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); overflow: hidden; position: relative; color: white;">
+                            <div class="card-body p-4 position-relative" style="z-index: 1;">
+                                <div class="row align-items-center">
+                                    <div class="col-auto d-none d-md-block">
+                                        <div class="bg-white bg-opacity-25 rounded-circle p-4 shadow-sm" style="backdrop-filter: blur(8px);">
+                                            <i class="fa fa-rocket fa-3x text-white" title="Rocket Icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h1 class="display-6 fw-bold mb-1">Step 1: Resource Planning</h1>
+                                        <p class="lead mb-0 opacity-75">Configure the flight window and build your mission team.</p>
+                                    </div>
+                                </div>
                             </div>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page name="students" string="Eligible Students">
-                            <field name="line_ids">
-                                <list editable="bottom">
-                                    <field name="enrollment_id" options="{'no_create': True}"/>
-                                    <field name="student_id"/>
-                                    <field name="mission_id" required="1" options="{'no_create': True}"/>
-                                    <field name="instructor_id" required="1" options="{'no_create': True}"/>
-                                    <field name="aircraft_id" required="1" options="{'no_create': True}"/>
-                                    <field name="start_time" widget="float_time"/>
-                                    <field name="duration" widget="float_time"/>
-                                    <field name="is_solo" widget="boolean_toggle"/>
-                                </list>
-                            </field>
-                        </page>
-                    </notebook>
+                            <!-- Decorative background element -->
+                            <div style="position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: rgba(255,255,255,0.05); border-radius: 50%; pointer-events: none;"/>
+                        </div>
+                        
+                        <div class="row g-4 mb-4">
+                            <!-- Left: Basic Parameters Card -->
+                            <div class="col-lg-5">
+                                <div class="card border-0 shadow-sm h-100 rounded-3">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex align-items-center mb-4 pb-2 border-bottom">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                <i class="fa fa-calendar-check-o" title="Calendar Icon"/>
+                                            </div>
+                                            <h4 class="mb-0 fw-bold">Date &amp; Time Window</h4>
+                                        </div>
+                                        
+                                        <div class="p-4 bg-light rounded-3 mb-4 text-center">
+                                            <label for="date" class="form-label text-muted small d-block mb-1">SELECTED DATE</label>
+                                            <field name="date" class="fs-3 fw-bolder text-primary"/>
+                                        </div>
+
+                                        <group>
+                                            <label for="first_start_time" string="Time Window"/>
+                                            <div class="o_row">
+                                                <field name="first_start_time" widget="float_time" class="oe_inline" no_label="1"/>
+                                                <i class="fa fa-long-arrow-right mx-2 text-muted" title="to"/>
+                                                <field name="last_end_time" widget="float_time" class="oe_inline" no_label="1"/>
+                                            </div>
+                                            <field name="next_callsign_number" string="Starting ID #" help="The starting number for callsigns generated in this batch."/>
+                                            <field name="callsign_prefix" invisible="1"/>
+                                        </group>
+
+                                        <div role="status" style="background: rgba(255,193,7,0.1); display: flex; align-items: center; border-radius: 0.5rem; padding: 1rem; margin-top: 1.5rem;">
+                                            <div class="d-flex align-items-center">
+                                                <i class="fa fa-lightbulb-o fa-2x me-3 text-warning opacity-75" title="Lightbulb Icon"/>
+                                                <div class="small">
+                                                    <strong>Optimization Active:</strong> The scheduler will balance the load across the specified window.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Resource Selection Card -->
+                            <div class="col-lg-7">
+                                <div class="card border-0 shadow-sm h-100 rounded-3">
+                                    <div class="card-body p-4">
+                                        <!-- Students Selection -->
+                                        <div class="mb-5">
+                                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                        <i class="fa fa-graduation-cap" title="Students Icon"/>
+                                                    </div>
+                                                    <h4 class="mb-0 fw-bold">Available Students</h4>
+                                                </div>
+                                                <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-3 fw-normal">Active Enrollments Only</span>
+                                            </div>
+                                            
+                                            <div class="p-3 border border-dashed rounded-3 bg-light" style="border: 2px dashed #e9ecef;">
+                                                <field name="selected_enrollment_ids" widget="many2many_tags" 
+                                                       options="{'no_create': True, 'no_quick_create': True}"
+                                                       placeholder="Add students to schedule..."
+                                                       context="{'search_default_group_by_class': 1}"
+                                                       class="w-100 fs-5"/>
+                                            </div>
+                                            <div class="text-muted small mt-2 d-flex align-items-center">
+                                                <i class="fa fa-info-circle me-1" title="Information Icon"/> Students are grouped by training class for easier selection.
+                                            </div>
+                                        </div>
+
+                                        <!-- Instructors Selection -->
+                                        <div>
+                                            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                                        <i class="fa fa-id-card-o" title="Instructors Icon"/>
+                                                    </div>
+                                                    <h4 class="mb-0 fw-bold">Available Instructors</h4>
+                                                </div>
+                                                <span class="badge rounded-pill bg-success bg-opacity-10 text-success px-3 fw-normal">Duty Selection</span>
+                                            </div>
+                                            
+                                            <div class="p-3 border border-dashed rounded-3 bg-light" style="border: 2px dashed #e9ecef;">
+                                                <field name="selected_instructor_ids" widget="many2many_tags"
+                                                       options="{'no_create': True, 'no_quick_create': True}"
+                                                       placeholder="Search for available staff..."
+                                                       context="{'search_default_group_by_eligibility': 1}"
+                                                       class="w-100 fs-5"/>
+                                            </div>
+                                            <div class="text-muted small mt-2 d-flex align-items-center">
+                                                <i class="fa fa-check-circle-o me-1 text-success" title="Validation Icon"/> Only instructors with valid medical and English qualifications will be assigned.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Review, Adjust & Reorder -->
+                    <div invisible="state != 'step2'">
+                        <!-- Modern Header -->
+                        <div class="card border-0 rounded-3 shadow-sm mb-4" 
+                             style="background: linear-gradient(135deg, #374151 0%, #111827 100%); overflow: hidden; position: relative; color: white;">
+                            <div class="card-body p-4 position-relative" style="z-index: 1;">
+                                <div class="row align-items-center">
+                                    <div class="col-auto d-none d-md-block">
+                                        <div class="bg-white bg-opacity-25 rounded-circle p-4 shadow-sm" style="backdrop-filter: blur(8px);">
+                                            <i class="fa fa-tasks fa-3x text-white" title="Tasks Icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h1 class="display-6 fw-bold mb-1">Step 2: Review &amp; Sequence</h1>
+                                        <p class="lead mb-0 opacity-75">
+                                            Configure mission types and crew. Use arrows to optimize the sequence.
+                                            <span class="badge bg-white bg-opacity-25 ms-2 px-3 fw-normal">
+                                                <field name="selected_count" nolabel="1" class="oe_inline"/> Missions Pending
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Mission Button -->
+                        <div class="d-flex justify-content-end mb-3">
+                            <button name="action_add_mission" type="object" 
+                                    class="btn btn-primary" icon="fa-plus">
+                                <span>Add Mission</span>
+                            </button>
+                        </div>
+
+                        <field name="line_ids" nolabel="1">
+                            <list editable="bottom" create="0" decoration-info="is_sim">
+                                <field name="is_sim" column_invisible="1"/>
+                                <field name="flight_category" column_invisible="1"/>
+                                <field name="sequence" string="#" readonly="1" width="30px"/>
+                                <field name="is_added_mission" widget="boolean_toggle" string="Added" help="Mark as extra mission (ADD)"/>
+                                <button name="action_move_first" type="object" icon="fa-angle-double-up" title="Move to First"/>
+                                <button name="action_move_up" type="object" icon="fa-arrow-up" title="Move Up"/>
+                                <button name="action_move_down" type="object" icon="fa-arrow-down" title="Move Down"/>
+                                <button name="action_move_last" type="object" icon="fa-angle-double-down" title="Move to Last"/>
+                                <!-- Pilot 1 -->
+                                <field name="pilot1_function" string="P1 Func" optional="hide"/>
+                                <field name="pilot1_display" string="Pilot 1" readonly="1"/>
+                                <!-- Pilot 2 -->
+                                <field name="pilot2_function" string="P2 Func" optional="hide"/>
+                                <field name="pilot2_display" string="Pilot 2" readonly="1"/>
+                                <field name="training_class_code" readonly="1" string="Class" optional="hide"/>
+                                <field name="class_type_id" column_invisible="1"/>
+                                <field name="aircraft_type_ids" string="A/C Types" widget="many2many_tags" optional="hide"/>
+                                <field name="mission_id" string="Mission" options="{'no_create': True}"
+                                       domain="[('class_type_id', '=', class_type_id)]"
+                                       invisible="flight_category != 'student_training'"/>
+                                <field name="activity_display" string="Activity" readonly="1"/>
+                                <button icon="fa-graduation-cap" class="btn-link text-warning fa-lg" title="EXAM - Requires Examinator" 
+                                        invisible="not is_exam" disabled="1"/>
+                                <field name="route_id" string="Route / Area" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="duration" widget="float_time"/>
+                                <field name="flight_type_id" string="Type" column_invisible="1"/>
+                                <field name="is_exam" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div invisible="state != 'step3'">
+                        <!-- Modern Header -->
+                        <div class="card border-0 rounded-3 shadow-sm mb-4" 
+                             style="background: linear-gradient(135deg, #047857 0%, #10b981 100%); overflow: hidden; position: relative; color: white;">
+                            <div class="card-body p-4 position-relative" style="z-index: 1;">
+                                <div class="row align-items-center">
+                                    <div class="col-auto d-none d-md-block">
+                                        <div class="bg-white bg-opacity-25 rounded-circle p-4 shadow-sm" style="backdrop-filter: blur(8px);">
+                                            <i class="fa fa-check-circle fa-3x text-white" title="Check Icon"/>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h1 class="display-6 fw-bold mb-1">Step 3: Final Confirmation</h1>
+                                        <p class="lead mb-0 opacity-75">Review the generated schedule. Ensure callsigns and aircraft assignments are correct.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-3 border">
+                            <div class="d-flex align-items-center flex-grow-1">
+                                <div class="bg-info bg-opacity-10 text-info rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="fa fa-info-circle fa-lg" title="Summary Icon"/>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0 fw-bold">
+                                        Ready to create <field name="selected_count" nolabel="1" class="oe_inline"/> missions 
+                                        for <field name="date" nolabel="1" class="oe_inline"/>.
+                                    </h5>
+                                    <p class="text-muted small mb-0">
+                                        <i class="fa fa-mouse-pointer me-1" title="Pointer"/> Drag blocks below to adjust timing before final confirmation.
+                                    </p>
+                                </div>
+                            </div>
+                            <button name="action_reschedule" type="object" 
+                                    class="btn btn-outline-primary" icon="fa-refresh">
+                                <span>Reschedule Unlocked</span>
+                            </button>
+                        </div>
+
+                        <field name="line_ids">
+                            <list editable="bottom" create="0" decoration-info="is_sim">
+                                <field name="is_sim" column_invisible="1"/>
+                                <field name="is_locked" column_invisible="1"/>
+                                <field name="flight_category" column_invisible="1"/>
+                                <!-- Lock Toggle Button Group -->
+                                <button name="toggle_lock" type="object" icon="fa-lock" 
+                                        class="text-warning fa-lg" invisible="not is_locked" 
+                                        title="Unlock this line" wrapper_class="text-center px-2"/>
+                                <button name="toggle_lock" type="object" icon="fa-unlock-alt" 
+                                        class="text-muted opacity-50 fa-lg" invisible="is_locked" 
+                                        title="Lock this line" wrapper_class="text-center px-2"/>
+                                
+                                <field name="is_added_mission" widget="boolean_toggle" string="ADD" help="Added Mission (ADD)"/>
+                                <field name="callsign_display" string="Callsign"/>
+                                <!-- Pilot 1 -->
+                                <field name="pilot1_function" string="P1" readonly="1" optional="hide"/>
+                                <field name="pilot1_display" string="Pilot 1" readonly="1"/>
+                                <!-- Pilot 2 -->
+                                <field name="pilot2_function" string="P2" readonly="1" optional="hide"/>
+                                <field name="pilot2_display" string="Pilot 2" readonly="1"/>
+                                <field name="activity_display" string="Activity" readonly="1"/>
+                                <field name="mission_id" string="Mission" readonly="1" 
+                                       invisible="flight_category != 'student_training'" optional="hide"/>
+                                <field name="route_id" string="Route" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="aircraft_id" options="{'no_create': True}"
+                                       domain="[('is_airworthy', '=', True), ('aircraft_type_id', 'in', aircraft_type_ids)]"/>
+                                <field name="start_time" widget="float_time" string="ETD"/>
+                                <field name="end_time" widget="float_time" string="ETA"/>
+                                <field name="duration" widget="float_time" readonly="1"/>
+                                <field name="flight_type_id" string="Type" column_invisible="1"/>
+                                <field name="aircraft_type_ids" widget="many2many_tags" optional="hide"/>
+                            </list>
+                        </field>
+                    </div>
                 </sheet>
-                <footer>
-                    <button name="action_schedule" string="Schedule Missions" type="object" class="oe_highlight" data-hotkey="q"/>
-                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
-                </footer>
             </form>
         </field>
     </record>
 
+    <!-- Wizard Action -->
     <record id="action_fs_scheduling_wizard" model="ir.actions.act_window">
         <field name="name">Create Schedule</field>
         <field name="res_model">fs.scheduling.wizard</field>
         <field name="view_mode">form</field>
-        <field name="target">new</field>
+        <field name="target">current</field>
     </record>
-
-    <menuitem id="menu_fs_scheduling_wizard"
-              name="Create Schedule"
-              parent="menu_fs_scheduling_board"
-              action="action_fs_scheduling_wizard"
-              sequence="5"/>
 </odoo>

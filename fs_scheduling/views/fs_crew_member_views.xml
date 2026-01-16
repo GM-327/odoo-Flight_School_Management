@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Crew Member List View (for selection popups) -->
+    <record id="view_fs_crew_member_list" model="ir.ui.view">
+        <field name="name">fs.crew.member.list</field>
+        <field name="model">fs.crew.member</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="has_expired_qualification" 
+                  decoration-success="has_expired_qualification == False"
+                  default_group_by="member_type">
+                <field name="has_expired_qualification" column_invisible="1"/>
+                <field name="enrollment_id" column_invisible="1"/>
+                <field name="member_type" optional="hide"/>
+                <field name="name" string="Callsign" decoration-bf="1"/>
+                <field name="full_name" string="Name"/>
+                <field name="department_id" optional="hide"/>
+                <!-- Qualification/License Badges (HTML) -->
+                <field name="qualification_badges" string="Qualifications" optional="show"/>
+                <!-- Expiry Status Columns -->
+                <field name="medical_status" widget="badge" optional="show"
+                       decoration-danger="medical_status == 'expired'" 
+                       decoration-warning="medical_status == 'expiring'" 
+                       decoration-success="medical_status == 'valid'" 
+                       decoration-muted="medical_status == 'no_expiry'"/>
+                <field name="english_status" widget="badge" optional="show"
+                       decoration-danger="english_status == 'expired'" 
+                       decoration-warning="english_status == 'expiring'" 
+                       decoration-success="english_status == 'valid'" 
+                       decoration-muted="english_status == 'no_expiry'"/>
+                <field name="security_status" string="Security" widget="badge" optional="show"
+                       decoration-danger="security_status == 'expired'" 
+                       decoration-warning="security_status == 'expiring'" 
+                       decoration-success="security_status == 'valid'" 
+                       decoration-muted="security_status == 'no_expiry'"/>
+                <field name="insurance_status" string="Insurance" widget="badge" optional="show"
+                       decoration-danger="insurance_status == 'expired'" 
+                       decoration-warning="insurance_status == 'expiring'" 
+                       decoration-success="insurance_status == 'valid'" 
+                       decoration-muted="insurance_status == 'no_expiry'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Crew Member Search View -->
+    <record id="view_fs_crew_member_search" model="ir.ui.view">
+        <field name="name">fs.crew.member.search</field>
+        <field name="model">fs.crew.member</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="Callsign"/>
+                <field name="full_name" string="Name"/>
+                <separator/>
+                <filter name="filter_valid" string="Valid (No Expiries)" domain="[('has_expired_qualification', '=', False)]"/>
+                <filter name="filter_expired" string="Has Expiries" domain="[('has_expired_qualification', '=', True)]"/>
+                <separator/>
+                <filter name="filter_students" string="Students" domain="[('member_type', '=', 'student')]"/>
+                <filter name="filter_instructors" string="Instructors" domain="[('member_type', '=', 'instructor')]"/>
+                <filter name="filter_pilots" string="Pilots" domain="[('member_type', '=', 'pilot')]"/>
+                <separator/>
+                <filter name="group_type" string="Type" context="{'group_by': 'member_type'}"/>
+            </search>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_people" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.people</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="20"/>
+        <field name="inherit_id" ref="fs_core.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='fs_core']" position="inside">
+                <!-- Instructor Configuration -->
+                <block title="Instructor Configuration" name="fs_instructor_limits" groups="fs_core.group_flight_school_manager">
+                    <setting string="Max Students per Instructor" help="Default maximum students assigned to one instructor">
+                        <field name="fs_default_max_students"/>
+                    </setting>
+                    <setting string="Monthly Hour Limit" help="Maximum instruction hours per month">
+                        <field name="fs_default_max_hours_per_month" widget="float_time"/>
+                    </setting>
+                    <setting string="3-Month Hour Limit" help="Maximum instruction hours per rolling 3 months">
+                        <field name="fs_default_max_hours_per_3months" widget="float_time"/>
+                    </setting>
+                </block>
+
+                <!-- Personnel Expiry Warnings -->
+                <block title="Personnel Expiry Warnings" name="fs_personnel_warnings" groups="fs_core.group_flight_school_manager">
+                    <h2>Medical &amp; Certifications</h2>
+                    <setting string="Medical Certificate Warning" help="Days before medical certificate expiry to show warning">
+                        <div class="text-muted">
+                            Show warning <field name="fs_medical_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                        </div>
+                    </setting>
+                    <setting string="License &amp; Qualification Warning" help="Days before license/qualification expiry to show warning">
+                        <div class="text-muted">
+                            Show warning <field name="fs_license_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                        </div>
+                    </setting>
+                    <setting string="English Proficiency Warning" help="Days before English proficiency expiry to show warning">
+                        <div class="text-muted">
+                            Show warning <field name="fs_english_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                        </div>
+                    </setting>
+                    
+                    <h2>Civilian Requirements</h2>
+                    <setting string="Insurance Warning" help="Days before insurance expiry to show warning (civilians)">
+                        <div class="text-muted">
+                            Show warning <field name="fs_insurance_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                        </div>
+                    </setting>
+                    <setting string="Security Clearance Warning" help="Days before security clearance expiry to show warning (civilians)">
+                        <div class="text-muted">
+                            Show warning <field name="fs_security_warning_days" class="o_field_integer oe_inline"/> days before expiry
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

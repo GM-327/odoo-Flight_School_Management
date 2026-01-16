@@ -54,6 +54,7 @@ This module provides:
         'views/fs_student_enrollment_views.xml',
         'views/fs_student_views.xml',
         'views/fs_instructor_views.xml',
+        'views/res_config_settings_views.xml',
         'views/menu_views.xml',
     ],
     'assets': {

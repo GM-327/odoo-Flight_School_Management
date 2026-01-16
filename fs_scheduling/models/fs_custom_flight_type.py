@@ -23,6 +23,11 @@ class FsCustomFlightType(models.Model):
         string='Default Duration (Hours)',
         default=1.0,
     )
+    is_exam = fields.Boolean(
+        string='Is Exam',
+        default=False,
+        help="If enabled, this activity requires an instructor with examinator qualification.",
+    )
     active = fields.Boolean(
         string='Active',
         default=True,

@@ -42,6 +42,7 @@ Depends on Flight School Core for security groups.
         'views/aircraft_category_views.xml',
         'views/aircraft_type_views.xml',
         'views/aircraft_views.xml',
+        'views/res_config_settings_views.xml',
         'views/menu_views.xml',
     ],
     'demo': [

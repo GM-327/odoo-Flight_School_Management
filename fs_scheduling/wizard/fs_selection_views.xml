@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Custom List View for Enrollment Selection in Scheduling Wizard -->
+    <record id="view_enrollment_selection_list" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.selection.list</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="has_expired_status"
+                  decoration-success="has_expired_status == False"
+                  multi_edit="1">
+                <field name="student_image" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle ml-0 mr-0"/>
+                <field name="callsign" decoration-bf="1"/>
+                <field name="student_id"/>
+                <field name="instructor_id" string="Instructor" optional="show"/>
+                <field name="training_class_id"/>
+                <field name="medical_status" widget="badge" optional="show"
+                       decoration-danger="medical_status == 'expired'"
+                       decoration-warning="medical_status == 'expiring'"
+                       decoration-success="medical_status == 'valid'"
+                       decoration-muted="medical_status == 'no_expiry'"/>
+                <field name="license_expiry_status" widget="badge" optional="show"
+                       decoration-danger="license_expiry_status == 'expired'"
+                       decoration-warning="license_expiry_status == 'expiring'"
+                       decoration-success="license_expiry_status == 'valid'"
+                       decoration-muted="license_expiry_status == 'no_expiry'"/>
+                <field name="insurance_status" widget="badge"
+                       decoration-danger="insurance_status == 'expired'"
+                       decoration-warning="insurance_status == 'expiring'"
+                       decoration-success="insurance_status == 'valid'"
+                       decoration-muted="insurance_status == 'no_expiry'"/>
+                <field name="security_clearance_status" widget="badge"
+                       decoration-danger="security_clearance_status == 'expired'"
+                       decoration-warning="security_clearance_status == 'expiring'"
+                       decoration-success="security_clearance_status == 'valid'"
+                       decoration-muted="security_clearance_status == 'no_expiry'"/>
+                <field name="total_hours" widget="float_time" string="Hours"/>
+                <field name="progression" widget="progressbar" optional="show"/>
+                <field name="status" column_invisible="1"/>
+                <field name="has_expired_status" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Custom Search View for Enrollment Selection with Grouping -->
+    <record id="view_enrollment_selection_search" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.selection.search</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="callsign"/>
+                <field name="student_id"/>
+                <field name="training_class_id"/>
+                <separator/>
+                <filter name="expired" string="With Expired Documents" domain="[('has_expired_status', '=', True)]"/>
+                <filter name="valid" string="All Documents Valid" domain="[('has_expired_status', '=', False)]"/>
+                <separator/>
+                <filter name="group_by_class" string="Training Class" context="{'group_by': 'training_class_id'}"/>
+                <filter name="group_by_instructor" string="Assigned Instructor" context="{'group_by': 'instructor_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Custom List View for Instructor Selection in Scheduling Wizard -->
+    <record id="view_instructor_selection_list" model="ir.ui.view">
+        <field name="name">fs.instructor.selection.list</field>
+        <field name="model">fs.instructor</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="has_expired_qualification"
+                  decoration-success="has_expired_qualification == False">
+                <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle"/>
+                <field name="callsign" decoration-bf="1"/>
+                <field name="name"/>
+                <field name="qualification_badges" optional="show"/>
+                <field name="medical_status" widget="badge"
+                       decoration-danger="medical_status == 'expired'"
+                       decoration-warning="medical_status == 'expiring'"
+                       decoration-success="medical_status == 'valid'"
+                       decoration-muted="medical_status == 'no_expiry'"/>
+                <field name="english_status" widget="badge"
+                       decoration-danger="english_status == 'expired'"
+                       decoration-warning="english_status == 'expiring'"
+                       decoration-success="english_status == 'valid'"
+                       decoration-muted="english_status == 'no_expiry'"/>
+                <field name="hours_current_month" widget="float_time" string="Month Hrs"/>
+                <field name="hours_3months" widget="float_time" string="3M Hrs"/>
+                <field name="has_expired_qualification" column_invisible="1"/>
+                <field name="eligibility_status" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Custom Search View for Instructor Selection with Grouping -->
+    <record id="view_instructor_selection_search" model="ir.ui.view">
+        <field name="name">fs.instructor.selection.search</field>
+        <field name="model">fs.instructor</field>
+        <field name="priority">1</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="callsign"/>
+                <field name="name"/>
+                <separator/>
+                <filter name="eligible" string="Eligible for Flight" domain="[('eligibility_status', '=', 'eligible')]"/>
+                <filter name="not_eligible" string="Has Expiries" domain="[('eligibility_status', '=', 'not_eligible')]"/>
+                <separator/>
+                <filter name="group_by_eligibility" string="Eligibility Status" context="{'group_by': 'eligibility_status'}"/>
+            </search>
+        </field>
+    </record>
+</odoo>

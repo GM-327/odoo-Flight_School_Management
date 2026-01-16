@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Enhanced Instructor List View for Scheduling Selection (with expiry columns) -->
+    <record id="view_fs_instructor_list_scheduling" model="ir.ui.view">
+        <field name="name">fs.instructor.list.scheduling</field>
+        <field name="model">fs.instructor</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="has_expired_qualification" 
+                  decoration-success="has_expired_qualification == False" 
+                  sample="1">
+                <field name="has_expired_qualification" column_invisible="1"/>
+                <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle"/>
+                <field name="callsign" optional="show" decoration-bf="1"/>
+                <field name="name"/>
+                <field name="rank_id" optional="hide"/>
+                <field name="qualification_badges" optional="show"/>
+                <field name="medical_status" widget="badge" optional="show" 
+                       decoration-danger="medical_status == 'expired'" 
+                       decoration-warning="medical_status == 'expiring'" 
+                       decoration-success="medical_status == 'valid'" 
+                       decoration-muted="medical_status == 'no_expiry'"/>
+                <field name="english_status" widget="badge" optional="hide" 
+                       decoration-danger="english_status == 'expired'" 
+                       decoration-warning="english_status == 'expiring'" 
+                       decoration-success="english_status == 'valid'" 
+                       decoration-muted="english_status == 'no_expiry'"/>
+                <field name="earliest_expiry_date" string="Next Expiry" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Enhanced Pilot List View for Scheduling Selection (with insurance/security expiry columns) -->
+    <record id="view_fs_pilot_list_scheduling" model="ir.ui.view">
+        <field name="name">fs.pilot.list.scheduling</field>
+        <field name="model">fs.pilot</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="has_expired_qualification" 
+                  decoration-success="has_expired_qualification == False" 
+                  sample="1">
+                <field name="has_expired_qualification" column_invisible="1"/>
+                <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle"/>
+                <field name="callsign" optional="show" decoration-bf="1"/>
+                <field name="name"/>
+                <field name="rank_id" optional="hide"/>
+                <field name="qualification_badges" optional="show"/>
+                <field name="medical_status" widget="badge" optional="show" 
+                       decoration-danger="medical_status == 'expired'" 
+                       decoration-warning="medical_status == 'expiring'" 
+                       decoration-success="medical_status == 'valid'" 
+                       decoration-muted="medical_status == 'no_expiry'"/>
+                <field name="security_clearance_expiry" string="Security Expiry" optional="show"/>
+                <field name="security_clearance_status" widget="badge" string="Security" optional="show"
+                       decoration-danger="security_clearance_status == 'expired'" 
+                       decoration-warning="security_clearance_status == 'expiring'" 
+                       decoration-success="security_clearance_status == 'valid'" 
+                       decoration-muted="security_clearance_status == 'no_expiry'"/>
+                <field name="insurance_expiry" string="Insurance Expiry" optional="show"/>
+                <field name="insurance_status" widget="badge" string="Insurance" optional="show"
+                       decoration-danger="insurance_status == 'expired'" 
+                       decoration-warning="insurance_status == 'expiring'" 
+                       decoration-success="insurance_status == 'valid'" 
+                       decoration-muted="insurance_status == 'no_expiry'"/>
+                <field name="earliest_expiry_date" string="Next Expiry" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Enhanced Pilot Search View for Scheduling (group by type) -->
+    <record id="view_fs_pilot_search_scheduling" model="ir.ui.view">
+        <field name="name">fs.pilot.search.scheduling</field>
+        <field name="model">fs.pilot</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="callsign"/>
+                <field name="department_id"/>
+                <filter name="filter_valid" string="Valid (No Expiries)" domain="[('has_expired_qualification', '=', False)]"/>
+                <separator/>
+                <filter name="filter_military" string="Military" domain="[('is_military', '=', True)]"/>
+                <filter name="filter_civilian" string="Civilian" domain="[('is_military', '=', False)]"/>
+                <separator/>
+                <filter name="group_department" string="Department" context="{'group_by': 'department_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Enhanced Instructor Search View for Scheduling -->
+    <record id="view_fs_instructor_search_scheduling" model="ir.ui.view">
+        <field name="name">fs.instructor.search.scheduling</field>
+        <field name="model">fs.instructor</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="callsign"/>
+                <field name="department_id"/>
+                <filter name="filter_valid" string="Valid (No Expiries)" domain="[('has_expired_qualification', '=', False)]"/>
+                <separator/>
+                <filter name="filter_military" string="Military" domain="[('is_military', '=', True)]"/>
+                <filter name="filter_civilian" string="Civilian" domain="[('is_military', '=', False)]"/>
+                <separator/>
+                <filter name="group_department" string="Department" context="{'group_by': 'department_id'}"/>
+            </search>
+        </field>
+    </record>
+</odoo>

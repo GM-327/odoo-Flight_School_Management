@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_training" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.training</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="22"/>
+        <field name="inherit_id" ref="fs_core.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='fs_core']" position="inside">
+                <!-- Training & Operations -->
+                <block title="Training &amp; Operations" name="fs_training_operations" groups="fs_core.group_flight_school_manager">
+                    <setting string="Training Class End Warning" help="Days before training class ends to flag students">
+                        <div class="text-muted">
+                            Show warning <field name="fs_training_class_end_warning_days" class="o_field_integer oe_inline"/> days before end
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

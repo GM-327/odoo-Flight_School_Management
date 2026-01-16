@@ -16,6 +16,7 @@
             <field name="name">Simulator</field>
             <field name="code">SIM</field>
             <field name="sequence">30</field>
+            <field name="is_sim">True</field>
         </record>
     </data>
 </odoo>

@@ -8,6 +8,7 @@
                 <field name="name"/>
                 <field name="code"/>
                 <field name="default_duration" widget="float_time"/>
+                <field name="is_exam" widget="boolean_toggle" string="Exam"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Student Enrollment Smart Button -->
+    <record id="view_fs_student_enrollment_form_inherit_scheduling" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.form.inherit.scheduling</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="inherit_id" ref="fs_training.view_student_enrollment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(action_fs_scheduled_flight_all)d"
+                        type="action"
+                        class="oe_stat_button"
+                        icon="fa-calendar"
+                        context="{'search_default_enrollment_id': id}">
+                    <field name="scheduled_count" widget="statinfo" string="Flights"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Instructor Smart Button -->
+    <record id="view_fs_instructor_form_inherit_scheduling" model="ir.ui.view">
+        <field name="name">fs.instructor.form.inherit.scheduling</field>
+        <field name="model">fs.instructor</field>
+        <field name="inherit_id" ref="fs_people.view_fs_instructor_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(action_fs_scheduled_flight_all)d"
+                        type="action"
+                        class="oe_stat_button"
+                        icon="fa-calendar"
+                        context="{'search_default_instructor_id': id}">
+                    <field name="scheduled_count" widget="statinfo" string="Flights"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Aircraft Smart Button -->
+    <record id="view_fs_aircraft_form_inherit_scheduling" model="ir.ui.view">
+        <field name="name">fs.aircraft.form.inherit.scheduling</field>
+        <field name="model">fs.aircraft</field>
+        <field name="inherit_id" ref="fs_fleet.view_aircraft_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='image']" position="before">
+                <div class="oe_button_box" name="button_box">
+                    <button name="%(action_fs_scheduled_flight_all)d"
+                            type="action"
+                            class="oe_stat_button"
+                            icon="fa-calendar"
+                            context="{'search_default_aircraft_id': id}">
+                        <field name="scheduled_count" widget="statinfo" string="Flights"/>
+                    </button>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

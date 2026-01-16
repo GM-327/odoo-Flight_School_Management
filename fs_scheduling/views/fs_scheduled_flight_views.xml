@@ -5,72 +5,259 @@
         <field name="name">fs.scheduled.flight.list</field>
         <field name="model">fs.scheduled.flight</field>
         <field name="arch" type="xml">
-            <list decoration-muted="status == 'cancelled'" decoration-success="status == 'completed'" decoration-info="status == 'confirmed'" sample="1">
+            <list decoration-muted="status == 'cancelled'" 
+                  decoration-success="status == 'done'" 
+                  decoration-info="is_sim and status not in ('cancelled', 'done')"
+                  sample="1">
+                <field name="is_sim" column_invisible="1"/>
                 <field name="date"/>
                 <field name="callsign"/>
-                <field name="start_time" widget="float_time"/>
+                <field name="start_time" widget="float_time" string="ETD"/>
                 <field name="duration" widget="float_time"/>
                 <field name="aircraft_id"/>
-                <field name="student_id"/>
-                <field name="instructor_id"/>
-                <field name="mission_id"/>
-                <field name="status" widget="badge" decoration-warning="status == 'scheduled'" decoration-info="status == 'confirmed'" decoration-success="status == 'completed'"/>
+                <field name="pilot1_display" string="Pilot 1"/>
+                <field name="pilot2_display" string="Pilot 2"/>
+                <field name="flight_type_id" string="Type" optional="show"/>
+                <field name="mission_id" optional="hide"/>
+                <field name="route_id" string="Route" optional="show"/>
+                <field name="status" widget="badge" decoration-warning="status == 'scheduled'" decoration-info="status == 'in_progress'" decoration-success="status == 'done'"/>
             </list>
         </field>
     </record>
 
-    <!-- Form View -->
+    <!-- Form View: Modern & Smart logic -->
     <record id="view_fs_scheduled_flight_form" model="ir.ui.view">
         <field name="name">fs.scheduled.flight.form</field>
         <field name="model">fs.scheduled.flight</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="o_fs_flight_form">
                 <header>
-                    <button name="action_confirm" string="Confirm" type="object" invisible="status != 'scheduled'" class="oe_highlight"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="status in ['completed', 'cancelled']"/>
-                    <field name="status" widget="statusbar" statusbar_visible="scheduled,confirmed,in_progress,completed"/>
+                    <button name="action_cancel" string="Cancel Mission" type="object" 
+                            invisible="status in ['done', 'cancelled']" 
+                            class="btn-outline-danger" icon="fa-times-circle"/>
+                    <field name="status" widget="statusbar" statusbar_visible="scheduled,in_progress,done"/>
                 </header>
                 <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="callsign" placeholder="e.g. ABS0001 or ADD"/>
-                        </h1>
+                    <div class="oe_button_box" name="button_box"/>
+                    <widget name="web_ribbon" title="EXAM" bg_color="bg-warning" invisible="not is_exam"/>
+                    <widget name="web_ribbon" title="CANCELLED" bg_color="bg-danger" invisible="status != 'cancelled'"/>
+                    
+                    <!-- Dynamic Hero Section -->
+                    <div class="card border-0 rounded-3 shadow-sm mb-4" 
+                         invisible="status == 'cancelled'"
+                         style="overflow: hidden; position: relative; background: #f8fafc;">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <!-- Left Indicator Bar: Color changes based on category -->
+                                <div class="col-auto bg-primary" style="width: 8px;"
+                                     invisible="flight_category != 'student_training'"/>
+                                <div class="col-auto bg-secondary" style="width: 8px;"
+                                     invisible="flight_category != 'staff_training'"/>
+
+                                <div class="col p-4">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge rounded-pill me-2 px-3 py-2" 
+                                                  invisible="flight_category != 'student_training'" style="background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                                                <i class="fa fa-graduation-cap me-1" title="Student Training"/>
+                                                STUDENT TRAINING
+                                            </span>
+                                            <span class="badge rounded-pill me-2 px-3 py-2" 
+                                                  invisible="flight_category != 'staff_training'" style="background: rgba(108, 117, 125, 0.1); color: #6c757d;">
+                                                <i class="fa fa-users me-1" title="Staff Training"/>
+                                                PILOT/STAFF TRAINING
+                                            </span>
+                                            <!-- Flight Type Badge -->
+                                            <field name="flight_type_id" widget="badge" class="ms-2"/>
+                                        </div>
+                                        <div class="text-muted small">
+                                            <i class="fa fa-clock-o me-1" title="Last Update"/> Last Updated: <field name="write_date" widget="remaining_days" class="fw-bold"/>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row align-items-end">
+                                        <div class="col">
+                                            <label for="callsign" class="text-uppercase small fw-bold text-muted mb-0">Callsign</label>
+                                            <h1 class="mb-0 mt-n1 text-primary fw-bolder">
+                                                <field name="callsign" placeholder="e.g. ABS0001" class="oe_inline"/>
+                                            </h1>
+                                        </div>
+                                        <div class="col-auto text-end">
+                                            <div class="d-flex gap-4">
+                                                <div class="text-center">
+                                                    <div class="text-uppercase small fw-bold text-muted">Date</div>
+                                                    <div class="h4 mb-0 fw-bold"><field name="date"/></div>
+                                                </div>
+                                                <div class="text-center border-start ps-4">
+                                                    <div class="text-uppercase small fw-bold text-muted">Block Time</div>
+                                                    <div class="h4 mb-0 fw-bold text-primary">
+                                                        <field name="start_time" widget="float_time"/>
+                                                        <i class="fa fa-long-arrow-right mx-2 text-muted small" title="to"/>
+                                                        <field name="end_time" widget="float_time"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <group>
-                        <group name="timing" string="Timing">
-                            <field name="date"/>
-                            <field name="start_time" widget="float_time"/>
-                            <field name="duration" widget="float_time"/>
-                            <field name="end_time" widget="float_time" readonly="1"/>
-                        </group>
-                        <group name="resources" string="Resources">
-                            <field name="aircraft_id" options="{'no_create': True}"/>
-                            <field name="enrollment_id" options="{'no_create': True}"/>
-                            <field name="student_id"/>
-                            <field name="instructor_id" options="{'no_create': True}"/>
-                            <field name="instructor2_id" options="{'no_create': True}"/>
-                        </group>
-                        <group name="mission" string="Mission Details">
-                            <field name="mission_id" invisible="custom_activity_id" options="{'no_create': True}"/>
-                            <field name="custom_activity_id" invisible="mission_id" options="{'no_create': True}"/>
-                            <field name="discipline_id"/>
-                            <field name="is_exam" invisible="1"/>
-                            <field name="is_solo" widget="boolean_toggle"/>
-                        </group>
-                        <group name="execution" string="Execution (Future)" invisible="status not in ['in_progress', 'completed']">
-                            <field name="actual_start"/>
-                            <field name="actual_end"/>
-                            <field name="actual_duration" widget="float_time"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page name="notes" string="Notes">
-                            <field name="notes" placeholder="Additional instructions or notes..."/>
+
+                    <div role="status" invisible="not is_exam" 
+                         style="background: rgba(255,193,7,0.1); display: flex; align-items: center; margin-bottom: 1.5rem; border-radius: 0.5rem; padding: 1rem;">
+                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning" title="Warning"/>
+                        <div>
+                            <h6 class="fw-bold mb-1">EXAM MISSION DETECTED</h6>
+                            <p class="mb-0 small">This mission requires an instructor with valid <strong>Examinator Qualifications</strong>. Verification will be performed on dispatch.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4">
+                        <!-- Column 1: Configuration -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 bg-light rounded-3 h-100 shadow-sm-hover">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                        <i class="fa fa-sliders text-primary me-2" title="Configuration"/>1️⃣ Mission Type
+                                    </h5>
+                                    <div class="text-muted small mb-3">
+                                        <i class="fa fa-info-circle me-1" title="Info"/>Select category first, then fill in crew details.
+                                    </div>
+                                    <group>
+                                        <field name="flight_category" widget="radio" options="{'horizontal': false}"/>
+                                    </group>
+                                    
+                                    <field name="is_sim" invisible="1"/>
+                                    <field name="is_extra" invisible="1"/>
+                                    <field name="is_exam" invisible="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Crew Selection (Pilot 1 / Pilot 2) -->
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-4 border-bottom pb-2">
+                                        <i class="fa fa-users text-primary me-2" title="Crew"/>2️⃣ Flight Crew
+                                    </h5>
+                                    
+                                    <div class="row">
+                                        <!-- Pilot 1 -->
+                                        <div class="col-md-6 border-end">
+                                            <span class="o_form_label fw-bold text-muted small mb-2 d-block">
+                                                <i class="fa fa-user me-1" title="Pilot 1"/>PILOT 1
+                                            </span>
+                                            
+                                            <!-- Unified Crew Member Selector -->
+                                            <div class="p-3 bg-light rounded-3 mb-3 border">
+                                                <field name="pilot1_crew_id" options="{'no_create': True}" 
+                                                       placeholder="Select Crew Member..."
+                                                       domain="flight_category == 'staff_training' and [('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('has_expired_qualification', '=', False)]"/>
+                                            </div>
+                                            
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="small text-muted">Function:</span>
+                                                <field name="pilot1_function" class="oe_inline"/>
+                                            </div>
+                                        </div>
+
+                                        <!-- Pilot 2 -->
+                                        <div class="col-md-6">
+                                            <span class="o_form_label fw-bold text-muted small mb-2 d-block">
+                                                <i class="fa fa-user-plus me-1" title="Pilot 2"/>PILOT 2
+                                            </span>
+                                            
+                                            <!-- Unified Crew Member Selector -->
+                                            <div class="p-3 bg-light rounded-3 mb-3 border">
+                                                <field name="pilot2_crew_id" options="{'no_create': True}" 
+                                                       placeholder="Select Crew Member..."
+                                                       domain="flight_category == 'staff_training' and [('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('has_expired_qualification', '=', False)]"/>
+                                            </div>
+                                            
+                                            <div class="d-flex align-items-center gap-2 mt-2">
+                                                <span class="small text-muted">Function:</span>
+                                                <field name="pilot2_function" class="oe_inline"/>
+                                            </div>
+                                            
+                                            <div class="text-muted small d-flex align-items-center mt-2"
+                                                 invisible="pilot2_function != 'supervisor'">
+                                                <i class="fa fa-info-circle me-1" title="Info"/> Supervisor monitors from ground. No flight hours logged.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-2">
+                        <!-- Timing & Execution -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-4 border-bottom pb-2">
+                                        <i class="fa fa-clock-o text-primary me-2" title="Timing"/>Timeline
+                                    </h5>
+                                    <group>
+                                        <field name="duration" widget="float_time" string="Estimated Duration"/>
+                                        <field name="actual_duration" widget="float_time" invisible="status not in ['in_progress', 'done']" class="fw-bold text-success"/>
+                                        <hr invisible="status not in ['in_progress', 'done']"/>
+                                        <field name="actual_start" invisible="status not in ['in_progress', 'done']"/>
+                                        <field name="actual_end" invisible="status not in ['in_progress', 'done']"/>
+                                    </group>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Logistics -->
+                        <div class="col-lg-8">
+                            <div class="card border-0 shadow-sm rounded-3 h-100">
+                                <div class="card-body">
+                                    <h5 class="fw-bold mb-4 border-bottom pb-2">
+                                        <i class="fa fa-map-marker text-primary me-2" title="Logistics"/>Mission Details
+                                    </h5>
+                                    <group>
+                                        <group>
+                                            <field name="aircraft_domain" invisible="1"/>
+                                            <field name="aircraft_id" options="{'no_create': True, 'no_open': False}"
+                                                   domain="aircraft_domain"/>
+                                            <field name="route_id" options="{'no_create': True}"/>
+                                        </group>
+                                        <group>
+                                            <!-- Student Training: show syllabus mission -->
+                                            <field name="mission_domain" invisible="1"/>
+                                            <field name="mission_id" 
+                                                   invisible="flight_category != 'student_training'" 
+                                                   options="{'no_create': True}"
+                                                   domain="mission_domain"/>
+                                            <!-- Staff Training: show activity OR custom activity -->
+                                            <field name="activity_id" 
+                                                   invisible="flight_category == 'student_training' or custom_activity_id" 
+                                                   options="{'no_create': True}"/>
+                                            <field name="custom_activity_id" 
+                                                   invisible="flight_category == 'student_training' or activity_id" 
+                                                   options="{'no_create': True}"/>
+                                            <field name="discipline_id" readonly="1"/>
+                                        </group>
+                                    </group>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <notebook class="mt-4">
+                        <page name="notes" string="Instructions &amp; Notes">
+                            <field name="notes" placeholder="Specify mission objectives, weather minimums, or special instructions..." 
+                                   class="border-0 shadow-none"/>
                         </page>
-                        <page name="cancellation" string="Cancellation" invisible="status != 'cancelled'">
-                            <group>
-                                <field name="cancellation_reason_id" required="status == 'cancelled'"/>
-                            </group>
+                        <page name="cancellation" string="Cancellation Details" invisible="status != 'cancelled'">
+                            <div role="status" style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem;">
+                                <group>
+                                    <field name="cancellation_reason_id" required="status == 'cancelled'" options="{'no_create': True}"/>
+                                </group>
+                            </div>
                         </page>
                     </notebook>
                 </sheet>
@@ -83,35 +270,77 @@
     <record id="view_fs_scheduled_flight_timeline" model="ir.ui.view">
         <field name="name">fs.scheduled.flight.timeline</field>
         <field name="model">fs.scheduled.flight</field>
-        <field name="type">timeline</field>
         <field name="arch" type="xml">
             <timeline date_start="start_datetime"
                       date_stop="end_datetime"
                       default_group_by="aircraft_id"
                       event_open_popup="true"
                       mode="day"
-                      colors="#e9ecef: status == 'cancelled'; #28a745: status == 'completed'; #007bff: status == 'confirmed'; #ffc107: status == 'scheduled'">
+                      stack="false"
+                      zoomKey="ctrlKey"
+                      colors="#f3f4f6: status == 'cancelled'; #dcfce7: status == 'done'; #fef3c7: status == 'scheduled'; #e0f2fe: status == 'in_progress'">
+                <!-- Required Fields for Template -->
                 <field name="callsign"/>
-                <field name="student_id"/>
-                <field name="instructor_id"/>
+                <field name="flight_category"/>
+                <field name="is_exam"/>
+                <field name="pilot1_function"/>
+                <field name="pilot2_function"/>
+                <field name="pilot1_display"/>
+                <field name="pilot2_display"/>
                 <field name="aircraft_registration"/>
+                <field name="student_callsign"/>
+                <field name="flight_code"/>
+                <field name="flight_type_id"/>
+                <field name="is_solo"/>
+                <field name="route_id"/>
+                
                 <templates>
                     <t t-name="timeline-item">
-                        <div class="d-flex flex-column p-1">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <strong t-esc="record.callsign"/>
-                                <small class="text-muted" t-esc="record.aircraft_registration"/>
-                            </div>
-                            <div class="d-flex align-items-center gap-1 mt-1">
-                                <i class="fa fa-user-circle small text-muted"/>
-                                <span class="small" t-esc="record.student_id[1]"/>
-                            </div>
-                            <t t-if="record.instructor_id">
-                                <div class="d-flex align-items-center gap-1">
-                                    <i class="fa fa-graduation-cap small text-muted"/>
-                                    <span class="small italic text-truncate" t-esc="record.instructor_id[1]"/>
+                        <!-- Card Container -->
+                        <div class="o_timeline_fight_card h-100 w-100 d-flex flex-column border-start border-4 shadow-sm overflow-hidden"
+                             t-attf-style="
+                                border-radius: 4px;
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                                background-color: rgba(255, 255, 255, 0.75);
+                                border-color: #{record.flight_category == 'student_training' ? '#3b82f6' : '#9ca3af'} !important;">
+                            
+                            <!-- Header: Callsign | Aircraft -->
+                            <div class="d-flex justify-content-between align-items-center px-1 py-1 border-bottom border-light bg-white bg-opacity-50" style="min-height: 22px;">
+                                <div class="d-flex align-items-center gap-1 overflow-hidden">
+                                    <strong class="text-dark fw-bolder text-truncate" style="font-size: 12px;" t-esc="record.callsign"/>
+                                    <span class="text-muted small mx-1" style="font-size: 11px;">|</span>
+                                    <strong class="text-dark fw-bold text-truncate" style="font-size: 12px;" t-esc="record.aircraft_registration"/>
                                 </div>
-                            </t>
+                                <div class="d-flex align-items-center gap-1">
+                                    <i t-if="record.is_exam" class="fa fa-star text-warning" style="font-size: 10px;" title="Exam"/>
+                                    <span t-if="record.is_solo" class="badge bg-info text-dark border border-info" style="font-size: 9px; padding: 0px 3px; line-height: 1.2;">SOLO</span>
+                                </div>
+                            </div>
+
+                            <div class="px-1 py-1 flex-grow-1 d-flex flex-column justify-content-center" style="font-size: 11px; line-height: 1.2;">
+                                <!-- 1st Line: Flight Code | Route -->
+                                <div class="d-flex align-items-center text-truncate mb-1">
+                                    <strong class="text-primary text-truncate" style="font-size: 11px;" t-esc="record.flight_code or '-'"/>
+                                    <t t-if="record.route_id">
+                                        <span class="text-muted small mx-1" style="font-size: 11px;">|</span>
+                                        <span class="text-dark text-truncate" style="font-size: 11px;" t-esc="record.route_id[1]"/>
+                                    </t>
+                                </div>
+
+                                <!-- 2nd Line: Pilot 1 | Pilot 2 -->
+                                <div class="d-flex align-items-center text-truncate">
+                                    <t t-if="record.pilot1_display">
+                                        <span class="fw-bold text-dark text-truncate" t-esc="record.pilot1_display"/>
+                                    </t>
+                                    <span t-else="" class="text-muted fst-italic">-</span>
+                                    
+                                    <span class="text-muted small mx-1" style="font-size: 11px;">|</span>
+                                    
+                                    <t t-if="record.pilot2_display">
+                                        <span class="fw-bold text-success text-truncate" t-esc="record.pilot2_display"/>
+                                    </t>
+                                </div>
+                            </div>
                         </div>
                     </t>
                 </templates>
@@ -124,23 +353,38 @@
         <field name="name">fs.scheduled.flight.search</field>
         <field name="model">fs.scheduled.flight</field>
         <field name="arch" type="xml">
-            <search>
+            <search string="Scheduled Flight Search">
                 <field name="callsign"/>
-                <field name="student_id"/>
-                <field name="instructor_id"/>
+                <field name="pilot1_display"/>
+                <field name="pilot2_display"/>
                 <field name="aircraft_id"/>
                 <field name="date"/>
-                <filter string="Scheduled" name="scheduled" domain="[('status', '=', 'scheduled')]"/>
-                <filter string="Confirmed" name="confirmed" domain="[('status', '=', 'confirmed')]"/>
-                <filter string="In Progress" name="in_progress" domain="[('status', '=', 'in_progress')]"/>
-                <filter string="Today" name="today" domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
-                <filter string="Tomorrow" name="tomorrow" domain="[('date', '=', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Aircraft" name="group_by_aircraft" context="{'group_by': 'aircraft_id'}"/>
-                    <filter string="Instructor" name="group_by_instructor" context="{'group_by': 'instructor_id'}"/>
-                    <filter string="Date" name="group_by_date" context="{'group_by': 'date'}"/>
-                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
-                </group>
+                <field name="route_id"/>
+                <separator/>
+                <filter name="filter_scheduled" string="Scheduled" domain="[('status', '=', 'scheduled')]"/>
+                <filter name="filter_done" string="Done" domain="[('status', '=', 'done')]"/>
+                <filter name="filter_in_progress" string="In Progress" domain="[('status', '=', 'in_progress')]"/>
+                <separator/>
+                <filter name="filter_student" string="📚 Student Training" domain="[('flight_category', '=', 'student_training')]"/>
+                <filter name="filter_staff" string="👥 Pilot/Staff Training" domain="[('flight_category', '=', 'staff_training')]"/>
+                <separator/>
+                <filter name="filter_exam" string="🏆 Exams" domain="[('is_exam', '=', True)]"/>
+                <filter name="filter_solo" string="🧑 Solo Flights" domain="[('pilot1_function', '=', 'solo')]"/>
+                <separator/>
+                <filter name="today" string="Today" domain="[('date', '=', context_today())]"/>
+                <filter name="tomorrow" string="Tomorrow" domain="[('date', '=', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <separator/>
+                <filter name="group_by_aircraft" string="Aircraft" context="{'group_by': 'aircraft_id'}"/>
+                <filter name="group_by_instructor" string="Pilot 2" context="{'group_by': 'pilot2_crew_id'}"/>
+                <filter name="group_by_category" string="Mission Category" context="{'group_by': 'flight_category'}"/>
+                <filter name="group_by_route" string="Route" context="{'group_by': 'route_id'}"/>
+                <filter name="group_by_type" string="Flight Type" context="{'group_by': 'flight_type_id'}"/>
+                <separator/>
+                <filter name="group_by_year" string="Year" context="{'group_by': 'date_year'}"/>
+                <filter name="group_by_month" string="Month" context="{'group_by': 'date_month'}"/>
+                <filter name="group_by_day" string="Day" context="{'group_by': 'date_day'}"/>
+                <filter name="group_by_date" string="Date" context="{'group_by': 'date'}"/>
+                <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
             </search>
         </field>
     </record>
@@ -151,14 +395,22 @@
         <field name="res_model">fs.scheduled.flight</field>
         <field name="view_mode">timeline,list,form</field>
         <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
-        <field name="context">{'search_default_tomorrow': 1, 'search_default_group_by_aircraft': 1}</field>
+        <field name="context">{'search_default_tomorrow': 1, 'search_default_group_by_aircraft': 1, 'tz': 'UTC'}</field>
     </record>
 
     <record id="action_fs_scheduled_flight_all" model="ir.actions.act_window">
-        <field name="name">All Flights</field>
+        <field name="name">All Flights (List)</field>
         <field name="res_model">fs.scheduled.flight</field>
-        <field name="view_mode">list,timeline,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
-        <field name="context">{'search_default_group_by_date': 1}</field>
+        <field name="context">{'search_default_group_by_year': 1, 'search_default_group_by_month': 1, 'search_default_group_by_day': 1, 'tz': 'UTC'}</field>
+    </record>
+
+    <record id="action_fs_scheduled_flight_all_board" model="ir.actions.act_window">
+        <field name="name">All Flights (Board)</field>
+        <field name="res_model">fs.scheduled.flight</field>
+        <field name="view_mode">timeline,form</field>
+        <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
+        <field name="context">{'search_default_group_by_aircraft': 1, 'tz': 'UTC'}</field>
     </record>
 </odoo>

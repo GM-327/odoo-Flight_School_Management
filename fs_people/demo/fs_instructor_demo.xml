@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="0">
+    <data noupdate="1">
         <!-- 
         Instructor Demo Data (8 Instructors)
         ====================
@@ -22,7 +22,7 @@
             <field name="english_level_id" ref="fs_people.english_level_5"/>
             <field name="english_expiry">2028-06-30</field>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry">2025-12-31</field>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">2500.0</field>
             <field name="total_instruction_hours">1200.0</field>
             <field name="phone">+216 98 123 456</field>
@@ -42,7 +42,7 @@
             <field name="license_issue_date">2018-03-10</field>
             <field name="english_level_id" ref="fs_people.english_level_6"/>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=15)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">3500.0</field>
             <field name="total_instruction_hours">2000.0</field>
             <field name="phone">+216 98 234 567</field>
@@ -61,7 +61,7 @@
             <field name="english_level_id" ref="fs_people.english_level_4"/>
             <field name="english_expiry">2025-09-30</field>
             <field name="medical_class_id" ref="fs_people.medical_class_2"/>
-            <field name="medical_expiry" eval="(datetime.now() - relativedelta(days=10)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">800.0</field>
             <field name="total_instruction_hours">300.0</field>
             <field name="phone">+216 98 345 678</field>
@@ -81,7 +81,7 @@
             <field name="license_issue_date">2015-02-10</field>
             <field name="english_level_id" ref="fs_people.english_level_6"/>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=10)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">5500.0</field>
             <field name="total_instruction_hours">3200.0</field>
             <field name="phone">+216 98 444 555</field>
@@ -99,7 +99,7 @@
             <field name="license_issue_date">2022-03-15</field>
             <field name="english_level_id" ref="fs_people.english_level_5"/>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=5)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">1200.0</field>
             <field name="total_instruction_hours">450.0</field>
             <field name="phone">+216 98 555 666</field>
@@ -119,7 +119,7 @@
             <field name="license_issue_date">2016-05-20</field>
             <field name="english_level_id" ref="fs_people.english_level_5"/>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=120)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">2800.0</field>
             <field name="total_instruction_hours">1500.0</field>
             <field name="phone">+216 98 666 777</field>
@@ -137,7 +137,7 @@
             <field name="license_issue_date">2018-09-01</field>
             <field name="english_level_id" ref="fs_people.english_level_6"/>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry" eval="(datetime.now() + relativedelta(months=6)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">4200.0</field>
             <field name="total_instruction_hours">1800.0</field>
             <field name="phone">+216 98 777 888</field>
@@ -157,7 +157,7 @@
             <field name="license_issue_date">2014-07-22</field>
             <field name="english_level_id" ref="fs_people.english_level_5"/>
             <field name="medical_class_id" ref="fs_people.medical_class_1"/>
-            <field name="medical_expiry" eval="(datetime.now() + relativedelta(days=200)).strftime('%Y-%m-%d')"/>
+            <field name="medical_expiry">2026-12-31</field>
             <field name="total_flight_hours">3100.0</field>
             <field name="total_instruction_hours">2100.0</field>
             <field name="phone">+216 98 888 999</field>

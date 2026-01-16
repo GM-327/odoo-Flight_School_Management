@@ -10,6 +10,7 @@
                 <field name="code"/>
                 <field name="name"/>
                 <field name="validity_months"/>
+                <field name="is_examinator"/>
             </list>
         </field>
     </record>
@@ -33,6 +34,7 @@
                         </group>
                         <group>
                             <field name="validity_months"/>
+                            <field name="is_examinator"/>
                             <field name="active"/>
                         </group>
                     </group>

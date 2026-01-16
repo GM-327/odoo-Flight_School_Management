@@ -15,3 +15,4 @@ from . import fs_pilot
 from . import fs_admin_staff
 from . import res_users
 from . import fs_people_dashboard
+from . import res_config_settings

@@ -39,6 +39,11 @@ class FsFlightActivity(models.Model):
         string='Active',
         default=True,
     )
+    is_sim = fields.Boolean(
+        string='Is Simulator',
+        related='flight_type_id.is_sim',
+        store=True,
+    )
 
     _unique_activity = models.Constraint(
         'UNIQUE(discipline_id, flight_type_id)',

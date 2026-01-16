@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <!-- Inherit timeline controller to add the New button -->
+    <t t-name="fs_scheduling.TimelineControllerInherit" t-inherit="web_timeline.TimelineView" t-inherit-mode="extension">
+        <xpath expr="//Layout" position="inside">
+            <t t-set-slot="control-panel-create-button">
+                <button type="button" class="btn btn-primary o_list_button_add" data-hotkey="c" t-on-click="onClickCreate" data-bounce-button="">
+                    New
+                </button>
+            </t>
+        </xpath>
+    </t>
+</templates>

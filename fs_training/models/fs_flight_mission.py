@@ -53,6 +53,12 @@ class FsFlightMission(models.Model):
         default=False,
         help="Check if this mission is an evaluation or final exam.",
     )
+    is_sim = fields.Boolean(
+        string='Is Simulator',
+        related='activity_id.is_sim',
+        store=True,
+        help="Indicates if this mission is a simulator session.",
+    )
     is_extra = fields.Boolean(
         string='Is Extra/Revision',
         default=False,
@@ -90,6 +96,12 @@ class FsFlightMission(models.Model):
                 record.duration_hours = record.discipline_id.default_flight_duration # type: ignore
             elif not record.duration_hours:
                 record.duration_hours = 1.0
+
+    @api.onchange('activity_id')
+    def _onchange_activity_id(self):
+        """Update duration from discipline when activity is changed."""
+        if self.activity_id and self.activity_id.discipline_id:  # type: ignore
+            self.duration_hours = self.activity_id.discipline_id.default_flight_duration  # type: ignore
 
     def action_duplicate_mission(self):
         """Duplicate mission with incremented name and sequence."""

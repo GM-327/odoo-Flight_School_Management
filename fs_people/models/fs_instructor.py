@@ -34,7 +34,7 @@ class FsInstructor(models.Model):
     def _compute_display_name(self):
         for record in self:
             if record.callsign:
-                record.display_name = f"[{record.callsign}] {record.name}"  # type: ignore
+                record.display_name = record.callsign  # type: ignore
             else:
                 record.display_name = record.name or ''  # type: ignore
 
@@ -107,6 +107,16 @@ class FsInstructor(models.Model):
         compute='_compute_has_expired_qualification',
         store=True,
     )
+    eligibility_status = fields.Selection(
+        selection=[
+            ('eligible', '✅ Eligible for Flight'),
+            ('not_eligible', '❌ Has Expiries - Not Eligible'),
+        ],
+        string='Eligibility Status',
+        compute='_compute_has_expired_qualification',
+        store=True,
+        help="Flight eligibility status based on qualifications, medical, and english proficiency.",
+    )
     earliest_expiry_date = fields.Date(
         string='Earliest Expiry',
         compute='_compute_has_expired_qualification',
@@ -120,11 +130,13 @@ class FsInstructor(models.Model):
         """Check if any qualification or status is expired and find the earliest expiry date."""
         for record in self:
             # Check for expiration
-            record.has_expired_qualification = (
+            has_expired = (
                 any(qual.expiry_status == 'expired' for qual in record.qualification_ids) or  # type: ignore
                 getattr(record, 'medical_status', False) == 'expired' or
                 getattr(record, 'english_status', False) == 'expired'
             )
+            record.has_expired_qualification = has_expired
+            record.eligibility_status = 'not_eligible' if has_expired else 'eligible'
             
             # Find earliest expiry date
             expiries = []

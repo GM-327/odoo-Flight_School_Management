@@ -2,19 +2,16 @@
 <odoo>
     <!-- Default Cancellation Reasons -->
     <record id="cancellation_reason_weather" model="fs.cancellation.reason">
-        <field name="name">Bad Weather / METAR</field>
+        <field name="name">Weather</field>
     </record>
     <record id="cancellation_reason_aircraft" model="fs.cancellation.reason">
-        <field name="name">Aircraft Technical Issue</field>
+        <field name="name">Technical Issue</field>
     </record>
-    <record id="cancellation_reason_student" model="fs.cancellation.reason">
-        <field name="name">Student Unavailable</field>
+    <record id="cancellation_reason_personnel" model="fs.cancellation.reason">
+        <field name="name">Personnel</field>
     </record>
-    <record id="cancellation_reason_instructor" model="fs.cancellation.reason">
-        <field name="name">Instructor Unavailable</field>
-    </record>
-    <record id="cancellation_reason_notam" model="fs.cancellation.reason">
-        <field name="name">NOTAM / Airspace Restriction</field>
+    <record id="cancellation_reason_ops" model="fs.cancellation.reason">
+        <field name="name">OPS</field>
     </record>
 
     <!-- Default Config Parameters -->

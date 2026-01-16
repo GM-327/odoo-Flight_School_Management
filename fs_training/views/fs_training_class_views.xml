@@ -136,6 +136,8 @@
                                     <field name="callsign" decoration-bf="1"/>
                                     <field name="student_id" options="{'no_create': True, 'no_open': True}" domain="['!', ('enrollment_ids.status', 'in', ['enrolled', 'active'])]"/>
                                     <field name="instructor_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="aircraft_type_id" options="{'no_create': True, 'no_open': True}" 
+                                           domain="[('id', 'in', parent.aircraft_type_ids)]" optional="show"/>
                                     <field name="medical_status" widget="badge" optional="show" 
                                            decoration-danger="medical_status == 'expired'" 
                                            decoration-warning="medical_status == 'expiring'" 
