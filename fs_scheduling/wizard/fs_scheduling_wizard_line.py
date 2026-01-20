@@ -84,6 +84,12 @@ class FsSchedulingWizardLine(models.TransientModel):
     training_class_code = fields.Char(string='Class Code')
     class_type_id = fields.Many2one('fs.class.type', string='Class Type')
     aircraft_type_ids = fields.Many2many('fs.aircraft.type', string='Allowed Aircraft Types')
+    allowed_aircraft_ids = fields.Many2many(
+        'fs.aircraft',
+        string='Allowed Aircraft',
+        compute='_compute_allowed_aircraft_ids',
+        help="Computed list of allowed aircraft based on mission type (simulator vs regular).",
+    )
     aircraft_id = fields.Many2one('fs.aircraft', string='Aircraft')
     mission_id = fields.Many2one('fs.flight.mission', string='Mission')
     activity_id = fields.Many2one(
@@ -136,7 +142,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _compute_pilot1_display(self):
         for line in self:
             if line.pilot1_crew_id:
-                line.pilot1_display = line.pilot1_crew_id.name or ''
+                line.pilot1_display = line.pilot1_crew_id.name or ''  # type: ignore
             else:
                 line.pilot1_display = ''
 
@@ -144,7 +150,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _compute_pilot2_display(self):
         for line in self:
             if line.pilot2_crew_id:
-                line.pilot2_display = line.pilot2_crew_id.name or ''
+                line.pilot2_display = line.pilot2_crew_id.name or ''  # type: ignore
             else:
                 line.pilot2_display = ''
 
@@ -178,6 +184,52 @@ class FsSchedulingWizardLine(models.TransientModel):
                 line.is_sim = line.activity_id.is_sim  # type: ignore
             else:
                 line.is_sim = False
+
+    @api.depends('is_sim', 'aircraft_type_ids', 'class_type_id', 'class_type_id.aircraft_type_ids')
+    def _compute_allowed_aircraft_ids(self):
+        """Compute allowed aircraft based on mission type.
+        
+        For simulator missions: airworthy simulators from the class type's aircraft types
+        For regular missions: airworthy non-simulator aircraft matching allowed types
+        """
+        Aircraft = self.env['fs.aircraft']
+        for line in self:
+            if line.is_sim:
+                # For simulator missions, show simulators from the class type's aircraft types
+                if line.class_type_id and line.class_type_id.aircraft_type_ids:
+                    sim_types = line.class_type_id.aircraft_type_ids.filtered(
+                        lambda t: t.is_simulator  # type: ignore
+                    )
+                    if sim_types:
+                        line.allowed_aircraft_ids = Aircraft.search([
+                            ('is_airworthy', '=', True),
+                            ('aircraft_type_id', 'in', sim_types.ids),
+                        ])
+                    else:
+                        # Fallback: show all airworthy simulators if none assigned to class
+                        line.allowed_aircraft_ids = Aircraft.search([
+                            ('is_airworthy', '=', True),
+                            ('aircraft_type_id.is_simulator', '=', True),
+                        ])
+                else:
+                    # No class type, show all airworthy simulators
+                    line.allowed_aircraft_ids = Aircraft.search([
+                        ('is_airworthy', '=', True),
+                        ('aircraft_type_id.is_simulator', '=', True),
+                    ])
+            elif line.aircraft_type_ids:
+                # For regular missions, filter by allowed non-simulator types
+                line.allowed_aircraft_ids = Aircraft.search([
+                    ('is_airworthy', '=', True),
+                    ('aircraft_type_id', 'in', line.aircraft_type_ids.ids),
+                    ('aircraft_type_id.is_simulator', '=', False),
+                ])
+            else:
+                # No types specified, show all non-simulator aircraft
+                line.allowed_aircraft_ids = Aircraft.search([
+                    ('is_airworthy', '=', True),
+                    ('aircraft_type_id.is_simulator', '=', False),
+                ])
 
     @api.depends('mission_id', 'mission_id.is_exam', 'custom_activity_id', 'custom_activity_id.is_exam')
     def _compute_is_exam(self):
@@ -237,14 +289,14 @@ class FsSchedulingWizardLine(models.TransientModel):
             self.custom_activity_id = False
             # Set default functions based on crew member type
             if self.pilot1_crew_id:
-                if self.pilot1_crew_id.member_type == 'student':
+                if self.pilot1_crew_id.member_type == 'student':  #type: ignore
                     self.pilot1_function = 'student'
-                elif self.pilot1_crew_id.member_type == 'instructor':
+                elif self.pilot1_crew_id.member_type == 'instructor':  #type: ignore
                     self.pilot1_function = 'instructor'
                 else:
                     self.pilot1_function = 'pilot'
             if self.pilot2_crew_id:
-                if self.pilot2_crew_id.member_type == 'instructor':
+                if self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
                     self.pilot2_function = 'instructor'
                 else:
                     self.pilot2_function = 'pilot'
@@ -252,18 +304,18 @@ class FsSchedulingWizardLine(models.TransientModel):
             # Clear mission for staff training
             self.mission_id = False
             # Filter out students from selection if they exist
-            if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':
+            if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  #type: ignore
                 self.pilot1_crew_id = False
-            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'student':
+            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'student':  #type: ignore
                 self.pilot2_crew_id = False
             # Set default functions
             if self.pilot1_crew_id:
-                if self.pilot1_crew_id.member_type == 'instructor':
+                if self.pilot1_crew_id.member_type == 'instructor':  #type: ignore
                     self.pilot1_function = 'instructor'
                 else:
                     self.pilot1_function = 'pilot'
             if self.pilot2_crew_id:
-                if self.pilot2_crew_id.member_type == 'instructor':
+                if self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
                     self.pilot2_function = 'instructor'
                 else:
                     self.pilot2_function = 'pilot'
@@ -272,14 +324,14 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _onchange_pilot1_crew(self):
         """Smart assignment when Pilot 1 crew member is selected."""
         if self.pilot1_crew_id:
-            member_type = self.pilot1_crew_id.member_type
+            member_type = self.pilot1_crew_id.member_type  #type: ignore
             if member_type == 'student':
                 self.pilot1_function = 'student'
                 # Auto-populate class info from enrollment
                 if self.pilot1_crew_id.enrollment_id:
                     enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)
                     if enrollment:
-                        class_rec = enrollment.training_class_id
+                        class_rec = enrollment.training_class_id  # type: ignore
                         class_type = class_rec.class_type_id if class_rec else False
                         instructor = enrollment.instructor_id
                         
@@ -307,7 +359,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _onchange_pilot2_crew(self):
         """Smart assignment when Pilot 2 crew member is selected."""
         if self.pilot2_crew_id:
-            member_type = self.pilot2_crew_id.member_type
+            member_type = self.pilot2_crew_id.member_type  #type: ignore
             if member_type == 'student':
                 self.pilot2_function = 'student'
             elif member_type == 'instructor':
@@ -336,9 +388,9 @@ class FsSchedulingWizardLine(models.TransientModel):
                 if self.pilot2_crew_id:
                     self.pilot2_function = 'supervisor'
             else:
-                if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':
+                if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  #type: ignore
                     self.pilot1_function = 'student'
-                if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':
+                if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
                     self.pilot2_function = 'instructor'
             # Clear custom activity when selecting a syllabus mission
             self.custom_activity_id = False
@@ -366,7 +418,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _check_examinator_warning(self):
         """Check if an examinator is required but not assigned."""
         if self.mission_id and self.mission_id.is_exam:  # type: ignore
-            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':
+            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
                 # Get the actual instructor record
                 instructor = self.pilot2_crew_id.get_source_record()
                 if instructor:

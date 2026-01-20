@@ -9,7 +9,7 @@
     <!-- Root Menu: Fleet (standalone app menu) -->
     <menuitem id="menu_fleet_root"
               name="Fleet"
-              web_icon="fs_fleet,static/description/icon.svg"
+              web_icon="fs_fleet,static/description/icon.png"
               sequence="20"/>
 
     <!-- Dashboard -->

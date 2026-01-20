@@ -64,5 +64,5 @@ This module provides:
     'application': True,
     'auto_install': True,
     'sequence': 40,
-    'images': ['static/description/icon.svg'],
+    'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

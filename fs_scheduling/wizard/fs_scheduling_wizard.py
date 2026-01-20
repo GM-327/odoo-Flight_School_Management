@@ -97,12 +97,52 @@ class FsSchedulingWizard(models.TransientModel):
         string='Total Flights',
         compute='_compute_counts',
     )
+    
+    # === Examinator Warning Confirmation ===
+    examinator_warning_confirmed = fields.Boolean(
+        string='Examinator Warning Confirmed',
+        default=False,
+        help="If True, user has acknowledged proceeding without examinator for exam flights.",
+    )
+    has_pending_examinator_warning = fields.Boolean(
+        string='Has Pending Examinator Warning',
+        compute='_compute_has_pending_examinator_warning',
+    )
+    examinator_warning_details = fields.Text(
+        string='Examinator Warning Details',
+        compute='_compute_has_pending_examinator_warning',
+    )
 
     @api.depends('line_ids')
     def _compute_counts(self):
         for wizard in self:
             wizard.total_count = len(wizard.line_ids)
             wizard.selected_count = len(wizard.line_ids)  # All lines are selected (delete to remove)
+
+    @api.depends('line_ids', 'line_ids.is_exam', 'line_ids.pilot2_crew_id', 'line_ids.mission_id', 'line_ids.custom_activity_id')
+    def _compute_has_pending_examinator_warning(self):
+        """Check if any exam flight is missing an examinator qualification."""
+        for wizard in self:
+            warning_lines = []
+            for line in wizard.line_ids:
+                is_exam_flight = (
+                    (line.mission_id and line.mission_id.is_exam) or  # type: ignore
+                    (line.custom_activity_id and line.custom_activity_id.is_exam)  # type: ignore
+                )
+                if is_exam_flight and line.pilot2_crew_id and line.pilot2_crew_id.member_type == 'instructor':  # type: ignore
+                    instructor = line.pilot2_crew_id.get_source_record()  # type: ignore
+                    if instructor:
+                        has_examinator = any(
+                            q.qualification_id.is_examinator 
+                            for q in instructor.qualification_ids  # type: ignore
+                            if q.qualification_id
+                        )
+                        if not has_examinator:
+                            exam_name = line.mission_id.name if line.mission_id else line.custom_activity_id.name  # type: ignore
+                            warning_lines.append(f"• {exam_name} - Instructor: {line.pilot2_crew_id.display_name}")
+            
+            wizard.has_pending_examinator_warning = bool(warning_lines)
+            wizard.examinator_warning_details = "\n".join(warning_lines) if warning_lines else False
 
     def _default_next_callsign_number(self):
         """Get next aircraft callsign number based on existing flights for the current year."""
@@ -148,8 +188,37 @@ class FsSchedulingWizard(models.TransientModel):
             self.state = 'step2'
         elif self.state == 'step2':
             self._validate_before_confirm()
+            # Check for examinator warnings - show confirmation dialog if not yet confirmed
+            if self.has_pending_examinator_warning and not self.examinator_warning_confirmed:
+                return self._show_examinator_warning_dialog()
             self._assign_schedule_details()
             self.state = 'step3'
+        return self._reopen_wizard()
+
+    def _show_examinator_warning_dialog(self):
+        """Show a confirmation dialog for examinator warnings."""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('⚠️ Examinator Qualification Warning'),
+            'res_model': 'fs.scheduling.wizard',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('fs_scheduling.view_fs_scheduling_wizard_examinator_warning_form').id,
+            'target': 'new',
+            'context': {'dialog_mode': True},
+        }
+
+    def action_confirm_examinator_warning(self):
+        """User confirmed to proceed despite examinator warnings."""
+        self.ensure_one()
+        self.examinator_warning_confirmed = True
+        self._assign_schedule_details()
+        self.state = 'step3'
+        return self._reopen_wizard()
+
+    def action_cancel_examinator_warning(self):
+        """User chose to go back and fix the examinator issues."""
+        self.ensure_one()
         return self._reopen_wizard()
 
     def action_previous_step(self):
@@ -157,6 +226,8 @@ class FsSchedulingWizard(models.TransientModel):
         self.ensure_one()
         if self.state == 'step2':
             self.state = 'step1'
+            # Reset examinator warning confirmation when going back
+            self.examinator_warning_confirmed = False
         elif self.state == 'step3':
             self.state = 'step2'
         return self._reopen_wizard()
@@ -188,6 +259,7 @@ class FsSchedulingWizard(models.TransientModel):
             'res_model': self._name,
             'res_id': self.id,
             'view_mode': 'form',
+            'view_id': self.env.ref('fs_scheduling.view_fs_scheduling_wizard_form').id,
             'target': 'current',
         }
 
@@ -382,25 +454,8 @@ class FsSchedulingWizard(models.TransientModel):
                     raise UserError(_("Aircraft Type(s) must be selected for staff training (line %d).") % line.sequence)  # type: ignore
             
             # Check examinator qualification for exam missions or exam custom activities
-            is_exam_flight = (
-                (line.mission_id and line.mission_id.is_exam) or  # type: ignore
-                (line.custom_activity_id and line.custom_activity_id.is_exam)  # type: ignore
-            )
-            if is_exam_flight and line.pilot2_crew_id and line.pilot2_crew_id.member_type == 'instructor':  # type: ignore
-                # Get the actual instructor record to check qualifications
-                instructor = line.pilot2_crew_id.get_source_record()  # type: ignore
-                if instructor:
-                    has_examinator = any(
-                        q.qualification_id.is_examinator 
-                        for q in instructor.qualification_ids  # type: ignore
-                        if q.qualification_id
-                    )
-                    if not has_examinator:
-                        exam_name = line.mission_id.name if line.mission_id else line.custom_activity_id.name  # type: ignore
-                        raise UserError(_(
-                            "Exam activity '%s' requires an instructor with examinator qualification.\n"
-                            "Instructor '%s' does not have this qualification."
-                        ) % (exam_name, line.pilot2_crew_id.display_name))  # type: ignore
+            # Note: This is now a non-blocking warning - user can confirm to proceed
+            # The actual check is done via has_pending_examinator_warning computed field
 
     # === Step 2 -> Step 3: Assign Times, Aircraft, and Callsigns ===
     def _assign_schedule_details(self):

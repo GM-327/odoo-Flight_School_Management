@@ -285,18 +285,18 @@ class FsScheduledFlight(models.Model):
     def _compute_pilot1_display(self):
         for record in self:
             if record.pilot1_crew_id:
-                record.pilot1_display = record.pilot1_crew_id.name or ''
+                record.pilot1_display = record.pilot1_crew_id.name or ''  #type: ignore
             else:
                 record.pilot1_display = ''
 
-    @api.depends('pilot1_crew_id', 'pilot1_crew_id.member_type', 'pilot1_crew_id.enrollment_id')
+    @api.depends('pilot1_crew_id', 'pilot1_crew_id.member_type', 'pilot1_crew_id.enrollment_id')  #type: ignore
     def _compute_student_fields(self):
         """Compute student_id and training_class_id from crew member enrollment."""
         for record in self:
-            if record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student' and record.pilot1_crew_id.enrollment_id:
-                enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)
-                record.student_id = enrollment.student_id if enrollment else False
-                record.training_class_id = enrollment.training_class_id if enrollment else False
+            if record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student' and record.pilot1_crew_id.enrollment_id:  #type: ignore
+                enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)  #type: ignore
+                record.student_id = enrollment.student_id if enrollment else False  #type: ignore
+                record.training_class_id = enrollment.training_class_id if enrollment else False  #type: ignore
             else:
                 record.student_id = False
                 record.training_class_id = False
@@ -306,10 +306,10 @@ class FsScheduledFlight(models.Model):
         """Compute dynamic domain for aircraft based on enrollment's allowed aircraft types."""
         import json
         for record in self:
-            if record.flight_category == 'student_training' and record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student':
-                if record.pilot1_crew_id.enrollment_id:
-                    enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)
-                    training_class = enrollment.training_class_id if enrollment else False
+            if record.flight_category == 'student_training' and record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student':  #type: ignore
+                if record.pilot1_crew_id.enrollment_id:  #type: ignore
+                    enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)  #type: ignore
+                    training_class = enrollment.training_class_id if enrollment else False  #type: ignore
                     if training_class and training_class.aircraft_type_ids:
                         aircraft_type_ids = training_class.aircraft_type_ids.ids
                         record.aircraft_domain = json.dumps([('aircraft_type_id', 'in', aircraft_type_ids)])
@@ -325,10 +325,10 @@ class FsScheduledFlight(models.Model):
         """Compute dynamic domain for mission based on enrollment's class type."""
         import json
         for record in self:
-            if record.flight_category == 'student_training' and record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student':
-                if record.pilot1_crew_id.enrollment_id:
-                    enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)
-                    training_class = enrollment.training_class_id if enrollment else False
+            if record.flight_category == 'student_training' and record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student':  #type: ignore
+                if record.pilot1_crew_id.enrollment_id:  #type: ignore
+                    enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)  #type: ignore
+                    training_class = enrollment.training_class_id if enrollment else False  #type: ignore
                     if training_class and training_class.class_type_id:
                         class_type_id = training_class.class_type_id.id
                         record.mission_domain = json.dumps([('class_type_id', '=', class_type_id)])
@@ -343,7 +343,7 @@ class FsScheduledFlight(models.Model):
     def _compute_pilot2_display(self):
         for record in self:
             if record.pilot2_crew_id:
-                record.pilot2_display = record.pilot2_crew_id.name or ''
+                record.pilot2_display = record.pilot2_crew_id.name or ''  #type: ignore
             else:
                 record.pilot2_display = ''
 
@@ -385,7 +385,7 @@ class FsScheduledFlight(models.Model):
             if not record.pilot2_crew_id or record.status == 'cancelled':
                 continue
             # Only check conflicts for instructors
-            if record.pilot2_crew_id.member_type != 'instructor':
+            if record.pilot2_crew_id.member_type != 'instructor':  #type: ignore
                 continue
             if not record.start_datetime or not record.end_datetime:
                 continue
@@ -433,7 +433,7 @@ class FsScheduledFlight(models.Model):
                 raise ValidationError(_(
                     "⚠️ Aircraft Conflict: %(aircraft)s is already scheduled for flight '%(callsign)s' "
                     "from %(start)s to %(end)s (with %(buffer)d min buffer).",
-                    aircraft=record.aircraft_id.name,  #type: ignore
+                    aircraft=record.aircraft_id.registration,  #type: ignore
                     callsign=conflict.callsign,
                     start=conflict.start_datetime.strftime('%H:%M'), #type: ignore
                     end=conflict.end_datetime.strftime('%H:%M'), #type: ignore
@@ -455,14 +455,14 @@ class FsScheduledFlight(models.Model):
     def _onchange_pilot1_crew(self):
         """Smart assignment when Pilot 1 crew member is selected."""
         if self.pilot1_crew_id:
-            member_type = self.pilot1_crew_id.member_type
+            member_type = self.pilot1_crew_id.member_type  #type: ignore
             if member_type == 'student':
                 self.pilot1_function = 'student'
                 # Auto-populate instructor from enrollment
-                if self.pilot1_crew_id.enrollment_id:
-                    enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)
+                if self.pilot1_crew_id.enrollment_id:  #type: ignore
+                    enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)  #type: ignore
                     if enrollment:
-                        instructor = enrollment.instructor_id
+                        instructor = enrollment.instructor_id  #type: ignore
                         if instructor and not instructor.has_expired_qualification:
                             # Find the crew member for this instructor
                             crew_member = self.env['fs.crew.member'].search([
@@ -481,7 +481,7 @@ class FsScheduledFlight(models.Model):
     def _onchange_pilot2_crew(self):
         """Smart assignment when Pilot 2 crew member is selected."""
         if self.pilot2_crew_id:
-            member_type = self.pilot2_crew_id.member_type
+            member_type = self.pilot2_crew_id.member_type  #type: ignore
             if member_type == 'student':
                 self.pilot2_function = 'student'
             elif member_type == 'instructor':
@@ -497,18 +497,18 @@ class FsScheduledFlight(models.Model):
             self.custom_activity_id = False
             # Set functions based on crew member types
             if self.pilot1_crew_id:
-                if self.pilot1_crew_id.member_type == 'student':
+                if self.pilot1_crew_id.member_type == 'student':  #type: ignore
                     self.pilot1_function = 'student'
-                elif self.pilot1_crew_id.member_type == 'instructor':
+                elif self.pilot1_crew_id.member_type == 'instructor':  #type: ignore
                     self.pilot1_function = 'instructor'
                 else:
                     self.pilot1_function = 'pilot'
         elif self.flight_category == 'staff_training':
             self.mission_id = False
             # Clear students from selection (not allowed in staff training)
-            if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':
+            if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  #type: ignore
                 self.pilot1_crew_id = False
-            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'student':
+            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'student':  #type: ignore
                 self.pilot2_crew_id = False
 
     @api.onchange('pilot1_function')

@@ -3,7 +3,7 @@
     <!-- Documents Top-Level App Menu -->
     <menuitem id="menu_fs_documents_root"
               name="Documents"
-              web_icon="fs_documents,static/description/icon.svg"
+              web_icon="fs_documents,static/description/icon.png"
               sequence="50"/>
 
     <!-- Dashboard -->

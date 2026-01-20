@@ -18,7 +18,7 @@
     <!-- Root Menu: FS Settings (main app menu) -->
     <menuitem id="menu_flight_school_root"
               name="Settings"
-              web_icon="fs_core,static/description/icon.svg"
+              web_icon="fs_core,static/description/icon.png"
               sequence="100"/>
 
     <!-- Users Action -->

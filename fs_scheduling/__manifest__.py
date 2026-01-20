@@ -60,5 +60,5 @@ Key Features:
     'application': True,
     'auto_install': True,
     'sequence': 50,
-    'images': ['static/description/icon.png'],
+    'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

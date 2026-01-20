@@ -184,6 +184,17 @@
                             </button>
                         </div>
 
+                        <!-- Examinator Warning Banner (Non-blocking) -->
+                        <field name="has_pending_examinator_warning" invisible="1"/>
+                        <div role="alert" invisible="not has_pending_examinator_warning" 
+                             class="alert alert-warning d-flex align-items-center mb-3" style="border-left: 4px solid #ffc107;">
+                            <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning" title="Warning"/>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">⚠️ Examinator Qualification Warning</h6>
+                                <p class="mb-0 small">Some exam flights do not have an instructor with examinator qualification. You can proceed, but you will be asked to confirm.</p>
+                            </div>
+                        </div>
+
                         <field name="line_ids" nolabel="1">
                             <list editable="bottom" create="0" decoration-info="is_sim">
                                 <field name="is_sim" column_invisible="1"/>
@@ -194,22 +205,38 @@
                                 <button name="action_move_up" type="object" icon="fa-arrow-up" title="Move Up"/>
                                 <button name="action_move_down" type="object" icon="fa-arrow-down" title="Move Down"/>
                                 <button name="action_move_last" type="object" icon="fa-angle-double-down" title="Move to Last"/>
-                                <!-- Pilot 1 -->
+                                <!-- Pilot 1 (Editable) -->
                                 <field name="pilot1_function" string="P1 Func" optional="hide"/>
-                                <field name="pilot1_display" string="Pilot 1" readonly="1"/>
-                                <!-- Pilot 2 -->
+                                <field name="pilot1_crew_id" string="Pilot 1" 
+                                       options="{'no_create': True}"
+                                       domain="[('has_expired_qualification', '=', False)]"/>
+                                <!-- Pilot 2 (Editable) -->
                                 <field name="pilot2_function" string="P2 Func" optional="hide"/>
-                                <field name="pilot2_display" string="Pilot 2" readonly="1"/>
+                                <field name="pilot2_crew_id" string="Pilot 2" 
+                                       options="{'no_create': True}"
+                                       domain="[('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)]"/>
                                 <field name="training_class_code" readonly="1" string="Class" optional="hide"/>
                                 <field name="class_type_id" column_invisible="1"/>
                                 <field name="aircraft_type_ids" string="A/C Types" widget="many2many_tags" optional="hide"/>
+                                <!-- Mission for Student Training -->
                                 <field name="mission_id" string="Mission" options="{'no_create': True}"
                                        domain="[('class_type_id', '=', class_type_id)]"
                                        invisible="flight_category != 'student_training'"/>
-                                <field name="activity_display" string="Activity" readonly="1"/>
-                                <button icon="fa-graduation-cap" class="btn-link text-warning fa-lg" title="EXAM - Requires Examinator" 
-                                        invisible="not is_exam" disabled="1"/>
-                                <field name="route_id" string="Route / Area" options="{'no_create': True, 'no_open': True}"/>
+                                <!-- Activity for Staff Training - Both displayed, user picks one -->
+                                <field name="activity_id" string="Activity" 
+                                       options="{'no_create': True}"
+                                       invisible="flight_category != 'staff_training'"/>
+                                <field name="custom_activity_id" string="Custom" 
+                                       options="{'no_create': True}"
+                                       invisible="flight_category != 'staff_training'"
+                                       optional="show"/>
+                                <field name="has_examinator_warning" column_invisible="1"/>
+                                <button icon="fa-graduation-cap" class="btn-link text-success fa-lg" title="EXAM - Examinator Assigned ✓" 
+                                        invisible="not is_exam or has_examinator_warning" disabled="1"/>
+                                <button icon="fa-exclamation-triangle" class="btn-link text-warning fa-lg" 
+                                        title="⚠️ EXAM - Missing Examinator Qualification!" 
+                                        invisible="not has_examinator_warning" disabled="1"/>
+                                <field name="route_id" string="Route / Area" options="{'no_create': True, 'no_open': True, 'order': 'sequence, name'}"/>
                                 <field name="duration" widget="float_time"/>
                                 <field name="flight_type_id" string="Type" column_invisible="1"/>
                                 <field name="is_exam" column_invisible="1"/>
@@ -275,16 +302,23 @@
                                 <field name="callsign_display" string="Callsign"/>
                                 <!-- Pilot 1 -->
                                 <field name="pilot1_function" string="P1" readonly="1" optional="hide"/>
-                                <field name="pilot1_display" string="Pilot 1" readonly="1"/>
+                                <field name="pilot1_crew_id" string="Pilot 1" readonly="1"/>
                                 <!-- Pilot 2 -->
                                 <field name="pilot2_function" string="P2" readonly="1" optional="hide"/>
-                                <field name="pilot2_display" string="Pilot 2" readonly="1"/>
-                                <field name="activity_display" string="Activity" readonly="1"/>
+                                <field name="pilot2_crew_id" string="Pilot 2" readonly="1"/>
+                                <!-- Activity Display -->
+                                <field name="activity_display" string="Activity" readonly="1" 
+                                       invisible="flight_category == 'staff_training'"/>
+                                <field name="activity_id" string="Activity" readonly="1"
+                                       invisible="flight_category != 'staff_training'" optional="hide"/>
+                                <field name="custom_activity_id" string="Custom" readonly="1"
+                                       invisible="flight_category != 'staff_training'" optional="hide"/>
                                 <field name="mission_id" string="Mission" readonly="1" 
                                        invisible="flight_category != 'student_training'" optional="hide"/>
-                                <field name="route_id" string="Route" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="route_id" string="Route" options="{'no_create': True, 'no_open': True, 'order': 'sequence, name'}"/>
+                                <field name="allowed_aircraft_ids" column_invisible="1"/>
                                 <field name="aircraft_id" options="{'no_create': True}"
-                                       domain="[('is_airworthy', '=', True), ('aircraft_type_id', 'in', aircraft_type_ids)]"/>
+                                       domain="[('id', 'in', allowed_aircraft_ids)]"/>
                                 <field name="start_time" widget="float_time" string="ETD"/>
                                 <field name="end_time" widget="float_time" string="ETA"/>
                                 <field name="duration" widget="float_time" readonly="1"/>
@@ -298,11 +332,77 @@
         </field>
     </record>
 
+    <!-- Examinator Warning Confirmation Dialog -->
+    <record id="view_fs_scheduling_wizard_examinator_warning_form" model="ir.ui.view">
+        <field name="name">fs.scheduling.wizard.examinator.warning.form</field>
+        <field name="model">fs.scheduling.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Examinator Qualification Warning">
+                <sheet>
+                    <!-- Warning Header -->
+                    <div class="card border-0 rounded-3 shadow-sm mb-4" 
+                         style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%); overflow: hidden; position: relative; color: white;">
+                        <div class="card-body p-4 position-relative" style="z-index: 1;">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <div class="bg-white bg-opacity-25 rounded-circle p-3 shadow-sm" style="backdrop-filter: blur(8px);">
+                                        <i class="fa fa-exclamation-triangle fa-2x text-white" title="Warning"/>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <h2 class="fw-bold mb-1">⚠️ Examinator Qualification Missing</h2>
+                                    <p class="mb-0 opacity-90">The following exam flights do not have an instructor with examinator qualification.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="card border-warning rounded-3 mb-4">
+                        <div class="card-header bg-warning bg-opacity-10 border-warning">
+                            <h5 class="mb-0 text-warning">
+                                <i class="fa fa-graduation-cap me-2" title="Exam"/>Affected Exam Flights
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <field name="examinator_warning_details" readonly="1" nolabel="1" 
+                                   class="fs-5 text-danger" widget="text"/>
+                        </div>
+                    </div>
+
+                    <!-- Explanation -->
+                    <div class="alert alert-info d-flex align-items-start" role="alert">
+                        <i class="fa fa-info-circle fa-2x me-3 mt-1" title="Info"/>
+                        <div>
+                            <h6 class="fw-bold mb-1">What does this mean?</h6>
+                            <p class="mb-2 small">
+                                Exam flights require an instructor with a valid <strong>Examinator Qualification</strong> 
+                                to conduct the examination. The assigned instructors do not currently have this qualification.
+                            </p>
+                            <p class="mb-0 small text-muted">
+                                <strong>You can:</strong><br/>
+                                • <strong>Go back</strong> to Step 2 and assign an instructor with examinator qualification<br/>
+                                • <strong>Proceed anyway</strong> if the qualification will be verified later or is not strictly required
+                            </p>
+                        </div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_cancel_examinator_warning" type="object" 
+                            string="← Go Back and Fix" class="btn-secondary" icon="fa-arrow-left"/>
+                    <button name="action_confirm_examinator_warning" type="object" 
+                            string="Proceed Anyway →" class="btn-warning" icon="fa-exclamation-triangle"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <!-- Wizard Action -->
     <record id="action_fs_scheduling_wizard" model="ir.actions.act_window">
         <field name="name">Create Schedule</field>
         <field name="res_model">fs.scheduling.wizard</field>
         <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fs_scheduling_wizard_form"/>
         <field name="target">current</field>
     </record>
 </odoo>

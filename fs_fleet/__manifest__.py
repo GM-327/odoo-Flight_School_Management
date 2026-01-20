@@ -52,5 +52,5 @@ Depends on Flight School Core for security groups.
     'application': True,
     'auto_install': True,
     'sequence': 10,
-    'images': ['static/description/icon.svg'],
+    'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

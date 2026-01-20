@@ -50,5 +50,5 @@ Available modules: Fleet, People, Training, etc.
     'application': True,
     'auto_install': False,
     'sequence': 1,
-    'images': ['static/description/icon.svg'],
+    'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }
