@@ -4,3 +4,4 @@
 
 from . import fs_scheduling_wizard
 from . import fs_scheduling_wizard_line
+from . import fs_scheduling_wizard_bulk_action

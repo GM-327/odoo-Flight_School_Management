@@ -2,7 +2,7 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsFlightRoute(models.Model):
@@ -14,3 +14,6 @@ class FsFlightRoute(models.Model):
     name = fields.Char(string='Name', required=True, translate=True)
     sequence = fields.Integer(string='Sequence', default=10)
     active = fields.Boolean(default=True)
+
+    # _name_search override removed to rely on standard _order behavior
+

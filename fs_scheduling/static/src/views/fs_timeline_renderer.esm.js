@@ -1,17 +1,105 @@
 /** @odoo-module **/
 
 import { TimelineRenderer } from "@web_timeline/views/timeline/timeline_renderer.esm";
+import { TimelineModel } from "@web_timeline/views/timeline/timeline_model.esm";
 import { patch } from "@web/core/utils/patch";
 import { _t } from "@web/core/l10n/translation";
+
+import { onMounted, onPatched } from "@odoo/owl";
+
+/**
+ * Patch TimelineModel to store the current domain for filtering groups.
+ */
+patch(TimelineModel.prototype, {
+    async load(searchParams) {
+        // Store the domain for use by the renderer when fetching groups
+        this.domain = searchParams.domain || [];
+        return super.load(searchParams);
+    },
+});
 
 /**
  * Patch TimelineRenderer to:
  * 1. Show all resources (instructors/aircraft) even without flights
  * 2. Add zoom +/- buttons
+ * 3. Auto-scroll to first flight for "Tomorrow's Flights"
  */
 patch(TimelineRenderer.prototype, {
+    setup() {
+        super.setup();
+        this.hasScrolledToFirst = false;
+        onMounted(this.scrollToFirstFlight);
+        onPatched(this.scrollToFirstFlight);
+    },
+
+    async scrollToFirstFlight(retryCount = 0) {
+        // Stop if we've already succeeded
+        if (this.hasScrolledToFirst) return;
+
+        // Check context - support both searchModel (standard) and props context
+        const context = this.env.searchModel?.context || this.props.context || {};
+
+        // Relaxed check: if search_default_tomorrow is missing, check active filters
+        let isTomorrow = context.search_default_tomorrow;
+
+        if (!isTomorrow && this.env.searchModel && typeof this.env.searchModel.getSearchItems === 'function') {
+            const filters = this.env.searchModel.getSearchItems((item) => item.name === 'tomorrow');
+            // Check if any "tomorrow" filter is active
+            if (filters.some(f => f.isActive)) {
+                isTomorrow = true;
+            }
+        }
+
+        if (!isTomorrow) {
+            return;
+        }
+
+        if (!this.timeline) {
+            // If timeline not ready, retry a few times
+            if (retryCount < 5) {
+                setTimeout(() => this.scrollToFirstFlight(retryCount + 1), 200);
+            }
+            return;
+        }
+
+        // Check for items
+        const itemIds = this.timeline.itemsData.getIds();
+        if (itemIds.length === 0) {
+            // Data might not be loaded yet, retry
+            if (retryCount < 10) { // Retry for up to 2 seconds
+                setTimeout(() => this.scrollToFirstFlight(retryCount + 1), 200);
+            }
+            return;
+        }
+
+        // Find earliest start time
+        const items = this.timeline.itemsData.get(itemIds);
+        let minDate = null;
+
+        for (const item of items) {
+            if (item.start) {
+                const start = new Date(item.start);
+                // Simple check: start date must be valid
+                if (!isNaN(start.getTime())) {
+                    if (!minDate || start < minDate) {
+                        minDate = start;
+                    }
+                }
+            }
+        }
+
+        if (minDate) {
+            // Focus on the flight with a slight offset (e.g. 1 hour before) to make it look nice
+            // But centering is also fine.
+            this.timeline.moveTo(minDate, { animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
+
+            this.hasScrolledToFirst = true;
+        }
+    },
+
     /**
      * Override split_groups to include all resources from expanded groups.
+     * Pass current domain to backend so filters (like "Hide Simulators") also affect groups.
      */
     async split_groups(records) {
         if (this.model.last_group_bys.length === 0) {
@@ -22,16 +110,19 @@ patch(TimelineRenderer.prototype, {
         const groups = [];
         groups.push({ id: -1, content: _t("<b>UNASSIGNED</b>"), order: -1 });
 
+        // Get current search domain to pass to backend
+        const currentDomain = this.model.domain || [];
+
         // Try to get expanded groups from server
         let expanded_groups = [];
         try {
             const field = this.fields[grouped_field];
             if (field && field.relation) {
-                // Call read_group_expand method if available
+                // Call get_timeline_groups with domain parameter
                 const expansion_result = await this.orm.call(
                     this.model.model_name,
                     "get_timeline_groups",
-                    [grouped_field],
+                    [grouped_field, currentDomain],
                     {}
                 );
                 if (expansion_result && expansion_result.length > 0) {
@@ -39,7 +130,6 @@ patch(TimelineRenderer.prototype, {
                 }
             }
         } catch (e) {
-            // Method not available, fall back to default behavior
             console.log("get_timeline_groups not available, using default grouping");
         }
 

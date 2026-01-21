@@ -12,14 +12,8 @@
               action="action_fs_scheduled_flight_tomorrow"
               sequence="10"/>
 
-    <menuitem id="menu_fs_scheduled_flight_all_board"
-              name="All Flights (Board)"
-              parent="menu_fs_scheduling_root"
-              action="action_fs_scheduled_flight_all_board"
-              sequence="15"/>
-
     <menuitem id="menu_fs_scheduled_flight_all"
-              name="All Flights (List)"
+              name="All Flights"
               parent="menu_fs_scheduling_root"
               action="action_fs_scheduled_flight_all"
               sequence="20"/>

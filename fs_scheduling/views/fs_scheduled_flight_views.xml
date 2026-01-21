@@ -8,9 +8,12 @@
             <list decoration-muted="status == 'cancelled'" 
                   decoration-success="status == 'done'" 
                   decoration-info="is_sim and status not in ('cancelled', 'done')"
+                  decoration-danger="has_any_conflict and status not in ('cancelled', 'done')"
                   sample="1">
                 <field name="is_sim" column_invisible="1"/>
+                <field name="has_any_conflict" column_invisible="1"/>
                 <field name="date"/>
+                <field name="has_instructor_conflict" string="⚠️" optional="show"/>
                 <field name="callsign"/>
                 <field name="start_time" widget="float_time" string="ETD"/>
                 <field name="duration" widget="float_time"/>
@@ -110,6 +113,27 @@
                         <div>
                             <h6 class="fw-bold mb-1">EXAM MISSION DETECTED</h6>
                             <p class="mb-0 small">This mission requires an instructor with valid <strong>Examinator Qualifications</strong>. Verification will be performed on dispatch.</p>
+                        </div>
+                    </div>
+
+                    <!-- Conflict Warning Banners -->
+                    <field name="has_any_conflict" invisible="1"/>
+                    <field name="has_instructor_conflict" invisible="1"/>
+                    <field name="has_aircraft_conflict" invisible="1"/>
+                    
+                    <div role="alert" invisible="not has_any_conflict" 
+                         style="background: rgba(220,53,69,0.1); display: flex; align-items: flex-start; margin-bottom: 1.5rem; border-radius: 0.5rem; padding: 1rem; border: 1px solid rgba(220,53,69,0.3);">
+                        <i class="fa fa-exclamation-circle fa-2x me-3 text-danger" title="Conflict Warning"/>
+                        <div>
+                            <h6 class="fw-bold mb-1 text-danger">⚠️ SCHEDULING CONFLICT DETECTED</h6>
+                            <p class="mb-1 small" invisible="not has_instructor_conflict">
+                                <i class="fa fa-user-times me-1" title="Instructor Conflict"/>
+                                <strong>Crew Member Conflict:</strong> <field name="instructor_conflict_details" class="d-inline"/>
+                            </p>
+                            <p class="mb-0 small" invisible="not has_aircraft_conflict">
+                                <i class="fa fa-plane me-1" title="Aircraft Conflict"/>
+                                <strong>Aircraft Conflict:</strong> <field name="aircraft_conflict_details" class="d-inline"/>
+                            </p>
                         </div>
                     </div>
 
@@ -223,7 +247,7 @@
                                             <field name="aircraft_domain" invisible="1"/>
                                             <field name="aircraft_id" options="{'no_create': True, 'no_open': False}"
                                                    domain="aircraft_domain"/>
-                                            <field name="route_id" options="{'no_create': True}"/>
+                                            <field name="route_id" options="{'no_create': True, 'order': 'sequence, name'}"/>
                                         </group>
                                         <group>
                                             <!-- Student Training: show syllabus mission -->
@@ -287,6 +311,8 @@
                 <field name="pilot2_function"/>
                 <field name="pilot1_display"/>
                 <field name="pilot2_display"/>
+                <field name="pilot2_crew_id"/> <!-- Required for grouping -->
+                <field name="aircraft_id"/>      <!-- Required for grouping -->
                 <field name="aircraft_registration"/>
                 <field name="student_callsign"/>
                 <field name="flight_code"/>
@@ -371,11 +397,16 @@
                 <filter name="filter_exam" string="🏆 Exams" domain="[('is_exam', '=', True)]"/>
                 <filter name="filter_solo" string="🧑 Solo Flights" domain="[('pilot1_function', '=', 'solo')]"/>
                 <separator/>
+                <filter name="filter_sim_only" string="🖥️ Simulators Only" domain="[('is_sim', '=', True)]"/>
+                <filter name="filter_hide_sim" string="✈️ Hide Simulators" domain="[('is_sim', '=', False)]"/>
+                <separator/>
                 <filter name="today" string="Today" domain="[('date', '=', context_today())]"/>
                 <filter name="tomorrow" string="Tomorrow" domain="[('date', '=', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
                 <separator/>
+                <filter name="filter_conflicts" string="⚠️ With Conflicts" domain="[('has_any_conflict', '=', True)]"/>
+                <separator/>
                 <filter name="group_by_aircraft" string="Aircraft" context="{'group_by': 'aircraft_id'}"/>
-                <filter name="group_by_instructor" string="Pilot 2" context="{'group_by': 'pilot2_crew_id'}"/>
+                <filter name="group_by_instructor" string="Instructor" context="{'group_by': 'pilot2_crew_id'}"/>
                 <filter name="group_by_category" string="Mission Category" context="{'group_by': 'flight_category'}"/>
                 <filter name="group_by_route" string="Route" context="{'group_by': 'route_id'}"/>
                 <filter name="group_by_type" string="Flight Type" context="{'group_by': 'flight_type_id'}"/>
@@ -395,22 +426,63 @@
         <field name="res_model">fs.scheduled.flight</field>
         <field name="view_mode">timeline,list,form</field>
         <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
-        <field name="context">{'search_default_tomorrow': 1, 'search_default_group_by_aircraft': 1, 'tz': 'UTC'}</field>
+        <field name="context">{'search_default_tomorrow': 1, 'search_default_filter_hide_sim': 1, 'tz': 'UTC'}</field>
+    </record>
+
+    <!-- Tree View for All Flights (with date grouping) -->
+    <record id="view_fs_scheduled_flight_tree_grouped" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.list.grouped</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="status == 'cancelled'" 
+                  decoration-success="status == 'done'" 
+                  decoration-info="is_sim and status not in ('cancelled', 'done')"
+                  decoration-danger="has_any_conflict and status not in ('cancelled', 'done')"
+                  default_group_by="date_year,date_month,date_day"
+                  sample="1">
+                <field name="is_sim" column_invisible="1"/>
+                <field name="has_any_conflict" column_invisible="1"/>
+                <field name="date"/>
+                <field name="has_instructor_conflict" string="⚠️" optional="show"/>
+                <field name="callsign"/>
+                <field name="start_time" widget="float_time" string="ETD"/>
+                <field name="duration" widget="float_time"/>
+                <field name="aircraft_id"/>
+                <field name="pilot1_display" string="Pilot 1"/>
+                <field name="pilot2_display" string="Pilot 2"/>
+                <field name="flight_type_id" string="Type" optional="show"/>
+                <field name="mission_id" optional="hide"/>
+                <field name="route_id" string="Route" optional="show"/>
+                <field name="status" widget="badge" decoration-warning="status == 'scheduled'" decoration-info="status == 'in_progress'" decoration-success="status == 'done'"/>
+            </list>
+        </field>
     </record>
 
     <record id="action_fs_scheduled_flight_all" model="ir.actions.act_window">
-        <field name="name">All Flights (List)</field>
+        <field name="name">All Flights</field>
         <field name="res_model">fs.scheduled.flight</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">timeline,list,form</field>
         <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
-        <field name="context">{'search_default_group_by_year': 1, 'search_default_group_by_month': 1, 'search_default_group_by_day': 1, 'tz': 'UTC'}</field>
+        <field name="context">{'search_default_filter_hide_sim': 1, 'tz': 'UTC'}</field>
     </record>
 
-    <record id="action_fs_scheduled_flight_all_board" model="ir.actions.act_window">
-        <field name="name">All Flights (Board)</field>
-        <field name="res_model">fs.scheduled.flight</field>
-        <field name="view_mode">timeline,form</field>
-        <field name="search_view_id" ref="view_fs_scheduled_flight_search"/>
-        <field name="context">{'search_default_group_by_aircraft': 1, 'tz': 'UTC'}</field>
+    <!-- Link specific views to All Flights action -->
+    <record id="action_fs_scheduled_flight_all_view_timeline" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">timeline</field>
+        <field name="view_id" ref="view_fs_scheduled_flight_timeline"/>
+        <field name="act_window_id" ref="action_fs_scheduled_flight_all"/>
+    </record>
+    <record id="action_fs_scheduled_flight_all_view_list" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_fs_scheduled_flight_tree_grouped"/>
+        <field name="act_window_id" ref="action_fs_scheduled_flight_all"/>
+    </record>
+    <record id="action_fs_scheduled_flight_all_view_form" model="ir.actions.act_window.view">
+        <field name="sequence" eval="3"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_fs_scheduled_flight_form"/>
+        <field name="act_window_id" ref="action_fs_scheduled_flight_all"/>
     </record>
 </odoo>

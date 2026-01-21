@@ -45,6 +45,7 @@ Key Features:
         'views/res_config_settings_views.xml',
         'wizard/fs_selection_views.xml',
         'wizard/fs_scheduling_wizard_line_views.xml',
+        'wizard/fs_scheduling_wizard_bulk_action_views.xml',
         'wizard/fs_scheduling_wizard_views.xml',
         'views/fs_scheduling_menus.xml',
     ],

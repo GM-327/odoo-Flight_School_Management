@@ -8,6 +8,12 @@
             <form string="Mission Scheduling Wizard">
                 <field name="state" invisible="1"/>
                 <header>
+                    <!-- Reset Button (visible on all steps except step1) -->
+                    <button name="action_reset" string="⟳ Reset" type="object" 
+                            class="btn-outline-danger" icon="fa-undo"
+                            invisible="state == 'step1'"
+                            confirm="This will clear all generated lines and return to Step 1. Continue?"/>
+                    
                     <!-- Step 1 buttons -->
                     <button name="action_next_step" string="Generate Schedule →" type="object" 
                             class="btn-primary" icon="fa-arrow-right"
@@ -45,7 +51,7 @@
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <h1 class="display-6 fw-bold mb-1">Step 1: Resource Planning</h1>
+                                        <h1 class="display-6 fw-bold mb-1 text-white">Step 1: Resource Planning</h1>
                                         <p class="lead mb-0 opacity-75">Configure the flight window and build your mission team.</p>
                                     </div>
                                 </div>
@@ -164,7 +170,7 @@
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <h1 class="display-6 fw-bold mb-1">Step 2: Review &amp; Sequence</h1>
+                                        <h1 class="display-6 fw-bold mb-1 text-white">Step 2: Review &amp; Sequence</h1>
                                         <p class="lead mb-0 opacity-75">
                                             Configure mission types and crew. Use arrows to optimize the sequence.
                                             <span class="badge bg-white bg-opacity-25 ms-2 px-3 fw-normal">
@@ -176,12 +182,39 @@
                             </div>
                         </div>
 
-                        <!-- Add Mission Button -->
-                        <div class="d-flex justify-content-end mb-3">
+                        <!-- Action Buttons Row -->
+                        <div class="d-flex justify-content-between mb-3">
+                            <!-- Bulk Actions (Left) -->
+                            <div class="btn-group">
+                                <button name="action_bulk_assign_route" type="object" 
+                                        class="btn btn-outline-secondary" icon="fa-map-marker"
+                                        title="Assign route to all lines without route">
+                                    <span>Bulk Route</span>
+                                </button>
+                                <button name="action_bulk_mark_add" type="object" 
+                                        class="btn btn-outline-warning" icon="fa-plus-circle"
+                                        title="Mark lines as ADD missions">
+                                    <span>Bulk ADD</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Add Mission Button (Right) -->
                             <button name="action_add_mission" type="object" 
                                     class="btn btn-primary" icon="fa-plus">
                                 <span>Add Mission</span>
                             </button>
+                        </div>
+
+                        <!-- Student Double Booking Warning Banner -->
+                        <field name="has_student_double_booking" invisible="1"/>
+                        <div role="alert" invisible="not has_student_double_booking" 
+                             class="alert alert-info d-flex align-items-start mb-3" style="border-left: 4px solid #0dcaf0;">
+                            <i class="fa fa-info-circle fa-2x me-3 text-info" title="Info"/>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">ℹ️ Student Scheduled Multiple Times</h6>
+                                <p class="mb-1 small">The following students have more than one flight scheduled. This may be intentional for multi-mission days:</p>
+                                <field name="student_double_booking_details" nolabel="1" class="small text-muted" widget="text"/>
+                            </div>
                         </div>
 
                         <!-- Examinator Warning Banner (Non-blocking) -->
@@ -196,11 +229,11 @@
                         </div>
 
                         <field name="line_ids" nolabel="1">
-                            <list editable="bottom" create="0" decoration-info="is_sim">
+                            <list create="0" decoration-info="is_sim">
                                 <field name="is_sim" column_invisible="1"/>
                                 <field name="flight_category" column_invisible="1"/>
                                 <field name="sequence" string="#" readonly="1" width="30px"/>
-                                <field name="is_added_mission" widget="boolean_toggle" string="Added" help="Mark as extra mission (ADD)"/>
+                                <field name="is_added_mission" widget="boolean_toggle" string="Added"/>
                                 <button name="action_move_first" type="object" icon="fa-angle-double-up" title="Move to First"/>
                                 <button name="action_move_up" type="object" icon="fa-arrow-up" title="Move Up"/>
                                 <button name="action_move_down" type="object" icon="fa-arrow-down" title="Move Down"/>
@@ -219,17 +252,15 @@
                                 <field name="class_type_id" column_invisible="1"/>
                                 <field name="aircraft_type_ids" string="A/C Types" widget="many2many_tags" optional="hide"/>
                                 <!-- Mission for Student Training -->
-                                <field name="mission_id" string="Mission" options="{'no_create': True}"
-                                       domain="[('class_type_id', '=', class_type_id)]"
+                                <!-- Single Readonly Activity Column -->
+                                <field name="mission_id" string="Mission" readonly="1"
                                        invisible="flight_category != 'student_training'"/>
-                                <!-- Activity for Staff Training - Both displayed, user picks one -->
-                                <field name="activity_id" string="Activity" 
-                                       options="{'no_create': True}"
-                                       invisible="flight_category != 'staff_training'"/>
-                                <field name="custom_activity_id" string="Custom" 
-                                       options="{'no_create': True}"
-                                       invisible="flight_category != 'staff_training'"
-                                       optional="show"/>
+                                <field name="activity_display" string="Activity" readonly="1"/>
+                                
+                                <!-- Hidden Fields (editable in Form View) -->
+                                <field name="mission_id" column_invisible="1"/>
+                                <field name="activity_id" column_invisible="1"/>
+                                <field name="custom_activity_id" column_invisible="1"/>
                                 <field name="has_examinator_warning" column_invisible="1"/>
                                 <button icon="fa-graduation-cap" class="btn-link text-success fa-lg" title="EXAM - Examinator Assigned ✓" 
                                         invisible="not is_exam or has_examinator_warning" disabled="1"/>
@@ -257,10 +288,68 @@
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <h1 class="display-6 fw-bold mb-1">Step 3: Final Confirmation</h1>
+                                        <h1 class="display-6 fw-bold mb-1 text-white">Step 3: Final Confirmation</h1>
                                         <p class="lead mb-0 opacity-75">Review the generated schedule. Ensure callsigns and aircraft assignments are correct.</p>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Summary Statistics Card -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <div class="card border-0 rounded-3 h-100" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-white fs-2 fw-bold">
+                                            <field name="selected_count" nolabel="1" class="oe_inline"/>
+                                        </div>
+                                        <div class="text-white opacity-75 small">Total Flights</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 rounded-3 h-100" style="background: linear-gradient(135deg, #059669 0%, #10b981 100%);">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-white fs-2 fw-bold">
+                                            <field name="total_flight_hours" nolabel="1" widget="float_time" class="oe_inline"/>
+                                        </div>
+                                        <div class="text-white opacity-75 small">Total Hours</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 rounded-3 h-100" style="background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-white fs-2 fw-bold">
+                                            <field name="utilized_instructors_count" nolabel="1" class="oe_inline"/>
+                                        </div>
+                                        <div class="text-white opacity-75 small">Instructors</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card border-0 rounded-3 h-100" style="background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-white fs-2 fw-bold">
+                                            <field name="utilized_aircraft_count" nolabel="1" class="oe_inline"/>
+                                        </div>
+                                        <div class="text-white opacity-75 small">Aircraft Used</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Aircraft Assignment Warning -->
+                        <field name="unassigned_aircraft_count" invisible="1"/>
+                        <div role="alert" invisible="unassigned_aircraft_count == 0" 
+                             class="alert alert-danger d-flex align-items-center mb-3" style="border-left: 4px solid #dc3545;">
+                            <i class="fa fa-plane fa-2x me-3 text-danger" title="Warning"/>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1">⚠️ Aircraft Assignment Issue</h6>
+                                <p class="mb-0 small">
+                                    <field name="unassigned_aircraft_count" nolabel="1" class="oe_inline"/> 
+                                    flight(s) could not be assigned an aircraft. Please manually assign aircraft or adjust the time window.
+                                </p>
                             </div>
                         </div>
 
@@ -275,7 +364,7 @@
                                         for <field name="date" nolabel="1" class="oe_inline"/>.
                                     </h5>
                                     <p class="text-muted small mb-0">
-                                        <i class="fa fa-mouse-pointer me-1" title="Pointer"/> Drag blocks below to adjust timing before final confirmation.
+                                        <i class="fa fa-mouse-pointer me-1" title="Pointer"/> Adjust times and aircraft below before final confirmation.
                                     </p>
                                 </div>
                             </div>
@@ -286,10 +375,11 @@
                         </div>
 
                         <field name="line_ids">
-                            <list editable="bottom" create="0" decoration-info="is_sim">
+                            <list editable="bottom" create="0" decoration-info="is_sim" decoration-danger="aircraft_assignment_warning">
                                 <field name="is_sim" column_invisible="1"/>
                                 <field name="is_locked" column_invisible="1"/>
                                 <field name="flight_category" column_invisible="1"/>
+                                <field name="aircraft_assignment_warning" column_invisible="1"/>
                                 <!-- Lock Toggle Button Group -->
                                 <button name="toggle_lock" type="object" icon="fa-lock" 
                                         class="text-warning fa-lg" invisible="not is_locked" 
@@ -298,7 +388,12 @@
                                         class="text-muted opacity-50 fa-lg" invisible="is_locked" 
                                         title="Lock this line" wrapper_class="text-center px-2"/>
                                 
-                                <field name="is_added_mission" widget="boolean_toggle" string="ADD" help="Added Mission (ADD)"/>
+                                <!-- Aircraft assignment warning icon -->
+                                <button icon="fa-exclamation-circle" class="btn-link text-danger fa-lg" 
+                                        title="⚠️ No aircraft could be assigned - Please assign manually" 
+                                        invisible="not aircraft_assignment_warning or aircraft_id" disabled="1"/>
+                                
+                                <field name="is_added_mission" widget="boolean_toggle" string="ADD"/>
                                 <field name="callsign_display" string="Callsign"/>
                                 <!-- Pilot 1 -->
                                 <field name="pilot1_function" string="P1" readonly="1" optional="hide"/>
@@ -306,15 +401,11 @@
                                 <!-- Pilot 2 -->
                                 <field name="pilot2_function" string="P2" readonly="1" optional="hide"/>
                                 <field name="pilot2_crew_id" string="Pilot 2" readonly="1"/>
-                                <!-- Activity Display -->
-                                <field name="activity_display" string="Activity" readonly="1" 
-                                       invisible="flight_category == 'staff_training'"/>
-                                <field name="activity_id" string="Activity" readonly="1"
-                                       invisible="flight_category != 'staff_training'" optional="hide"/>
-                                <field name="custom_activity_id" string="Custom" readonly="1"
-                                       invisible="flight_category != 'staff_training'" optional="hide"/>
-                                <field name="mission_id" string="Mission" readonly="1" 
-                                       invisible="flight_category != 'student_training'" optional="hide"/>
+                                <!-- Activity Display - Combined column -->
+                                <field name="activity_display" string="Activity" readonly="1"/>
+                                <field name="activity_id" column_invisible="1"/>
+                                <field name="custom_activity_id" column_invisible="1"/>
+                                <field name="mission_id" column_invisible="1"/>
                                 <field name="route_id" string="Route" options="{'no_create': True, 'no_open': True, 'order': 'sequence, name'}"/>
                                 <field name="allowed_aircraft_ids" column_invisible="1"/>
                                 <field name="aircraft_id" options="{'no_create': True}"

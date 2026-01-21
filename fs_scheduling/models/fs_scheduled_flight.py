@@ -32,6 +32,7 @@ class FsScheduledFlight(models.Model):
     start_time = fields.Float(
         string='Start Time',
         required=True,
+        aggregator=None,
         help="Beginning of the flight (e.g., 8.5 = 08:30).",
     )
     duration = fields.Float(
@@ -368,6 +369,36 @@ class FsScheduledFlight(models.Model):
                 # Dual: instructor + student, or any two pilots flying together
                 record.flight_type_id = dual_type if dual_type else False
 
+    # === Conflict Warning Fields (Non-blocking) ===
+    has_instructor_conflict = fields.Boolean(
+        string='Instructor Conflict',
+        compute='_compute_instructor_conflict',
+        store=True,
+        help="True if the crew member (pilot 2) has overlapping flights.",
+    )
+    instructor_conflict_details = fields.Char(
+        string='Instructor Conflict Details',
+        compute='_compute_instructor_conflict',
+        store=True,
+    )
+    has_aircraft_conflict = fields.Boolean(
+        string='Aircraft Conflict',
+        compute='_compute_aircraft_conflict',
+        store=True,
+        help="True if the aircraft has overlapping flights.",
+    )
+    aircraft_conflict_details = fields.Char(
+        string='Aircraft Conflict Details',
+        compute='_compute_aircraft_conflict',
+        store=True,
+    )
+    has_any_conflict = fields.Boolean(
+        string='Has Conflict',
+        compute='_compute_has_any_conflict',
+        store=True,
+        help="True if there is any scheduling conflict (instructor or aircraft).",
+    )
+
     # === Constraints & Validation ===
 
     def _get_buffer_timedelta(self):
@@ -377,11 +408,15 @@ class FsScheduledFlight(models.Model):
         ))
         return timedelta(minutes=buffer_min)
 
-    @api.constrains('pilot2_crew_id', 'start_datetime', 'end_datetime', 'status')
-    def _check_instructor_conflict(self):
-        """Check for instructor conflicts with buffer time."""
+    @api.depends('pilot2_crew_id', 'start_datetime', 'end_datetime', 'status')
+    def _compute_instructor_conflict(self):
+        """Compute instructor conflict as a non-blocking warning."""
         buffer = self._get_buffer_timedelta()
+        buffer_min = int(buffer.total_seconds() / 60)
         for record in self:
+            record.has_instructor_conflict = False
+            record.instructor_conflict_details = False
+            
             if not record.pilot2_crew_id or record.status == 'cancelled':
                 continue
             # Only check conflicts for instructors
@@ -400,21 +435,24 @@ class FsScheduledFlight(models.Model):
             ], limit=1)
             
             if conflict:
-                raise ValidationError(_(
-                    "⚠️ Instructor Conflict: %(instructor)s is already scheduled for flight '%(callsign)s' "
-                    "from %(start)s to %(end)s (with %(buffer)d min buffer).",
+                record.has_instructor_conflict = True
+                record.instructor_conflict_details = _(
+                    "%(instructor)s: conflict with '%(callsign)s' (%(start)s-%(end)s)",
                     instructor=record.pilot2_crew_id.name, #type: ignore
                     callsign=conflict.callsign,
-                    start=conflict.start_datetime.strftime('%H:%M'), #type: ignore
-                    end=conflict.end_datetime.strftime('%H:%M'), #type: ignore
-                    buffer=int(buffer.total_seconds() / 60),
-                ))
+                    start=conflict.start_datetime.strftime('%H:%M') if conflict.start_datetime else '', #type: ignore
+                    end=conflict.end_datetime.strftime('%H:%M') if conflict.end_datetime else '', #type: ignore
+                )
 
-    @api.constrains('aircraft_id', 'start_datetime', 'end_datetime', 'status')
-    def _check_aircraft_conflict(self):
-        """Check for aircraft conflicts with buffer time."""
+    @api.depends('aircraft_id', 'start_datetime', 'end_datetime', 'status')
+    def _compute_aircraft_conflict(self):
+        """Compute aircraft conflict as a non-blocking warning."""
         buffer = self._get_buffer_timedelta()
+        buffer_min = int(buffer.total_seconds() / 60)
         for record in self:
+            record.has_aircraft_conflict = False
+            record.aircraft_conflict_details = False
+            
             if not record.aircraft_id or record.status == 'cancelled':
                 continue
             if not record.start_datetime or not record.end_datetime:
@@ -430,15 +468,20 @@ class FsScheduledFlight(models.Model):
             ], limit=1)
             
             if conflict:
-                raise ValidationError(_(
-                    "⚠️ Aircraft Conflict: %(aircraft)s is already scheduled for flight '%(callsign)s' "
-                    "from %(start)s to %(end)s (with %(buffer)d min buffer).",
+                record.has_aircraft_conflict = True
+                record.aircraft_conflict_details = _(
+                    "%(aircraft)s: conflict with '%(callsign)s' (%(start)s-%(end)s)",
                     aircraft=record.aircraft_id.registration,  #type: ignore
                     callsign=conflict.callsign,
-                    start=conflict.start_datetime.strftime('%H:%M'), #type: ignore
-                    end=conflict.end_datetime.strftime('%H:%M'), #type: ignore
-                    buffer=int(buffer.total_seconds() / 60),
-                ))
+                    start=conflict.start_datetime.strftime('%H:%M') if conflict.start_datetime else '', #type: ignore
+                    end=conflict.end_datetime.strftime('%H:%M') if conflict.end_datetime else '', #type: ignore
+                )
+
+    @api.depends('has_instructor_conflict', 'has_aircraft_conflict')
+    def _compute_has_any_conflict(self):
+        """Compute if there is any conflict."""
+        for record in self:
+            record.has_any_conflict = record.has_instructor_conflict or record.has_aircraft_conflict
 
     @api.constrains('route_id', 'is_sim')
     def _check_route_required(self):
@@ -622,8 +665,17 @@ class FsScheduledFlight(models.Model):
         ])
 
     @api.model
-    def get_timeline_groups(self, grouped_field):
+    def get_timeline_groups(self, grouped_field, domain=None):
         """Return all resources for timeline grouping with rich display names."""
+        
+        # Helper: Status Colors (Standard Bootstrap)
+        STATUS_COLORS = {
+            'valid': 'success',      # Green
+            'expiring': 'warning',   # Yellow/Orange
+            'expired': 'danger',     # Red
+            'no_expiry': 'secondary' # Gray
+        }
+
         def format_hours(h_float):
             if not h_float: return "00:00"
             h = int(h_float)
@@ -631,15 +683,55 @@ class FsScheduledFlight(models.Model):
             return f"{h:02d}:{m:02d}"
 
         if grouped_field == 'aircraft_id':
-            records = self.env['fs.aircraft'].search([('is_airworthy', '=', True)])
+            # Parse domain to check is_sim filter state
+            show_sim = True  # Default: show all (including simulators)
+            hide_sim = False
+            sim_only = False
+            
+            if domain:
+                for cond in domain:
+                    if isinstance(cond, (list, tuple)) and len(cond) == 3:
+                        field, op, val = cond
+                        if field == 'is_sim' and op == '=' and val is False:
+                            hide_sim = True
+                        elif field == 'is_sim' and op == '=' and val is True:
+                            sim_only = True
+            
+            # Build aircraft search domain based on filter state
+            aircraft_domain: list = [('is_airworthy', '=', True)]
+            if hide_sim:
+                # "Hide Simulators" filter is active - exclude simulators
+                aircraft_domain.append(('aircraft_type_id.is_simulator', '=', False))
+            elif sim_only:
+                # "Simulators Only" filter is active - show only simulators
+                aircraft_domain.append(('aircraft_type_id.is_simulator', '=', True))
+            # else: show all aircraft (no additional filter)
+            
+            records = self.env['fs.aircraft'].search(aircraft_domain)
             groups = []
             for r in records:
-                maint_hours = r.remaining_maintenance_hours or 0.0 #type: ignore
-                time_str = format_hours(maint_hours)
+                # Maintenance Status Bar
+                maint_status = r.maintenance_status or 'ok' # type: ignore
+                color_class = 'bg-success'
+                if maint_status == 'overdue': color_class = 'bg-danger'
+                elif maint_status == 'due_soon': color_class = 'bg-warning'
+                
+                # Image URL
+                image_url = f"/web/image/fs.aircraft/{r.id}/image_128"
+                
+                # Rich HTML Content
                 name = (
-                    f"<div class='text-center'>"
-                    f"<div class='fw-bold'>{r.registration}</div>" #type: ignore
-                    f"<div class='badge bg-light text-dark border mt-1'>🛠️ {time_str}</div>"
+                    f"<div class='d-flex align-items-center p-2' style='min-width: 250px;'>"
+                    f"  <div class='me-3'>"
+                    f"    <img src='{image_url}' class='rounded-3 shadow-sm' style='width: 48px; height: 48px; object-fit: cover;' alt='Parent'/>"
+                    f"  </div>"
+                    f"  <div class='flex-grow-1 overflow-hidden'>"
+                    f"    <div class='d-flex justify-content-between align-items-center mb-1'>"
+                    f"      <strong class='text-truncate' style='font-size: 14px;'>{r.registration}</strong>" # type: ignore
+                    f"      <span class='badge {color_class} rounded-pill' style='font-size: 10px;'>{format_hours(r.remaining_maintenance_hours)}h</span>" # type: ignore
+                    f"    </div>"
+                    f"    <div class='text-muted small text-truncate' style='font-size: 11px;'>{r.aircraft_type_id.name}</div>" # type: ignore
+                    f"  </div>"
                     f"</div>"
                 )
                 groups.append({'id': r.id, 'display_name': name})
@@ -649,24 +741,48 @@ class FsScheduledFlight(models.Model):
             # Show instructors and pilots for grouping
             records = self.env['fs.crew.member'].search([
                 ('member_type', 'in', ['instructor', 'pilot']),
-                ('has_expired_qualification', '=', False)
+                # Show all, even if expired, so they appear in timeline with red badges
             ])
             groups = []
             for r in records:
-                ident = r.callsign or r.name #type: ignore
-                hours = 0.0  # Would need to get from source record
-                time_str = format_hours(hours)
-                
-                # Get member type emoji
-                type_emoji = '👨‍✈️' if r.member_type == 'instructor' else '🧑‍✈️' #type: ignore
-                
-                name = (
-                    f"<div class='text-center'>"
-                    f"<div class='fw-bold'>{type_emoji} {ident}</div>"
-                    f"<div class='badge bg-light text-dark border mt-1'>⏱️ {time_str}</div>"
-                    f"</div>"
-                )
-                groups.append({'id': r.id, 'display_name': name})
+                try:
+                    # fs.crew.member uses 'name' as callsign/display name
+                    ident = r.name or "Unknown" # type: ignore
+                    
+                    # Determine role & icon
+                    role_label = "Pilot"
+                    if r.member_type == 'instructor': # type: ignore
+                        role_label = "Instructor"
+                    
+                    # Image URL (Crew Member avatar)
+                    image_url = "/web/static/img/placeholder.png"
+                    if r.source_model and r.source_id: # type: ignore
+                        image_url = f"/web/image/{r.source_model}/{r.source_id}/image_128" # type: ignore
+                    
+                    # Qualifications Badges
+                    badges = r.qualification_badges or '' # type: ignore
+
+                    # Generate Rich HTML
+                    name = (
+                        f"<div class='d-flex align-items-center p-2' style='min-width: 250px;'>"
+                        f"  <div class='me-3'>"
+                        f"    <img src='{image_url}' class='rounded-circle border shadow-sm' style='width: 42px; height: 42px; object-fit: cover;' "
+                        f"         onerror=\"this.src='/web/static/img/placeholder.png'\" alt='User'/>"
+                        f"  </div>"
+                        f"  <div class='flex-grow-1 overflow-hidden'>"
+                        f"    <div class='d-flex justify-content-between align-items-center mb-0'>"
+                        f"      <strong class='text-dark text-truncate' style='font-size: 13px;'>{ident}</strong>"
+                        f"      <span class='badge bg-light text-muted border' style='font-size: 10px;'>{role_label}</span>"
+                        f"    </div>"
+                        f"    <div class='mt-1 d-flex flex-wrap gap-1' style='font-size: 10px;'>"
+                        f"      {badges}"
+                        f"    </div>"
+                        f"  </div>"
+                        f"</div>"
+                    )
+                    groups.append({'id': r.id, 'display_name': name})
+                except Exception as e:
+                    groups.append({'id': r.id, 'display_name': f"ERROR: {str(e)}"})
             return groups
         return []
 

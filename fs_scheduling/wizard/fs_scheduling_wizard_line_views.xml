@@ -139,7 +139,7 @@
                                                    domain="[('class_type_id', '=', class_type_id)]"
                                                    required="flight_category == 'student_training'"/>
                                             <field name="route_id" 
-                                                   options="{'no_create': True}"
+                                                   options="{'no_create': True, 'order': 'sequence, name'}"
                                                    string="Route / Area"/>
                                             <field name="duration" widget="float_time"/>
                                             <field name="flight_type_id" string="Flight Type" readonly="1"/>
@@ -166,7 +166,7 @@
                                                    options="{'no_create': True}"
                                                    required="flight_category == 'staff_training'"/>
                                             <field name="route_id" 
-                                                   options="{'no_create': True}"
+                                                   options="{'no_create': True, 'order': 'sequence, name'}"
                                                    string="Route / Area"/>
                                             <field name="duration" widget="float_time"/>
                                             <field name="flight_type_id" string="Flight Type"/>

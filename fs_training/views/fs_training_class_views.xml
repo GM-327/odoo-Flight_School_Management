@@ -288,11 +288,55 @@
         </field>
     </record>
 
+    <!-- Calendar View -->
+    <record id="view_training_class_calendar" model="ir.ui.view">
+        <field name="name">fs.training.class.calendar</field>
+        <field name="model">fs.training.class</field>
+        <field name="arch" type="xml">
+            <calendar string="Training Classes Schedule"
+                      date_start="start_date"
+                      date_stop="expected_end_date"
+                      color="color"
+                      mode="month"
+                      event_open_popup="true"
+                      quick_create="false"
+                      form_view_id="%(view_training_class_form)d"
+                      scales="day,week,month,year">
+                <!-- Primary info for the Event Bar -->
+                <field name="name" bold="1"/>
+                <field name="code"/>
+                
+                <!-- Side Filters -->
+                <field name="class_type_id" filters="1" invisible="1"/>
+                <field name="status" filters="1" widget="badge"
+                       decoration-success="status == 'completed'"
+                       decoration-info="status == 'in_progress'"
+                       decoration-muted="status == 'draft'"
+                       decoration-danger="status == 'cancelled'"/>
+
+                <!-- Milestone Dates (Pop-over details) -->
+                <field name="start_date" string="Start Date"/>
+                <field name="initial_end_date" string="Initial Target End"/>
+                <field name="expected_end_date" string="Latest Expected End"/>
+                <field name="actual_end_date" string="Actual Completion" 
+                       invisible="status not in ('completed', 'cancelled')"/>
+                
+                <!-- Performance Insights (Pop-over details) -->
+                <field name="end_date_warning_message" 
+                       invisible="end_date_warning_level == 'none'"
+                       decoration-danger="end_date_warning_level == 'danger'"
+                       decoration-warning="end_date_warning_level == 'warning'"/>
+                <field name="progress_percentage" widget="progressbar"/>
+                <field name="student_count" string="Students Enrolled"/>
+            </calendar>
+        </field>
+    </record>
+
     <!-- Action -->
     <record id="action_training_class" model="ir.actions.act_window">
         <field name="name">Training Classes</field>
         <field name="res_model">fs.training.class</field>
-        <field name="view_mode">kanban,list,form,graph,pivot</field>
+        <field name="view_mode">kanban,list,calendar,form,graph,pivot</field>
         <field name="domain">[('status', '!=', 'cancelled')]</field>
         <field name="context">{}</field>
         <field name="help" type="html">
