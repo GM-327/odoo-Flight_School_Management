@@ -4,12 +4,19 @@
 
 from odoo import api, fields, models, _
 
+# Import shared constants from mixin
+from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
+    PILOT_FUNCTION_SELECTION,
+    FLIGHT_CATEGORY_SELECTION,
+)
+
 
 class FsAddFlightWizard(models.TransientModel):
     """Wizard for adding new flights from operations board."""
 
     _name = 'fs.add.flight.wizard'
     _description = 'Add Flight Wizard'
+    _inherit = ['fs.flight.mixin']
 
     callsign = fields.Char(
         string='Callsign',
@@ -17,41 +24,8 @@ class FsAddFlightWizard(models.TransientModel):
         default=lambda self: self._get_next_add_callsign(),
     )
 
-    @api.model
-    def _get_next_add_callsign(self):
-        """Generate the next available ADD callsign (e.g., ABS7001, ABS7002, etc.)."""
-        ICP = self.env['ir.config_parameter'].sudo()
-        prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
-        threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
-        
-        # Get current year range
-        today = fields.Date.context_today(self)
-        start_year = today.replace(month=1, day=1)
-        end_year = today.replace(month=12, day=31)
-        
-        # Search for all flights in the current year with callsigns above threshold
-        domain = [
-            ('date', '>=', start_year),
-            ('date', '<=', end_year),
-            ('callsign', '!=', False),
-            ('callsign', '!=', 'ADD'),
-        ]
-        flight_data = self.env['fs.flight'].search_read(domain, ['callsign'])
-        
-        # Find the maximum callsign number above threshold
-        max_num = threshold - 1  # Start from threshold - 1 so first is exactly threshold
-        for data in flight_data:
-            c = data['callsign']
-            if isinstance(c, str) and c.startswith(prefix) and len(c) > len(prefix):
-                suffix = c[len(prefix):]
-                if suffix.isdigit():
-                    val = int(suffix)
-                    if val >= threshold and val > max_num:
-                        max_num = val
-        
-        # Return the next available number
-        next_num = max_num + 1
-        return f"{prefix}{next_num}"
+    # Note: _get_next_add_callsign is now inherited from fs.flight.mixin
+
     date = fields.Date(
         string='Date',
         required=True,
@@ -77,10 +51,7 @@ class FsAddFlightWizard(models.TransientModel):
             record.eta = record.start_time + record.duration
 
     flight_category = fields.Selection(
-        selection=[
-            ('student_training', '📚 Student Training'),
-            ('staff_training', '👥 Pilot/Staff Training'),
-        ],
+        selection=FLIGHT_CATEGORY_SELECTION,
         string='Category',
         default='student_training',
         required=True,
@@ -96,27 +67,19 @@ class FsAddFlightWizard(models.TransientModel):
         string='Pilot 1',
         required=True,
     )
-    pilot1_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P1 Function')
+    pilot1_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P1 Function',
+    )
 
     pilot2_crew_id = fields.Many2one(
         comodel_name='fs.crew.member',
         string='Pilot 2',
     )
-    pilot2_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P2 Function')
+    pilot2_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P2 Function',
+    )
     mission_id = fields.Many2one(
         comodel_name='fs.flight.mission',
         string='Mission',
@@ -151,24 +114,31 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('flight_category')
     def _onchange_flight_category(self):
-        """Handle category change: clear and reset crew fields."""
-        if self.flight_category == 'student_training':
-            self.activity_id = False
-            self.custom_activity_id = False
-            if self.pilot1_crew_id:
-                if self.pilot1_crew_id.member_type == 'student':  # type: ignore
-                    self.pilot1_function = 'student'
-                elif self.pilot1_crew_id.member_type == 'instructor':  # type: ignore
-                    self.pilot1_function = 'instructor'
-                else:
-                    self.pilot1_function = 'pilot'
-        elif self.flight_category == 'staff_training':
-            self.mission_id = False
-            # We no longer clear, we just warn in compute
+        """Clear all relevant fields when category changes to ensure data consistency."""
+        self.pilot1_crew_id = False
+        self.pilot1_function = False
+        self.pilot2_crew_id = False
+        self.pilot2_function = False
+        self.aircraft_id = False
+        self.mission_id = False
+        self.activity_id = False
+        self.custom_activity_id = False
+        self.training_class_id = False
+        self.aircraft_type_id = False
+        self.class_type_id = False
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
         """Smart assignment when Pilot 1 crew member is selected."""
+        # Clear downstream fields to maintain integrity
+        self.pilot2_crew_id = False
+        self.pilot2_function = False
+        self.aircraft_id = False
+        self.mission_id = False
+        self.training_class_id = False
+        self.aircraft_type_id = False
+        self.class_type_id = False
+
         if self.pilot1_crew_id:
             member_type = self.pilot1_crew_id.member_type  # type: ignore
             if member_type == 'student':
@@ -179,6 +149,7 @@ class FsAddFlightWizard(models.TransientModel):
                         self.training_class_id = enrollment.training_class_id  # type: ignore
                         self.class_type_id = enrollment.training_class_id.class_type_id if enrollment.training_class_id else False  # type: ignore
                         self.aircraft_type_id = enrollment.aircraft_type_id  # type: ignore
+
                         instructor = enrollment.instructor_id  # type: ignore
                         if instructor and not instructor.has_expired_qualification:  # type: ignore
                             crew_member = self.env['fs.crew.member'].search([
@@ -208,6 +179,7 @@ class FsAddFlightWizard(models.TransientModel):
     @api.onchange('mission_id')
     def _onchange_mission_id(self):
         """Update duration and functions from mission."""
+        self.route_id = False
         if self.mission_id:
             self.duration = self.mission_id.duration_hours  # type: ignore
             self.flight_type_id = self.mission_id.flight_type_id  # type: ignore
@@ -303,3 +275,70 @@ class FsAddFlightWizard(models.TransientModel):
         self.env['fs.flight'].create(vals)
 
         return {'type': 'ir.actions.act_window_close'}
+
+
+class FsAddSimWizard(FsAddFlightWizard):
+    """Wizard for adding new simulator sessions from simulator operations board."""
+
+    _name = 'fs.add.sim.wizard'
+    _inherit = ['fs.add.flight.wizard']
+    _description = 'Add Simulator Session Wizard'
+
+    callsign = fields.Char(
+        string='Callsign',
+        required=True,
+        default=lambda self: self._get_next_sim_callsign(),
+    )
+
+    aircraft_id = fields.Many2one(
+        comodel_name='fs.aircraft',
+        string='Simulator',
+        required=True,
+        domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', True)]",
+    )
+
+    mission_id = fields.Many2one(
+        comodel_name='fs.flight.mission',
+        string='Mission',
+        domain="[('is_sim', '=', True)]",
+    )
+
+    activity_id = fields.Many2one(
+        comodel_name='fs.flight.activity',
+        string='Activity',
+        domain="[('is_sim', '=', True)]",
+        help="Standard simulator activity for staff training.",
+    )
+
+    @api.model
+    def _get_next_sim_callsign(self):
+        """Generate the next available SIM callsign (e.g., SIM0001, SIM0042, etc.)."""
+        # Get current year range
+        today = fields.Date.context_today(self)
+        start_year = today.replace(month=1, day=1)
+        end_year = today.replace(month=12, day=31)
+
+        # Search for all SIM flights in the current year
+        domain = [
+            ('date', '>=', start_year),
+            ('date', '<=', end_year),
+            ('callsign', '=like', 'SIM%'),
+        ]
+        flight_data = self.env['fs.flight'].search_read(domain, ['callsign'])
+
+        # Find the maximum callsign number
+        max_num = 0
+        for data in flight_data:
+            c = data['callsign']
+            if isinstance(c, str) and c.startswith('SIM') and len(c) > 3:
+                suffix = c[3:]
+                if suffix.isdigit():
+                    val = int(suffix)
+                    if val > max_num:
+                        max_num = val
+
+        # Return the next available number zero-padded to 4 digits
+        next_num = max_num + 1
+        return f"SIM{next_num:04d}"
+
+

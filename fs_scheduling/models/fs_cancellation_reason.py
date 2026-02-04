@@ -2,7 +2,7 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsCancellationReason(models.Model):
@@ -36,6 +36,7 @@ class FsCancellationReason(models.Model):
         'Cancellation reason code must be unique!',
     )
 
+    @api.depends('code', 'name')
     def _compute_display_name(self):
         for record in self:
             record.display_name = f"[{record.code}] {record.name}" if record.code else record.name

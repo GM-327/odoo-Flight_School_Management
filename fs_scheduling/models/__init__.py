@@ -3,6 +3,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 
+from . import fs_flight_mixin
 from . import fs_cancellation_reason
 from . import fs_crew_member
 from . import fs_custom_flight_type

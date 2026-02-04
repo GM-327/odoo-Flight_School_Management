@@ -7,13 +7,19 @@ from datetime import datetime, timedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 
+# Import shared constants from mixin
+from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
+    PILOT_FUNCTION_SELECTION,
+    FLIGHT_CATEGORY_SELECTION,
+)
+
 
 class FsScheduledFlight(models.Model):
     """Instances of flight missions scheduled for specific resources and times."""
 
     _name = 'fs.scheduled.flight'
     _description = 'Scheduled Flight'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'fs.flight.mixin']
     _order = 'is_sim asc, start_datetime asc, callsign asc'
 
     callsign = fields.Char(
@@ -61,12 +67,15 @@ class FsScheduledFlight(models.Model):
     date_day = fields.Char(string='Day', compute='_compute_date_parts', store=True)
 
     # === Category (2 options only) ===
-    flight_category = fields.Selection([
-        ('student_training', '📚 Student Training'),
-        ('staff_training', '👥 Pilot/Staff Training'),
-    ], string='Mission Category', default='student_training', required=True, tracking=True,
-       help="Student Training: Student + Instructor/Supervisor. "
-            "Staff Training: Pilots and instructors for proficiency, ferry, tests, etc.")
+    flight_category = fields.Selection(
+        selection=FLIGHT_CATEGORY_SELECTION,
+        string='Mission Category',
+        default='student_training',
+        required=True,
+        tracking=True,
+        help="Student Training: Student + Instructor/Supervisor. "
+             "Staff Training: Pilots and instructors for proficiency, ferry, tests, etc.",
+    )
 
     # === Pilot 1 (Primary Position) - Unified Crew Member ===
     pilot1_crew_id = fields.Many2one(
@@ -76,14 +85,11 @@ class FsScheduledFlight(models.Model):
         tracking=True,
         help="Select crew member for Pilot 1 position (student, instructor, or pilot).",
     )
-    pilot1_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P1 Function', help="Function/role of Pilot 1")
+    pilot1_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P1 Function',
+        help="Function/role of Pilot 1",
+    )
 
     # Computed display for Pilot 1
     pilot1_display = fields.Char(
@@ -115,14 +121,11 @@ class FsScheduledFlight(models.Model):
         help="Select crew member for Pilot 2 position (instructor or pilot).",
         group_expand='_read_group_crew_ids',
     )
-    pilot2_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P2 Function', help="Function/role of Pilot 2")
+    pilot2_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P2 Function',
+        help="Function/role of Pilot 2",
+    )
 
     # Computed display for Pilot 2
     pilot2_display = fields.Char(

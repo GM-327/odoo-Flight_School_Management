@@ -40,8 +40,7 @@
                                         <field name="flight_category" widget="radio" options="{'horizontal': false}"/>
                                     </group>
                                     
-                                    <!-- Added Mission toggle (always visible) -->
-                                    <div class="mt-3 pt-3 border-top">
+                                    <div class="mt-3 pt-3 border-top" invisible="is_sim">
                                         <div class="d-flex align-items-center justify-content-between">
                                             <span class="small fw-bold text-muted mb-0 o_form_label">Added Mission (ADD)</span>
                                             <field name="is_added_mission" widget="boolean_toggle" nolabel="1"

@@ -623,7 +623,10 @@ class FsSchedulingWizard(models.TransientModel):
             # Re-verify the found start_time works for both (because pushing it for one might conflict with the other)
             # This is a simple iterative convergence
             valid_time_found = False
-            while not valid_time_found:
+            convergence_attempts = 0
+            max_convergence_attempts = 50  # Prevent infinite loop
+            while not valid_time_found and convergence_attempts < max_convergence_attempts:
+                convergence_attempts += 1
                 valid_p1 = True
                 valid_p2 = True
                 
@@ -848,7 +851,10 @@ class FsSchedulingWizard(models.TransientModel):
             
             # Re-verify intersection availability
             valid_time_found = False
-            while not valid_time_found:
+            convergence_attempts = 0
+            max_convergence_attempts = 50  # Prevent infinite loop
+            while not valid_time_found and convergence_attempts < max_convergence_attempts:
+                convergence_attempts += 1
                 valid_p1 = True
                 valid_p2 = True
                 

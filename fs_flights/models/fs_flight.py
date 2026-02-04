@@ -6,6 +6,13 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 from datetime import datetime, timedelta
 
+# Import shared constants from mixin
+from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
+    PILOT_FUNCTION_SELECTION,
+    FLIGHT_CATEGORY_SELECTION,
+)
+
+
 class FsFlight(models.Model):
     """Actual flight execution record.
     
@@ -16,7 +23,7 @@ class FsFlight(models.Model):
 
     _name = 'fs.flight'
     _description = 'Flight'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'fs.flight.mixin']
     _order = 'date desc, scheduled_start asc'
 
     # === Link to Scheduled Flight (Parent Plan) ===
@@ -55,20 +62,31 @@ class FsFlight(models.Model):
     # Note: ADD callsign is preserved on create - conversion happens when opening the form for edit
 
     def action_open_form(self):
-        """Open flight form and auto-assign callsign if it's 'ADD'."""
+        """Open flight form and auto-assign callsign if it's 'ADD'. Opens the appropriate popup view."""
         self.ensure_one()
         # Auto-convert ADD callsign when opening for edit
         if self.callsign and self.callsign.upper() == 'ADD':
             new_callsign = self._get_next_add_callsign()
             self.sudo().write({'callsign': new_callsign})
+        
+        # Determine which popup form to use based on aircraft category
+        is_simulator = self.aircraft_id.category_id.is_simulator if self.aircraft_id else False  # type: ignore
+        view_id = self.env.ref('fs_flights.view_fs_sim_popup_form' if is_simulator else 'fs_flights.view_fs_flight_popup_form').id
+        
         return {
-            'name': _('Flight Details'),
+            'name': _('Simulator Session') if is_simulator else _('Flight Details'),
             'type': 'ir.actions.act_window',
             'res_model': 'fs.flight',
             'res_id': self.id,
             'view_mode': 'form',
+            'view_id': view_id,
             'target': 'new',
         }
+
+    def action_save_and_close(self):
+        """Save the record and close the popup. Used by popup form views."""
+        self.ensure_one()
+        return {'type': 'ir.actions.act_window_close'}
 
     # === Primary Data (Duplicated from Schedule for Independence) ===
     callsign = fields.Char(
@@ -100,44 +118,55 @@ class FsFlight(models.Model):
     
     @api.depends('date', 'aircraft_id.category_id.is_simulator')
     def _compute_daily_ops(self):
-        # Separate flights into simulator and non-simulator
-        non_sim_flights = self.filtered(lambda r: r.date and not r.aircraft_id.category_id.is_simulator)  # type: ignore
-        sim_flights = self.filtered(lambda r: r.date and r.aircraft_id.category_id.is_simulator)  # type: ignore
+        """Compute link to operations board. Does NOT create boards - that's handled in create/write."""
+        # Collect all dates for batch lookup
+        non_sim_dates = set()
+        sim_dates = set()
         
-        # Handle non-simulator flights -> daily_ops_id
-        non_sim_dates = {rec.date for rec in non_sim_flights}
+        for record in self:
+            if not record.date:
+                continue
+            if record.aircraft_id and record.aircraft_id.category_id and record.aircraft_id.category_id.is_simulator:  # type: ignore
+                sim_dates.add(record.date)
+            else:
+                non_sim_dates.add(record.date)
+        
+        # Batch lookup for daily operations
         ops_map = {}
         if non_sim_dates:
             existing_ops = self.env['fs.daily.operations'].search([('date', 'in', list(non_sim_dates))])
             ops_map = {op.date: op for op in existing_ops}  # type: ignore
-            missing_dates = non_sim_dates - set(ops_map.keys())
-            for d in missing_dates:
-                op = self.env['fs.daily.operations'].search([('date', '=', d)], limit=1)
-                if not op:
-                    op = self.env['fs.daily.operations'].create({'date': d})
-                ops_map[d] = op
-
-        # Handle simulator flights -> simulator_ops_id
-        sim_dates = {rec.date for rec in sim_flights}
+        
+        # Batch lookup for simulator operations
         sim_ops_map = {}
         if sim_dates:
             existing_sim_ops = self.env['fs.simulator.operations'].search([('date', 'in', list(sim_dates))])
             sim_ops_map = {op.date: op for op in existing_sim_ops}  # type: ignore
-            missing_sim_dates = sim_dates - set(sim_ops_map.keys())
-            for d in missing_sim_dates:
-                op = self.env['fs.simulator.operations'].search([('date', '=', d)], limit=1)
-                if not op:
-                    op = self.env['fs.simulator.operations'].create({'date': d})
-                sim_ops_map[d] = op
-
-        # Assign values
+        
+        # Assign values (just link, don't create)
         for record in self:
-            if record.aircraft_id.category_id.is_simulator:  # type: ignore
+            is_sim = record.aircraft_id and record.aircraft_id.category_id and record.aircraft_id.category_id.is_simulator  # type: ignore
+            if is_sim:
                 record.daily_ops_id = False
                 record.simulator_ops_id = sim_ops_map.get(record.date, False)
             else:
                 record.daily_ops_id = ops_map.get(record.date, False)
                 record.simulator_ops_id = False
+
+    def _ensure_operations_board(self):
+        """Ensure operations board exists for this flight's date. Called from create/write."""
+        for record in self:
+            if not record.date:
+                continue
+            is_sim = record.aircraft_id and record.aircraft_id.category_id and record.aircraft_id.category_id.is_simulator  # type: ignore
+            if is_sim:
+                existing = self.env['fs.simulator.operations'].search([('date', '=', record.date)], limit=1)
+                if not existing:
+                    self.env['fs.simulator.operations'].create({'date': record.date})
+            else:
+                existing = self.env['fs.daily.operations'].search([('date', '=', record.date)], limit=1)
+                if not existing:
+                    self.env['fs.daily.operations'].create({'date': record.date})
     scheduled_start = fields.Float(
         string='Scheduled Start',
         required=True,
@@ -181,14 +210,10 @@ class FsFlight(models.Model):
         store=True,
         string='Pilot 1',
     )
-    pilot1_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P1 Function')
+    pilot1_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P1 Function',
+    )
 
     pilot2_crew_id = fields.Many2one(
         comodel_name='fs.crew.member',
@@ -200,20 +225,17 @@ class FsFlight(models.Model):
         store=True,
         string='Pilot 2',
     )
-    pilot2_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P2 Function')
+    pilot2_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P2 Function',
+    )
 
     # === Mission / Route ===
-    flight_category = fields.Selection([
-        ('student_training', '📚 Student Training'),
-        ('staff_training', '👥 Pilot/Staff Training'),
-    ], string='Category', default='student_training')
+    flight_category = fields.Selection(
+        selection=FLIGHT_CATEGORY_SELECTION,
+        string='Category',
+        default='student_training',
+    )
 
     mission_id = fields.Many2one(
         comodel_name='fs.flight.mission',
@@ -331,15 +353,25 @@ class FsFlight(models.Model):
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
         """Smart assignment when Pilot 1 crew member is selected."""
+        # Clear downstream fields to maintain integrity
+        self.pilot2_crew_id = False
+        self.pilot2_function = False
+        self.aircraft_id = False
+        self.mission_id = False
+        self.training_class_id = False
+        self.aircraft_type_id = False
+
         if self.pilot1_crew_id:
             member_type = self.pilot1_crew_id.member_type  # type: ignore
             if member_type == 'student':
-                self.pilot1_function = 'student'
+                if self.pilot1_function not in ('student', 'solo'):
+                    self.pilot1_function = 'student'
                 if self.pilot1_crew_id.enrollment_id:  # type: ignore
                     enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)  # type: ignore
                     if enrollment:
                         self.training_class_id = enrollment.training_class_id  # type: ignore
                         self.aircraft_type_id = enrollment.aircraft_type_id  # type: ignore
+                        
                         instructor = enrollment.instructor_id  # type: ignore
                         if instructor and not instructor.has_expired_qualification:  # type: ignore
                             crew_member = self.env['fs.crew.member'].search([
@@ -368,16 +400,22 @@ class FsFlight(models.Model):
 
     @api.onchange('flight_category')
     def _onchange_flight_category(self):
-        """Clear fields when category changes."""
-        if self.flight_category == 'student_training':
-            self.activity_id = False
-            self.custom_activity_id = False
-        elif self.flight_category == 'staff_training':
-            self.mission_id = False
+        """Clear all relevant fields when category changes to ensure data consistency."""
+        self.pilot1_crew_id = False
+        self.pilot1_function = False
+        self.pilot2_crew_id = False
+        self.pilot2_function = False
+        self.aircraft_id = False
+        self.mission_id = False
+        self.activity_id = False
+        self.custom_activity_id = False
+        self.training_class_id = False
+        self.aircraft_type_id = False
 
     @api.onchange('mission_id')
     def _onchange_mission_id(self):
         """Update duration and functions from mission."""
+        self.route_id = False
         if self.mission_id:
             self.scheduled_duration = self.mission_id.duration_hours  # type: ignore
             self.flight_type_id = self.mission_id.flight_type_id  # type: ignore
@@ -478,38 +516,7 @@ class FsFlight(models.Model):
                 record.student_id = False
                 record.training_class_id = False
 
-    @api.onchange('pilot1_crew_id')
-    def _onchange_pilot1_crew_id(self):
-        if self.pilot1_crew_id:
-            member_type = self.pilot1_crew_id.member_type  # type: ignore
-            if member_type == 'student':
-                if self.pilot1_function not in ('student', 'solo'):
-                    self.pilot1_function = 'student'
-                if self.pilot1_crew_id.enrollment_id:  # type: ignore
-                    enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)  # type: ignore
-                    if enrollment and enrollment.instructor_id:  # type: ignore
-                        crew_member = self.env['fs.crew.member'].search([
-                            ('source_model', '=', 'fs.instructor'),
-                            ('source_id', '=', enrollment.instructor_id.id)  # type: ignore
-                        ], limit=1)
-                        if crew_member and not self.pilot2_crew_id:
-                            self.pilot2_crew_id = crew_member
-                            self.pilot2_function = 'instructor'
-            elif member_type == 'instructor':
-                self.pilot1_function = 'instructor'
-            else:
-                self.pilot1_function = 'pilot'
 
-    @api.onchange('pilot2_crew_id')
-    def _onchange_pilot2_crew_id(self):
-        if self.pilot2_crew_id:
-            member_type = self.pilot2_crew_id.member_type  # type: ignore
-            if member_type == 'student':
-                self.pilot2_function = 'student'
-            elif member_type == 'instructor':
-                self.pilot2_function = 'instructor'
-            else:
-                self.pilot2_function = 'pilot'
 
     @api.depends('mission_id', 'activity_id')
     def _compute_flight_code(self):
@@ -552,28 +559,29 @@ class FsFlight(models.Model):
     # === Actions ===
 
     def _compute_status_from_times(self):
-        """Determine status based on presence of ATD/ATA."""
-        if self.status == 'cancelled':
-            return self.status
+        """Determine status based on presence of ATD/ATA. Entering times overrides cancellation."""
         if self.atd and self.ata:
             return 'done'
         if self.atd:
             return 'in_progress'
-        return 'scheduled'
+        # Respect 'cancelled' if no execution times are present
+        return self.status if self.status == 'cancelled' else 'scheduled'
 
     @api.onchange('atd')
     def _onchange_atd(self):
-        self.status = self._compute_status_from_times()
-        # Force write if record exists (for immediate UI response)
-        if self._origin:
-            self._origin.write({'atd': self.atd, 'status': self.status})
+        """Update status based on ATD entry. Status change triggers on save."""
+        new_status = self._compute_status_from_times()
+        if self.status == 'cancelled' and new_status != 'cancelled':
+            self.cancellation_reason_id = False
+        self.status = new_status
 
     @api.onchange('ata')
     def _onchange_ata(self):
-        self.status = self._compute_status_from_times()
-        # Force write if record exists (for immediate UI response)
-        if self._origin:
-            self._origin.write({'ata': self.ata, 'status': self.status})
+        """Update status based on ATA entry. Status change triggers on save."""
+        new_status = self._compute_status_from_times()
+        if self.status == 'cancelled' and new_status != 'cancelled':
+            self.cancellation_reason_id = False
+        self.status = new_status
 
     def action_start_flight(self):
         now = fields.Datetime.now()
@@ -599,9 +607,24 @@ class FsFlight(models.Model):
             },
         }
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Create flight records and ensure operations boards exist."""
+        records = super().create(vals_list)
+        records._ensure_operations_board()
+        return records
+
     def write(self, vals):
+        if vals.get('status') == 'cancelled':
+            vals.update({'atd': False, 'ata': False})
+            
         # Handle completion logic
         res = super().write(vals)
+        
+        # Ensure operations boards exist when date or aircraft changes
+        if 'date' in vals or 'aircraft_id' in vals:
+            self._ensure_operations_board()
+            
         for record in self:
             if 'status' in vals and vals['status'] == 'done' and record.actual_duration > 0:
                 record._distribute_hours()

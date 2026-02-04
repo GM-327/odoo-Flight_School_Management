@@ -179,6 +179,7 @@
                                        decoration-info="status == 'in_progress'"
                                        decoration-success="status == 'done'"
                                        decoration-danger="status == 'cancelled'"/>
+                                <field name="cancellation_code" string="Cancel" readonly="1" column_invisible="1"/>
                                 <button name="action_open_form" type="object" icon="fa-pencil" class="btn-link" title="Edit"/>
                                 <button name="action_cancel_flight" type="object" icon="fa-times" 
                                         class="btn-link text-danger" invisible="status in ('done', 'cancelled')" title="Cancel"/>

@@ -130,12 +130,11 @@ class FsCrewMember(models.Model):
             )
         """ % self._table)
 
-    def name_get(self):
-        """Return display name (prioritizing callsign)."""
-        result = []
+    @api.depends('name')
+    def _compute_display_name(self):
+        """Compute display name (prioritizing callsign)."""
         for record in self:
-            result.append((record.id, record.name or ''))
-        return result
+            record.display_name = record.name or ''
 
     @api.model
     def _name_search(self, name='', domain=None, operator='ilike', limit=100, order=None):

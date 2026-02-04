@@ -310,7 +310,7 @@ class FsSimulatorOperations(models.Model):
         return {
             'name': _('Add Simulator Session'),
             'type': 'ir.actions.act_window',
-            'res_model': 'fs.add.flight.wizard',
+            'res_model': 'fs.add.sim.wizard',
             'view_mode': 'form',
             'target': 'new',
             'context': {

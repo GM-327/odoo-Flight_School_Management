@@ -34,6 +34,8 @@ class FsFlightCancelWizard(models.TransientModel):
             'status': 'cancelled',
             'cancellation_reason_id': self.cancellation_reason_id.id,
             'notes': self.notes,
+            'atd': False,
+            'ata': False,
         })
 
         return {'type': 'ir.actions.act_window_close'}

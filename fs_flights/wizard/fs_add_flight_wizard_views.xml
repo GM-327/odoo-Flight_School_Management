@@ -80,6 +80,7 @@
                                         </div>
                                     </div>
                                     <field name="class_type_id" invisible="1"/>
+                                    <field name="aircraft_type_id" invisible="1"/>
                                     <field name="is_exam" invisible="1"/>
                                     <field name="training_class_id" invisible="1"/>
                                 </div>
@@ -144,8 +145,11 @@
                                             <strong>Student Training Flight</strong>
                                         </div>
                                         <group>
-                                            <field name="aircraft_id" options="{'no_create': True}" placeholder="Select aircraft..."/>
-                                            <field name="mission_id" options="{'no_create': True}" required="flight_category == 'student_training'" placeholder="Select mission..."/>
+                                            <field name="aircraft_id" options="{'no_create': True}" placeholder="Select aircraft..."
+                                                   domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', False), ('aircraft_type_id', '=?', aircraft_type_id)]"/>
+                                            <field name="mission_id" options="{'no_create': True}" required="flight_category == 'student_training'" 
+                                                   placeholder="Select mission..."
+                                                   domain="[('is_sim', '=', False), ('class_type_id', '=', class_type_id)]"/>
                                             <field name="route_id" options="{'no_create': True}" string="Route" placeholder="e.g., R2, TUC..."/>
                                             <field name="duration" widget="float_time" string="Dur."/>
                                         </group>
@@ -158,8 +162,10 @@
                                             <strong>Pilot/Staff Training Flight</strong>
                                         </div>
                                         <group>
-                                            <field name="aircraft_id" options="{'no_create': True}" placeholder="Select aircraft..."/>
-                                            <field name="activity_id" string="Act." options="{'no_create': True}" invisible="custom_activity_id"/>
+                                            <field name="aircraft_id" options="{'no_create': True}" placeholder="Select aircraft..."
+                                                   domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', False)]"/>
+                                            <field name="activity_id" string="Act." options="{'no_create': True}" invisible="custom_activity_id"
+                                                   domain="[('is_sim', '=', False)]"/>
                                             <field name="custom_activity_id" string="Custom" options="{'no_create': True}" invisible="activity_id"/>
                                             <field name="route_id" options="{'no_create': True}" string="Route"/>
                                             <field name="duration" widget="float_time" string="Dur."/>
@@ -184,6 +190,167 @@
                 </sheet>
                 <footer>
                     <button name="action_confirm" string="Add Flight" type="object" class="btn-primary" icon="fa-check"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <!-- Add Simulator Wizard Form -->
+    <record id="view_fs_add_sim_wizard_form" model="ir.ui.view">
+        <field name="name">fs.add.sim.wizard.form</field>
+        <field name="model">fs.add.sim.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Add Simulator Session">
+                <sheet>
+                    <div class="card border-0 rounded-3 shadow-sm mb-3" 
+                         style="overflow: hidden; position: relative; background: #f0f9ff;">
+                        <div class="card-body p-0">
+                            <div class="row g-0">
+                                <!-- Info Indicator Bar -->
+                                <div class="col-auto bg-info" style="width: 8px;"/>
+
+                                <div class="col p-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge rounded-pill me-2 px-3 py-2 fs-6" 
+                                                  style="background: rgba(13, 202, 240, 0.1); color: #0dcaf0;">
+                                                <i class="fa fa-desktop me-1" title="Simulator Session"/>
+                                                SIMULATOR SESSION
+                                            </span>
+                                            <field name="activity_id" widget="badge" class="ms-2 fs-6" invisible="not activity_id"/>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row align-items-end">
+                                        <div class="col">
+                                            <label for="callsign" class="text-uppercase fw-bold text-muted mb-0" style="font-size: 0.85rem;">Session ID</label>
+                                            <h1 class="mb-0 mt-n1 text-info fw-bolder">
+                                                <field name="callsign" placeholder="e.g. SIM0001" class="oe_inline"/>
+                                            </h1>
+                                        </div>
+                                        <div class="col-auto text-end">
+                                            <div class="d-flex gap-3">
+                                                <div class="text-center">
+                                                    <div class="text-uppercase fw-bold text-muted" style="font-size: 0.85rem;">Date</div>
+                                                    <div class="h3 mb-0 fw-bold"><field name="date"/></div>
+                                                </div>
+                                                <div class="text-center border-start ps-3">
+                                                    <div class="text-uppercase fw-bold text-muted" style="font-size: 0.85rem;">Session Time</div>
+                                                    <div class="h3 mb-0 fw-bold text-info">
+                                                        <field name="start_time" widget="float_time"/>
+                                                        <i class="fa fa-long-arrow-right mx-2 text-muted small" title="to"/>
+                                                        <field name="eta" widget="float_time"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Column 1: Mission Type -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 bg-light rounded-3 h-100 shadow-sm">
+                                <div class="card-body p-3">
+                                    <h5 class="fw-bold mb-2 border-bottom pb-2">
+                                        <i class="fa fa-sliders text-info me-2" title="Type"/>1️⃣ Session Type
+                                    </h5>
+                                    <div class="p-1">
+                                        <label for="flight_category" class="fw-bold text-muted mb-2 d-block">Category</label>
+                                        <field name="flight_category" widget="radio" options="{'horizontal': false}"/>
+                                    </div>
+                                    <field name="class_type_id" invisible="1"/>
+                                    <field name="aircraft_type_id" invisible="1"/>
+                                    <field name="is_exam" invisible="1"/>
+                                    <field name="training_class_id" invisible="1"/>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Crew -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3 h-100">
+                                <div class="card-body p-3">
+                                    <h5 class="fw-bold mb-3 border-bottom pb-2">
+                                        <i class="fa fa-users text-info me-2" title="Crew"/>2️⃣ Crew
+                                    </h5>
+                                    
+                                    <field name="crew_warning" widget="html" nolabel="1" invisible="not crew_warning"/>
+
+                                    <div class="mb-3">
+                                        <span class="o_form_label fw-bold text-muted d-block mb-1">
+                                            <i class="fa fa-user me-1" title="Pilot 1"/>PILOT 1 <span class="text-danger">*</span>
+                                        </span>
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <field name="pilot1_crew_id" options="{'no_create': True}" placeholder="Search..."
+                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
+                                            <field name="pilot1_function" class="oe_inline fw-bold"/>
+                                        </div>
+                                    </div>
+
+                                    <hr class="my-2"/>
+
+                                    <div>
+                                        <span class="o_form_label fw-bold text-muted d-block mb-1">
+                                            <i class="fa fa-user-plus me-1" title="Pilot 2"/>PILOT 2 <span class="text-muted">(optional)</span>
+                                        </span>
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <field name="pilot2_crew_id" options="{'no_create': True}" placeholder="Search..."
+                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 mt-1">
+                                            <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
+                                            <field name="pilot2_function" class="oe_inline fw-bold"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Simulator Details -->
+                        <div class="col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-3 h-100">
+                                <div class="card-body p-3">
+                                    <h5 class="fw-bold mb-2 border-bottom pb-2">
+                                        <i class="fa fa-desktop text-info me-2" title="Details"/>3️⃣ Sim Details
+                                    </h5>
+                                    
+                                    <group>
+                                        <field name="aircraft_id" string="Simulator" options="{'no_create': True}" placeholder="Select simulator..."
+                                               domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', True), ('aircraft_type_id', '=?', aircraft_type_id)]"/>
+                                        <field name="mission_id" invisible="flight_category != 'student_training'" 
+                                               options="{'no_create': True}" 
+                                               required="flight_category == 'student_training'" 
+                                               domain="[('is_sim', '=', True), ('class_type_id', '=', class_type_id)]"
+                                               placeholder="Select Syllabus mission..."/>
+                                        <field name="activity_id" string="Act." invisible="flight_category != 'staff_training'" options="{'no_create': True}"/>
+                                        <field name="duration" widget="float_time" string="Dur."/>
+                                    </group>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning for Exam -->
+                    <div role="status" invisible="not is_exam" 
+                         class="mt-3"
+                         style="background: rgba(255,193,7,0.1); display: flex; align-items: center; border-radius: 0.5rem; padding: 0.75rem;">
+                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning" title="Warning"/>
+                        <div>
+                            <h5 class="fw-bold mb-0">EXAM SESSION</h5>
+                            <p class="mb-0">This session requires an instructor with valid <strong>Examinator Qualifications</strong>.</p>
+                        </div>
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" string="Add Session" type="object" class="btn-info text-white" icon="fa-check"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

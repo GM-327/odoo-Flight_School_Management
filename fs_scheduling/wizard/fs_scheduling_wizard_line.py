@@ -4,6 +4,12 @@
 
 from odoo import api, fields, models, _
 
+# Import shared constants from mixin
+from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
+    PILOT_FUNCTION_SELECTION,
+    FLIGHT_CATEGORY_SELECTION,
+)
+
 
 class FsSchedulingWizardLine(models.TransientModel):
     _name = 'fs.scheduling.wizard.line'
@@ -21,10 +27,12 @@ class FsSchedulingWizardLine(models.TransientModel):
     )
     
     # === Category (2 options only) ===
-    flight_category = fields.Selection([
-        ('student_training', '📚 Student Training'),
-        ('staff_training', '👥 Pilot/Staff Training'),
-    ], string='Mission Category', default='student_training', required=True)
+    flight_category = fields.Selection(
+        selection=FLIGHT_CATEGORY_SELECTION,
+        string='Mission Category',
+        default='student_training',
+        required=True,
+    )
     
     # === Pilot 1 (Primary Position) - Unified Crew Member ===
     pilot1_crew_id = fields.Many2one(
@@ -32,14 +40,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         string='Pilot 1',
         help="Select crew member for Pilot 1 position (student, instructor, or pilot).",
     )
-    pilot1_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P1 Function', help="Function/role of Pilot 1")
+    pilot1_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P1 Function',
+        help="Function/role of Pilot 1",
+    )
     
     # Computed display field for Pilot 1
     pilot1_display = fields.Char(
@@ -54,14 +59,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         string='Pilot 2',
         help="Select crew member for Pilot 2 position (instructor or pilot).",
     )
-    pilot2_function = fields.Selection([
-        ('student', 'Student'),
-        ('solo', 'Solo'),
-        ('instructor', 'Instructor'),
-        ('safety_pilot', 'Safety Pilot'),
-        ('supervisor', 'Supervisor'),
-        ('pilot', 'Pilot'),
-    ], string='P2 Function', help="Function/role of Pilot 2")
+    pilot2_function = fields.Selection(
+        selection=PILOT_FUNCTION_SELECTION,
+        string='P2 Function',
+        help="Function/role of Pilot 2",
+    )
     
     # Computed display field for Pilot 2
     pilot2_display = fields.Char(
@@ -118,7 +120,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     is_sim = fields.Boolean(
         string='Is Simulator',
         compute='_compute_is_sim',
-        store=True,
+        store=False,
     )
     is_exam = fields.Boolean(
         string='Is Exam',
@@ -284,7 +286,8 @@ class FsSchedulingWizardLine(models.TransientModel):
     @api.depends('callsign_number', 'is_sim', 'is_added_mission')
     def _compute_callsign_display(self):
         for line in self:
-            if line.is_added_mission:
+            # SIM missions never use ADD behavior
+            if line.is_added_mission and not line.is_sim:
                 line.callsign_display = "ADD"
                 continue
             prefix = 'SIM' if line.is_sim else (line.wizard_id.callsign_prefix or 'ABS')  # type: ignore
