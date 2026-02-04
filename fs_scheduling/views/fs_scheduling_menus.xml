@@ -48,9 +48,16 @@
               action="action_fs_flight_route"
               sequence="30"/>
 
+    <menuitem id="menu_fs_pilot_function"
+              name="Pilot Functions"
+              parent="menu_fs_scheduling_config"
+              action="action_fs_pilot_function"
+              sequence="40"/>
+
     <menuitem id="menu_fs_scheduling_settings"
               name="Settings"
               parent="menu_fs_scheduling_config"
               action="action_fs_scheduling_config_settings"
               sequence="100"/>
 </odoo>
+

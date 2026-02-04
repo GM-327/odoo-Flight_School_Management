@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Initial Experience List View -->
+    <record id="view_fs_initial_experience_list" model="ir.ui.view">
+        <field name="name">fs.initial.experience.list</field>
+        <field name="model">fs.initial.experience</field>
+        <field name="arch" type="xml">
+            <list decoration-success="is_applied" decoration-muted="not is_applied">
+                <field name="entry_date"/>
+                <field name="person_type"/>
+                <field name="instructor_id" optional="show" invisible="person_type != 'instructor'"/>
+                <field name="pilot_id" optional="show" invisible="person_type != 'pilot'"/>
+                <field name="student_id" optional="show" invisible="person_type != 'student'"/>
+                <field name="initial_flight_hours" widget="float_time"/>
+                <field name="initial_sim_hours" widget="float_time"/>
+                <field name="initial_solo_hours" widget="float_time"/>
+                <field name="initial_instruction_hours" widget="float_time" invisible="person_type != 'instructor'"/>
+                <field name="is_applied" widget="boolean_toggle"/>
+                <field name="source" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Initial Experience Form View -->
+    <record id="view_fs_initial_experience_form" model="ir.ui.view">
+        <field name="name">fs.initial.experience.form</field>
+        <field name="model">fs.initial.experience</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_apply_experience" type="object" 
+                            string="Apply to Totals" class="btn-primary"
+                            invisible="is_applied"
+                            confirm="This will add these hours to the person's total. Continue?"/>
+                    <button name="action_unapply_experience" type="object" 
+                            string="Revert from Totals" class="btn-warning"
+                            invisible="not is_applied"
+                            confirm="This will subtract these hours from the person's total. Continue?"/>
+                    <field name="is_applied" widget="statusbar" statusbar_visible="True,False"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="is_applied">
+                        <i class="fa fa-info-circle me-2"/>
+                        This initial experience has not been applied yet. Click "Apply to Totals" to add these hours to the person's records.
+                    </div>
+                    <div class="alert alert-success" role="alert" invisible="not is_applied">
+                        <i class="fa fa-check-circle me-2"/>
+                        Applied on <field name="applied_date" nolabel="1" readonly="1" class="d-inline"/>
+                    </div>
+                    <group>
+                        <group string="Person">
+                            <field name="person_type" widget="radio" options="{'horizontal': true}"/>
+                            <field name="instructor_id" invisible="person_type != 'instructor'" 
+                                   required="person_type == 'instructor'"/>
+                            <field name="pilot_id" invisible="person_type != 'pilot'"
+                                   required="person_type == 'pilot'"/>
+                            <field name="student_id" invisible="person_type != 'student'"
+                                   required="person_type == 'student'"/>
+                        </group>
+                        <group string="Metadata">
+                            <field name="entry_date"/>
+                            <field name="source"/>
+                        </group>
+                    </group>
+                    <group string="Initial Hours">
+                        <group>
+                            <field name="initial_flight_hours" widget="float_time"/>
+                            <field name="initial_sim_hours" widget="float_time"/>
+                        </group>
+                        <group>
+                            <field name="initial_solo_hours" widget="float_time"/>
+                            <field name="initial_instruction_hours" widget="float_time" 
+                                   invisible="person_type != 'instructor'"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" colspan="2" placeholder="Additional notes about this experience entry..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Initial Experience Search View -->
+    <record id="view_fs_initial_experience_search" model="ir.ui.view">
+        <field name="name">fs.initial.experience.search</field>
+        <field name="model">fs.initial.experience</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="instructor_id"/>
+                <field name="pilot_id"/>
+                <field name="student_id"/>
+                <separator/>
+                <filter name="filter_applied" string="Applied" domain="[('is_applied', '=', True)]"/>
+                <filter name="filter_pending" string="Pending" domain="[('is_applied', '=', False)]"/>
+                <separator/>
+                <filter name="filter_instructors" string="Instructors" domain="[('person_type', '=', 'instructor')]"/>
+                <filter name="filter_pilots" string="Pilots" domain="[('person_type', '=', 'pilot')]"/>
+                <filter name="filter_students" string="Students" domain="[('person_type', '=', 'student')]"/>
+                <separator/>
+                <filter name="group_type" string="Type" context="{'group_by': 'person_type'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Initial Experience Action -->
+    <record id="action_fs_initial_experience" model="ir.actions.act_window">
+        <field name="name">Initial Experience</field>
+        <field name="res_model">fs.initial.experience</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_filter_pending': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Record initial flight experience
+            </p>
+            <p>Use this to record prior flight hours for personnel who had experience before joining.</p>
+        </field>
+    </record>
+</odoo>

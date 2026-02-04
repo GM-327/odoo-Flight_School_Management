@@ -225,6 +225,18 @@ class FsInstructor(models.Model):
         string='Total Instruction Hours',
         help="Total logged instruction hours.",
     )
+    total_sim_hours = fields.Float(
+        string='Total Sim Hours',
+        help="Total logged simulator hours.",
+    )
+    solo_hours = fields.Float(
+        string='Solo Hours',
+        help="Total solo flight hours.",
+    )
+    last_flight_date = fields.Date(
+        string='Last Flight Date',
+        help="Date of the most recent flight.",
+    )
     
     hours_current_month = fields.Float(
         string='Hours (Current Month)',
@@ -247,13 +259,70 @@ class FsInstructor(models.Model):
     )
 
     def _compute_rolling_hours(self):
-        """Compute monthly and 3-month rolling hours.
-        Note: Currently returns 0.0 as the individual flight log model is not yet integrated.
+        """Compute monthly and 3-month rolling instruction hours.
+        
+        Uses calendar months for calculation (1st to last day of month).
         """
+        from datetime import date
+        from dateutil.relativedelta import relativedelta  # type: ignore
+        
+        today = date.today()
+        # Current month boundaries
+        current_month_start = today.replace(day=1)
+        next_month = current_month_start + relativedelta(months=1)
+        current_month_end = next_month - relativedelta(days=1)
+        
+        # 3-month rolling boundaries (current month + 2 previous)
+        three_months_start = current_month_start - relativedelta(months=2)
+        
+        Flight = self.env['fs.flight']
+        
         for record in self:
-            # Placeholder for future integration with fs.flight.log
-            record.hours_current_month = 0.0
-            record.hours_3months = 0.0
+            # Find flights where this instructor was P1/P2 with instructor function
+            base_domain = [
+                ('status', '=', 'done'),
+                '|',
+                '&', ('pilot1_crew_id.source_model', '=', 'fs.instructor'),
+                     ('pilot1_crew_id.source_id', '=', record.id),
+                '&', ('pilot2_crew_id.source_model', '=', 'fs.instructor'),
+                     ('pilot2_crew_id.source_id', '=', record.id),
+            ]
+            
+            # Current month hours
+            current_month_flights = Flight.search(base_domain + [
+                ('date', '>=', current_month_start),
+                ('date', '<=', current_month_end),
+            ])
+            record.hours_current_month = sum(
+                f.distributed_hours for f in current_month_flights
+                if self._is_instructor_on_flight(record, f)
+            )
+            
+            # 3-month rolling hours
+            three_month_flights = Flight.search(base_domain + [
+                ('date', '>=', three_months_start),
+                ('date', '<=', current_month_end),
+            ])
+            record.hours_3months = sum(
+                f.distributed_hours for f in three_month_flights
+                if self._is_instructor_on_flight(record, f)
+            )
+
+    def _is_instructor_on_flight(self, instructor, flight):
+        """Check if instructor was assigned with instructor function on flight."""
+        # Check P1
+        if (flight.pilot1_crew_id and 
+            flight.pilot1_crew_id.source_model == 'fs.instructor' and
+            flight.pilot1_crew_id.source_id == instructor.id and
+            flight.pilot1_function == 'instructor'):
+            return True
+        # Check P2
+        if (flight.pilot2_crew_id and 
+            flight.pilot2_crew_id.source_model == 'fs.instructor' and
+            flight.pilot2_crew_id.source_id == instructor.id and
+            flight.pilot2_function == 'instructor'):
+            return True
+        return False
 
     @api.depends('hours_current_month', 'max_hours_per_month', 'hours_3months', 'max_hours_per_3months')
     def _compute_rolling_hours_status(self):

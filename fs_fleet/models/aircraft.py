@@ -119,6 +119,10 @@ class Aircraft(models.Model):
         default=0.0,
         help="Engine hours since last major overhaul.",
     )
+    last_flight_date = fields.Date(
+        string='Last Flight Date',
+        help="Date of the most recent flight.",
+    )
     
     # === Maintenance ===
     last_maintenance_date = fields.Date(

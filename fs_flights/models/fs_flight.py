@@ -454,6 +454,12 @@ class FsFlight(models.Model):
     eta = fields.Float(string='ETA', compute='_compute_eta', store=True, aggregator=None)
     ata = fields.Float(string='ATA', tracking=True, aggregator=None)
     actual_duration = fields.Float(string='Actual Duration', compute='_compute_actual_duration', store=True)
+    distributed_hours = fields.Float(
+        string='Distributed Hours',
+        default=0.0,
+        copy=False,
+        help="Hours already distributed to entities. Used for tracking and corrections.",
+    )
 
     # === Status ===
     status = fields.Selection(
@@ -567,21 +573,35 @@ class FsFlight(models.Model):
         # Respect 'cancelled' if no execution times are present
         return self.status if self.status == 'cancelled' else 'scheduled'
 
-    @api.onchange('atd')
-    def _onchange_atd(self):
-        """Update status based on ATD entry. Status change triggers on save."""
+    @api.onchange('atd', 'ata')
+    def _onchange_execution_times(self):
+        """Update status preview and force persistence for inline edits.
+        
+        The _origin.write() pattern is critical for the operations board because
+        it uses a computed Many2many list where standard row-level saving 
+        often fails to persist unless forced.
+        """
         new_status = self._compute_status_from_times()
+        
+        # 1. Update virtual record for UI feedback
         if self.status == 'cancelled' and new_status != 'cancelled':
             self.cancellation_reason_id = False
         self.status = new_status
 
-    @api.onchange('ata')
-    def _onchange_ata(self):
-        """Update status based on ATA entry. Status change triggers on save."""
-        new_status = self._compute_status_from_times()
-        if self.status == 'cancelled' and new_status != 'cancelled':
-            self.cancellation_reason_id = False
-        self.status = new_status
+        # 2. Force database persistence if we have an origin record
+        if self._origin:
+            # We use a dict to capture whatever is in the virtual record
+            # We don't use 'if self.atd' because 0.0 (midnight) is a valid value
+            vals = {
+                'atd': self.atd,
+                'ata': self.ata,
+                'status': new_status,
+            }
+            if self.status == 'cancelled' and new_status != 'cancelled':
+                vals['cancellation_reason_id'] = False
+            
+            # This triggers our recursion-safe write() method on the real record
+            self._origin.write(vals)
 
     def action_start_flight(self):
         now = fields.Datetime.now()
@@ -615,71 +635,299 @@ class FsFlight(models.Model):
         return records
 
     def write(self, vals):
+        """Override write to handle status updates and hour distribution on state changes.
+        
+        This method is designed to be recursion-safe and batch-compatible.
+        """
+        # 1. Handle cross-field status automation
+        # Clear times when explicit cancellation occurs
         if vals.get('status') == 'cancelled':
             vals.update({'atd': False, 'ata': False})
             
-        # Handle completion logic
+        # 2. Capture pre-write state for all records in the set
+        old_data = {
+            r.id: {
+                'status': r.status,
+                'distributed_hours': r.distributed_hours,
+                'atd': r.atd,
+                'ata': r.ata,
+            } for r in self
+        }
+        
+        # 3. Handle automatic status updates from ATD/ATA changes
+        if ('atd' in vals or 'ata' in vals) and 'status' not in vals:
+            # Note: We don't update vals directly here for the whole set because
+            # different records might need different statuses in a batch write.
+            # Instead, we'll handle it during the loop if needed, but for common
+            # single-record writes, we can optimize.
+            if len(self) == 1:
+                new_atd = vals.get('atd', self.atd)
+                new_ata = vals.get('ata', self.ata)
+                computed_status = self.with_context(
+                    status=self.status, atd=new_atd, ata=new_ata
+                )._compute_status_from_times_batch()
+                if computed_status != self.status:
+                    vals['status'] = computed_status
+                    if self.status == 'cancelled' and computed_status != 'cancelled':
+                        vals['cancellation_reason_id'] = False
+
+        # 4. Perform the actual write
         res = super().write(vals)
         
-        # Ensure operations boards exist when date or aircraft changes
+        # 5. Post-write adjustments (Hour distribution)
+        if not self.env.context.get('skip_distribution'):
+            for record in self:
+                old = old_data.get(record.id, {})
+                old_status = old.get('status')
+                old_distributed = old.get('distributed_hours', 0.0)
+                
+                new_status = record.status
+                new_duration = record.actual_duration
+                
+                delta = 0.0
+                if new_status == 'done':
+                    if old_status != 'done':
+                        # Just completed: distribute full duration
+                        delta = new_duration
+                        record._update_mission_completion()
+                    elif new_duration != old_distributed:
+                        # Still done but duration changed: distribute delta
+                        delta = new_duration - old_distributed
+                elif old_status == 'done':
+                    # Was done, now NOT done: subtract all distributed hours
+                    delta = -old_distributed
+
+                if delta != 0:
+                    record._distribute_hours(delta)
+                    # Update distributed_hours directly in DB to avoid recursion
+                    self.env.cr.execute(
+                        "UPDATE fs_flight SET distributed_hours = %s WHERE id = %s",
+                        (record.distributed_hours + delta, record.id)
+                    )
+                    record.invalidate_recordset(['distributed_hours'])
+
+        # 6. Maintenance: Ensure operations boards exist
         if 'date' in vals or 'aircraft_id' in vals:
             self._ensure_operations_board()
             
-        for record in self:
-            if 'status' in vals and vals['status'] == 'done' and record.actual_duration > 0:
-                record._distribute_hours()
         return res
 
-    def _distribute_hours(self):
-        """Distribute flight hours to Aircraft and Student."""
+    def _compute_status_from_times_batch(self):
+        """Helper for batch status computation using context or record values."""
+        atd = self.env.context.get('atd', self.atd)
+        ata = self.env.context.get('ata', self.ata)
+        status = self.env.context.get('status', self.status)
+        
+        if atd and ata:
+            return 'done'
+        if atd:
+            return 'in_progress'
+        return status if status == 'cancelled' else 'scheduled'
+
+    def unlink(self):
+        """Override unlink to subtract hours if flight was completed."""
+        for record in self:
+            if record.status == 'done' and record.distributed_hours > 0:
+                record._distribute_hours(-record.distributed_hours)
+        return super().unlink()
+
+    def _is_simulator_session(self):
+        """Check if this is a simulator session.
+        
+        Priority: mission flag > activity flag > aircraft category
+        """
         self.ensure_one()
-        hours = self.actual_duration
-        if hours <= 0: return
+        if self.mission_id and hasattr(self.mission_id, 'is_sim') and self.mission_id.is_sim:  # type: ignore
+            return True
+        if self.activity_id and hasattr(self.activity_id, 'is_sim') and self.activity_id.is_sim:  # type: ignore
+            return True
+        if self.aircraft_id and self.aircraft_id.category_id:
+            return self.aircraft_id.category_id.is_simulator  # type: ignore
+        return False
+
+    def _get_person_from_crew(self, crew):
+        """Get the actual person record from crew member.
+        
+        Uses member_type to determine correct model since the SQL view
+        has inconsistent source_model for students.
+        """
+        if not crew or not crew.source_id:
+            return False
+        
+        try:
+            # Map member_type to actual person model
+            model_map = {
+                'student': 'fs.student',
+                'instructor': 'fs.instructor',
+                'pilot': 'fs.pilot',
+            }
+            model = model_map.get(crew.member_type)
+            if model:
+                return self.env[model].browse(crew.source_id)
+            return False
+        except Exception:
+            return False
+
+    def _get_pilot_function_config(self, function_code):
+        """Get pilot function configuration by code.
+        
+        Returns dict with is_counted_flight, is_counted_instructor, is_counted_solo.
+        """
+        if not function_code:
+            return {'is_counted_flight': False, 'is_counted_instructor': False, 'is_counted_solo': False}
+        
+        PilotFunction = self.env['fs.pilot.function']
+        func = PilotFunction.get_function_by_code(function_code)
+        if func:
+            return {
+                'is_counted_flight': func.is_counted_flight,
+                'is_counted_instructor': func.is_counted_instructor,
+                'is_counted_solo': func.is_counted_solo,
+            }
+        # Fallback defaults if function not configured
+        return {'is_counted_flight': True, 'is_counted_instructor': False, 'is_counted_solo': False}
+
+    def _distribute_hours(self, hours_delta):
+        """Distribute flight hours to Aircraft, Instructor, Pilot, and Student.
+        
+        Args:
+            hours_delta: Hours to add (positive) or subtract (negative).
+        """
+        self.ensure_one()
+        if hours_delta == 0:
+            return
+        
+        is_sim = self._is_simulator_session()
+        today = fields.Date.context_today(self)
 
         # 1. Update Aircraft
         if self.aircraft_id:
-            current = sum(self.aircraft_id.mapped('total_hours'))
-            self.aircraft_id.sudo().write({'total_hours': current + hours})
+            aircraft = self.aircraft_id
+            vals = {}
+            vals['total_hours'] = aircraft.total_hours + hours_delta
+            if hours_delta > 0:
+                vals['last_flight_date'] = today
+            aircraft.sudo().write(vals)
 
-        # 2. Update Student
+        # 2. Update Crew members (P1 and P2)
+        for crew_attr, func_attr in [('pilot1_crew_id', 'pilot1_function'), 
+                                      ('pilot2_crew_id', 'pilot2_function')]:
+            crew = getattr(self, crew_attr, False)
+            func_code = getattr(self, func_attr, False)
+            if not crew:
+                continue
+            
+            person = self._get_person_from_crew(crew)
+            if not person:
+                continue
+            
+            func_config = self._get_pilot_function_config(func_code)
+            vals = {}
+            
+            if hours_delta > 0:
+                vals['last_flight_date'] = today
+            
+            if is_sim:
+                # Simulator hours tracked separately
+                if hasattr(person, 'total_sim_hours'):
+                    vals['total_sim_hours'] = person.total_sim_hours + hours_delta
+            else:
+                # Flight hours
+                if func_config['is_counted_flight'] and hasattr(person, 'total_flight_hours'):
+                    vals['total_flight_hours'] = person.total_flight_hours + hours_delta
+                if func_config['is_counted_instructor'] and hasattr(person, 'total_instruction_hours'):
+                    vals['total_instruction_hours'] = person.total_instruction_hours + hours_delta
+                if func_config['is_counted_solo'] and hasattr(person, 'solo_hours'):
+                    vals['solo_hours'] = person.solo_hours + hours_delta
+            
+            if vals:
+                person.sudo().write(vals)
+
+        # 3. Update Student (for student training flights)
         if self.flight_category == 'student_training' and self.student_id:
-            # Similar logic to fs.flight.log original implementation
-            enrollment = self.env['fs.student.enrollment'].search([
-                ('student_id', '=', self.student_id.id),
-                ('training_class_id', '=', self.training_class_id.id),
-                ('status', 'in', ['active', 'solo']),
-            ], limit=1)
+            student = self.student_id
+            vals = {}
             
-            activity = None
-            if self.mission_id and self.mission_id.activity_id: #type:ignore
-                activity = self.mission_id.activity_id #type:ignore
-            elif self.activity_id:
-                activity = self.activity_id
+            if hours_delta > 0:
+                vals['last_flight_date'] = today
             
-            if enrollment and activity:
-                EnrollmentHours = self.env['fs.enrollment.hours']
-                rec = EnrollmentHours.search([
-                    ('enrollment_id', '=', enrollment.id),
-                    ('activity_id', '=', activity.id),
-                ], limit=1)
-                
-                if rec:
-                    rec.write({'hours_logged': sum(rec.mapped('hours_logged')) + hours})
-                else:
-                    EnrollmentHours.create({
-                        'enrollment_id': enrollment.id,
-                        'activity_id': activity.id,
-                        'hours_logged': hours,
-                        'is_extra': True,
-                    })
+            if is_sim:
+                vals['total_sim_hours'] = student.total_sim_hours + hours_delta
+            else:
+                vals['total_flight_hours'] = student.total_flight_hours + hours_delta
+                # Check P1 function for solo
+                p1_func = self._get_pilot_function_config(self.pilot1_function)
+                if p1_func['is_counted_solo']:
+                    vals['solo_hours'] = student.solo_hours + hours_delta
+            
+            if vals:
+                student.sudo().write(vals)
+            
+            # Update enrollment activity hours
+            self._update_enrollment_hours(hours_delta)
 
-        # 3. Log
-        hours_str = f"{int(hours)}:{int((hours % 1) * 60):02d}"
-        self.message_post( # type: ignore
-            body=f"✅ Flight completed. {hours_str} hours distributed.",
-            message_type='notification',
-            subtype_xmlid='mail.mt_note'
-        )
+        # 4. Log the distribution
+        if hours_delta > 0:
+            hours_str = f"{int(hours_delta)}:{int((hours_delta % 1) * 60):02d}"
+            self.message_post(  # type: ignore
+                body=f"✅ Flight completed. {hours_str} hours distributed.",
+                message_type='notification',
+                subtype_xmlid='mail.mt_note'
+            )
+        elif hours_delta < 0:
+            hours_str = f"{int(abs(hours_delta))}:{int((abs(hours_delta) % 1) * 60):02d}"
+            self.message_post(  # type: ignore
+                body=f"⚠️ Hours adjusted. {hours_str} hours subtracted.",
+                message_type='notification',
+                subtype_xmlid='mail.mt_note'
+            )
+
+    def _update_enrollment_hours(self, hours_delta):
+        """Update student enrollment activity hours.
+        
+        Args:
+            hours_delta: Hours to add (positive) or subtract (negative).
+        """
+        self.ensure_one()
+        if not self.student_id or not self.training_class_id:
+            return
+        
+        enrollment = self.env['fs.student.enrollment'].search([
+            ('student_id', '=', self.student_id.id),
+            ('training_class_id', '=', self.training_class_id.id),
+            ('status', 'in', ['active', 'solo']),
+        ], limit=1)
+        
+        if not enrollment:
+            return
+        
+        # Get activity from mission or direct activity
+        activity = None
+        if self.mission_id and self.mission_id.activity_id:  # type: ignore
+            activity = self.mission_id.activity_id  # type: ignore
+        elif self.activity_id:
+            activity = self.activity_id
+        
+        if not activity:
+            return
+        
+        EnrollmentHours = self.env['fs.enrollment.hours']
+        rec = EnrollmentHours.search([
+            ('enrollment_id', '=', enrollment.id),
+            ('activity_id', '=', activity.id),
+        ], limit=1)
+        
+        if rec:
+            new_hours = max(0, rec.hours_logged + hours_delta)  # Don't go negative
+            rec.sudo().write({'hours_logged': new_hours})
+        elif hours_delta > 0:
+            # Only create new record for positive hours
+            EnrollmentHours.sudo().create({
+                'enrollment_id': enrollment.id,
+                'activity_id': activity.id,
+                'hours_logged': hours_delta,
+                'is_extra': True,
+            })
 
     @api.depends('callsign')
     def _compute_display_name(self):
@@ -704,4 +952,41 @@ class FsFlight(models.Model):
                 'size': 'sm',
             },
         }
+
+    def _update_mission_completion(self):
+        """Update mission completion status for student."""
+        self.ensure_one()
+        if not (self.status == 'done' and self.mission_id and self.student_id):
+            return
+
+        Enrollment = self.env['fs.student.enrollment']
+        MissionCompletion = self.env['fs.mission.completion']
+
+        # Find active enrollment for this student
+        # We assume the most recent in-progress enrollment
+        domain = [
+            ('student_id', '=', self.student_id.id),
+            ('state', 'in', ['in_progress', 'draft']),
+        ]
+        
+        enrollments = Enrollment.search(domain, order='create_date desc', limit=1)
+        if not enrollments:
+            return
+            
+        enrollment = enrollments[0]
+        
+        # Check if already completed
+        existing = MissionCompletion.search([
+            ('enrollment_id', '=', enrollment.id),
+            ('mission_id', '=', self.mission_id.id),
+        ], limit=1)
+        
+        if not existing:
+            MissionCompletion.create({
+                'enrollment_id': enrollment.id,
+                'mission_id': self.mission_id.id,
+                'completion_date': self.date or fields.Date.today(),
+                'flight_ref_id': self.id,
+                'notes': f"Completed on flight {self.name} ({self.date or 'No Date'})"
+            })
 

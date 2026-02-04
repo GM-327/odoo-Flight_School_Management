@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recalculate Hours Wizard Form View -->
+    <record id="view_fs_recalculate_hours_wizard_form" model="ir.ui.view">
+        <field name="name">fs.recalculate.hours.wizard.form</field>
+        <field name="model">fs.recalculate.hours.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Recalculate Hours">
+                <group string="Options">
+                    <group>
+                        <field name="include_instructors" widget="boolean_toggle"/>
+                        <field name="include_pilots" widget="boolean_toggle"/>
+                    </group>
+                    <group>
+                        <field name="include_students" widget="boolean_toggle"/>
+                        <field name="include_aircraft" widget="boolean_toggle"/>
+                    </group>
+                </group>
+                <group>
+                    <field name="show_only_differences" widget="boolean_toggle"/>
+                </group>
+                <separator string="Differences Found"/>
+                <field name="line_ids" nolabel="1">
+                    <list decoration-danger="difference != 0" editable="bottom">
+                        <field name="entity_type" readonly="1"/>
+                        <field name="entity_name" readonly="1"/>
+                        <field name="field_name" readonly="1"/>
+                        <field name="current_value" widget="float_time" readonly="1"/>
+                        <field name="calculated_value" widget="float_time" readonly="1"/>
+                        <field name="difference" widget="float_time" readonly="1"/>
+                        <field name="apply" widget="boolean_toggle"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_calculate" string="Calculate" type="object" class="btn-secondary"/>
+                    <button name="action_apply_selected" string="Apply Selected" type="object" class="btn-primary"
+                            confirm="This will update the stored hour values. Are you sure?"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Recalculate Hours Wizard Action -->
+    <record id="action_fs_recalculate_hours_wizard" model="ir.actions.act_window">
+        <field name="name">Recalculate Hours</field>
+        <field name="res_model">fs.recalculate.hours.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

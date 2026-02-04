@@ -15,7 +15,11 @@
                 <field name="qualification_badges" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
                 <field name="english_status" widget="badge" optional="hide" decoration-danger="english_status == 'expired'" decoration-warning="english_status == 'expiring'" decoration-success="english_status == 'valid'" decoration-muted="english_status == 'no_expiry'"/>
+                <field name="total_flight_hours" widget="float_time" optional="hide"/>
                 <field name="total_instruction_hours" widget="float_time" optional="show"/>
+                <field name="total_sim_hours" widget="float_time" optional="hide"/>
+                <field name="solo_hours" widget="float_time" optional="hide"/>
+                <field name="last_flight_date" optional="show"/>
             </list>
         </field>
     </record>
@@ -160,6 +164,16 @@
                                     <field name="max_students" invisible="1"/>
                                     <field name="max_hours_per_month" widget="float_time" invisible="1"/>
                                     <field name="max_hours_per_3months" widget="float_time" invisible="1"/>
+                                </group>
+                                <group string="Experience &amp; Totals" name="experience_totals">
+                                    <div class="alert alert-info" role="alert" colspan="2" groups="base.group_system">
+                                        <i class="fa fa-info-circle me-2"/> These values are automatically updated when flights are marked as "done". Manual overrides should only be used for corrections.
+                                    </div>
+                                    <field name="total_flight_hours" widget="float_time"/>
+                                    <field name="total_instruction_hours" widget="float_time"/>
+                                    <field name="total_sim_hours" widget="float_time"/>
+                                    <field name="solo_hours" widget="float_time"/>
+                                    <field name="last_flight_date" readonly="1"/>
                                 </group>
                             </group>
                         </page>

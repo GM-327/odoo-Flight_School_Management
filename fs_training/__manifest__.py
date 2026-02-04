@@ -47,6 +47,7 @@ This module provides:
         'views/fs_class_requirement_views.xml',
         'views/fs_class_type_views.xml',
         'views/fs_flight_mission_views.xml',
+        'views/fs_mission_completion_views.xml',
         'views/fs_admin_task_views.xml',
         # Views - Training
         'views/fs_training_dashboard_views.xml',

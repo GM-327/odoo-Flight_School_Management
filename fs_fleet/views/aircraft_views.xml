@@ -16,11 +16,11 @@
                   decoration-warning="status in ('maintenance', 'reserved')"
                   decoration-danger="status == 'grounded'"
                   decoration-muted="not active">
-                <field name="image_128" widget="image" options="{'size': [32, 32]}"/>
                 <field name="registration"/>
                 <field name="aircraft_type_id"/>
                 <field name="category_id"/>
                 <field name="total_hours" widget="float_time" optional="show"/>
+                <field name="last_flight_date" optional="show"/>
                 <field name="status" widget="badge" 
                        decoration-success="status == 'available'"
                        decoration-info="status == 'in_use'"
@@ -96,6 +96,7 @@
                                 <group string="Current Usage">
                                     <field name="total_hours" widget="float_time"/>
                                     <field name="hours_since_overhaul" widget="float_time"/>
+                                    <field name="last_flight_date" readonly="1"/>
                                 </group>
                                 <group string="Maintenance Status">
                                     <field name="last_maintenance_date"/>

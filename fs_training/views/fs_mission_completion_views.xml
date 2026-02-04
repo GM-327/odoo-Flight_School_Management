@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Mission Completion List View -->
+    <record id="view_fs_mission_completion_list" model="ir.ui.view">
+        <field name="name">fs.mission.completion.list</field>
+        <field name="model">fs.mission.completion</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="enrollment_id"/>
+                <field name="student_id" optional="show"/>
+                <field name="training_class_id" optional="show"/>
+                <field name="mission_id"/>
+                <field name="activity_id" optional="show"/>
+                <field name="completion_date"/>
+                <field name="notes" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Mission Completion Form View -->
+    <record id="view_fs_mission_completion_form" model="ir.ui.view">
+        <field name="name">fs.mission.completion.form</field>
+        <field name="model">fs.mission.completion</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Mission">
+                            <field name="enrollment_id"/>
+                            <field name="mission_id"/>
+                            <field name="completion_date"/>
+                        </group>
+                        <group string="Details">
+                            <field name="student_id" readonly="1"/>
+                            <field name="training_class_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" colspan="2"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Mission Completion Search View -->
+    <record id="view_fs_mission_completion_search" model="ir.ui.view">
+        <field name="name">fs.mission.completion.search</field>
+        <field name="model">fs.mission.completion</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="student_id"/>
+                <field name="mission_id"/>
+                <field name="training_class_id"/>
+                <separator/>
+                <filter name="group_student" string="Student" context="{'group_by': 'student_id'}"/>
+                <filter name="group_class" string="Class" context="{'group_by': 'training_class_id'}"/>
+                <filter name="group_activity" string="Activity" context="{'group_by': 'activity_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Mission Completion Action -->
+    <record id="action_fs_mission_completion" model="ir.actions.act_window">
+        <field name="name">Mission Completions</field>
+        <field name="res_model">fs.mission.completion</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No mission completions recorded yet
+            </p>
+            <p>Mission completions are automatically created when flights are marked as done.</p>
+        </field>
+    </record>
+</odoo>

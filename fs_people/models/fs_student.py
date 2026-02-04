@@ -171,8 +171,17 @@ class FsStudent(models.Model):
         string='Solo Hours',
         help="Total solo flight hours.",
     )
+    total_sim_hours = fields.Float(
+        string='Total Sim Hours',
+        help="Total logged simulator hours.",
+    )
+    last_flight_date = fields.Date(
+        string='Last Flight Date',
+        help="Date of the most recent flight.",
+    )
 
     # Enrollment availability logic moved to fs_training module
+
 
     
 

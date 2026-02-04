@@ -17,6 +17,8 @@
                 <field name="insurance_status" widget="badge" optional="hide" decoration-danger="insurance_status == 'expired'" decoration-warning="insurance_status == 'expiring'" decoration-success="insurance_status == 'valid'" decoration-muted="insurance_status == 'no_expiry'"/>
                 <field name="total_flight_hours" widget="float_time" optional="show"/>
                 <field name="solo_hours" widget="float_time" optional="hide"/>
+                <field name="total_sim_hours" widget="float_time" optional="hide"/>
+                <field name="last_flight_date" optional="show"/>
                 <field name="advance_payment" optional="hide"/>
             </list>
         </field>
@@ -148,9 +150,18 @@
                                     <field name="service_number" invisible="not is_military"/>
                                 </group>
                                 <group string="" name="stats">
-                                    <field name="phone"/>
-                                    <field name="active" widget="boolean_toggle"/>
-                                </group>
+                                     <field name="phone"/>
+                                     <field name="active" widget="boolean_toggle"/>
+                                 </group>
+                                 <group string="Experience &amp; Totals" name="experience_totals">
+                                     <div class="alert alert-info" role="alert" colspan="2" groups="base.group_system">
+                                         <i class="fa fa-info-circle me-2"/> These values are automatically updated when flights are marked as "done". Manual overrides should only be used for corrections.
+                                     </div>
+                                     <field name="total_flight_hours" widget="float_time"/>
+                                     <field name="solo_hours" widget="float_time"/>
+                                     <field name="total_sim_hours" widget="float_time"/>
+                                     <field name="last_flight_date" readonly="1"/>
+                                 </group>
                             </group>
                         </page>
 

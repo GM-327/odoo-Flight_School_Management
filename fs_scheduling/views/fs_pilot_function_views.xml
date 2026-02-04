@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pilot Function List View -->
+    <record id="view_fs_pilot_function_list" model="ir.ui.view">
+        <field name="name">fs.pilot.function.list</field>
+        <field name="model">fs.pilot.function</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="is_counted_flight"/>
+                <field name="is_counted_instructor"/>
+                <field name="is_counted_solo"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Pilot Function Form View -->
+    <record id="view_fs_pilot_function_form" model="ir.ui.view">
+        <field name="name">fs.pilot.function.form</field>
+        <field name="model">fs.pilot.function</field>
+        <field name="arch" type="xml">
+            <form string="Pilot Function">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <group>
+                        <group string="General">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Hour Counting">
+                            <field name="is_counted_flight"/>
+                            <field name="is_counted_instructor"/>
+                            <field name="is_counted_solo"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Pilot Function Action -->
+    <record id="action_fs_pilot_function" model="ir.actions.act_window">
+        <field name="name">Pilot Functions</field>
+        <field name="res_model">fs.pilot.function</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure Pilot Functions
+            </p>
+            <p>
+                Define pilot roles and how they affect hour counting for flight, 
+                instruction, and solo hours.
+            </p>
+        </field>
+    </record>
+</odoo>

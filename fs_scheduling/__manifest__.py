@@ -34,10 +34,12 @@ Key Features:
     ],
     'data': [
         'security/ir.model.access.csv',
+        'data/fs_pilot_function_data.xml',
         'data/fs_scheduling_data.xml',
         'views/fs_cancellation_reason_views.xml',
         'views/fs_crew_member_views.xml',
         'views/fs_custom_flight_type_views.xml',
+        'views/fs_pilot_function_views.xml',
         'views/fs_scheduled_flight_views.xml',
         'views/fs_flight_route_views.xml',
         'views/fs_scheduling_inherits_views.xml',

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Default Pilot Functions -->
+        <record id="pilot_function_student" model="fs.pilot.function">
+            <field name="code">student</field>
+            <field name="name">Student</field>
+            <field name="is_counted_flight">True</field>
+            <field name="is_counted_instructor">False</field>
+            <field name="is_counted_solo">False</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="pilot_function_solo" model="fs.pilot.function">
+            <field name="code">solo</field>
+            <field name="name">Solo</field>
+            <field name="is_counted_flight">True</field>
+            <field name="is_counted_instructor">False</field>
+            <field name="is_counted_solo">True</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="pilot_function_instructor" model="fs.pilot.function">
+            <field name="code">instructor</field>
+            <field name="name">Instructor</field>
+            <field name="is_counted_flight">True</field>
+            <field name="is_counted_instructor">True</field>
+            <field name="is_counted_solo">False</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="pilot_function_safety_pilot" model="fs.pilot.function">
+            <field name="code">safety_pilot</field>
+            <field name="name">Safety Pilot</field>
+            <field name="is_counted_flight">True</field>
+            <field name="is_counted_instructor">False</field>
+            <field name="is_counted_solo">False</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="pilot_function_supervisor" model="fs.pilot.function">
+            <field name="code">supervisor</field>
+            <field name="name">Supervisor</field>
+            <field name="is_counted_flight">False</field>
+            <field name="is_counted_instructor">False</field>
+            <field name="is_counted_solo">False</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="pilot_function_pilot" model="fs.pilot.function">
+            <field name="code">pilot</field>
+            <field name="name">Pilot</field>
+            <field name="is_counted_flight">True</field>
+            <field name="is_counted_instructor">False</field>
+            <field name="is_counted_solo">False</field>
+            <field name="sequence">60</field>
+        </record>
+    </data>
+</odoo>

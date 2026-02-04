@@ -286,3 +286,16 @@ class FsPilot(models.Model):
         string='Total Flight Hours',
         help="Total logged flight hours.",
     )
+    total_sim_hours = fields.Float(
+        string='Total Sim Hours',
+        help="Total logged simulator hours.",
+    )
+    solo_hours = fields.Float(
+        string='Solo Hours',
+        help="Total solo flight hours.",
+    )
+    last_flight_date = fields.Date(
+        string='Last Flight Date',
+        help="Date of the most recent flight.",
+    )
+
