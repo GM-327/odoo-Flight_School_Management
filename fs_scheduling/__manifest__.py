@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Scheduling',
-    'version': '19.0.3.0.0',
+    'version': '19.0.3.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Flight mission scheduling and timeline management',
     'description': """

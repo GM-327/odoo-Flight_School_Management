@@ -219,16 +219,6 @@ class FsScheduledFlight(models.Model):
         ondelete='restrict',
     )
 
-    # === Execution (for future Flights module) ===
-    actual_start = fields.Datetime(string='Actual Start')
-    actual_end = fields.Datetime(string='Actual End')
-    actual_duration = fields.Float(
-        string='Actual Duration',
-        compute='_compute_actual_duration',
-        store=True,
-        readonly=False,
-    )
-
     # === UI Helper Fields ===
     student_callsign = fields.Char(related='student_id.callsign', string='Student Callsign', readonly=True)
     
@@ -251,23 +241,9 @@ class FsScheduledFlight(models.Model):
                 record.flight_code = False
 
     # === Status ===
-    status = fields.Selection(
-        selection=[
-            ('scheduled', 'Scheduled'),
-            ('in_progress', 'In Progress'),
-            ('done', 'Done'),
-            ('cancelled', 'Cancelled'),
-        ],
-        string='Status',
-        default='scheduled',
-        required=True,
-        tracking=True,
-    )
-    cancellation_reason_id = fields.Many2one(
-        comodel_name='fs.cancellation.reason',
-        string='Cancellation Reason',
-        ondelete='restrict',
-    )
+    # linked_flight_id removed (moved to fs_flights)
+    # Status field removed as per user request - scheduling is planning only
+    
     notes = fields.Text(string='Notes')
 
     # === Group Expand Methods ===
@@ -408,27 +384,25 @@ class FsScheduledFlight(models.Model):
         ))
         return timedelta(minutes=buffer_min)
 
-    @api.depends('pilot2_crew_id', 'start_datetime', 'end_datetime', 'status')
+    @api.depends('pilot2_crew_id', 'start_datetime', 'end_datetime')
     def _compute_instructor_conflict(self):
-        """Compute instructor conflict as a non-blocking warning."""
+        """Compute instructor conflict (checking Schedule Only)."""
         buffer = self._get_buffer_timedelta()
-        buffer_min = int(buffer.total_seconds() / 60)
+        
         for record in self:
             record.has_instructor_conflict = False
             record.instructor_conflict_details = False
             
-            if not record.pilot2_crew_id or record.status == 'cancelled':
+            if not record.pilot2_crew_id:
                 continue
-            # Only check conflicts for instructors
-            if record.pilot2_crew_id.member_type != 'instructor':  #type: ignore
+            if record.pilot2_crew_id.member_type != 'instructor':  # type: ignore
                 continue
             if not record.start_datetime or not record.end_datetime:
                 continue
             
-            # Search for overlapping flights (with buffer)
+            # 1. Check Schedule Conflicts
             conflict = self.search([
                 ('id', '!=', record.id),
-                ('status', '!=', 'cancelled'),
                 ('pilot2_crew_id', '=', record.pilot2_crew_id.id),
                 ('start_datetime', '<', record.end_datetime + buffer),
                 ('end_datetime', '>', record.start_datetime - buffer),
@@ -437,31 +411,30 @@ class FsScheduledFlight(models.Model):
             if conflict:
                 record.has_instructor_conflict = True
                 record.instructor_conflict_details = _(
-                    "%(instructor)s: conflict with '%(callsign)s' (%(start)s-%(end)s)",
-                    instructor=record.pilot2_crew_id.name, #type: ignore
-                    callsign=conflict.callsign,
-                    start=conflict.start_datetime.strftime('%H:%M') if conflict.start_datetime else '', #type: ignore
-                    end=conflict.end_datetime.strftime('%H:%M') if conflict.end_datetime else '', #type: ignore
+                    "%(instructor)s: conflict with PLAN '%(callsign)s' (%(start)s-%(end)s)",
+                    instructor=record.pilot2_crew_id.name,  #type: ignore
+                    callsign=conflict.callsign,  #type: ignore
+                    start=conflict.start_datetime.strftime('%H:%M') if conflict.start_datetime else '',
+                    end=conflict.end_datetime.strftime('%H:%M') if conflict.end_datetime else '',
                 )
 
-    @api.depends('aircraft_id', 'start_datetime', 'end_datetime', 'status')
+    @api.depends('aircraft_id', 'start_datetime', 'end_datetime')
     def _compute_aircraft_conflict(self):
-        """Compute aircraft conflict as a non-blocking warning."""
+        """Compute aircraft conflict (checking Schedule Only)."""
         buffer = self._get_buffer_timedelta()
-        buffer_min = int(buffer.total_seconds() / 60)
+        
         for record in self:
             record.has_aircraft_conflict = False
             record.aircraft_conflict_details = False
             
-            if not record.aircraft_id or record.status == 'cancelled':
+            if not record.aircraft_id:
                 continue
             if not record.start_datetime or not record.end_datetime:
                 continue
             
-            # Search for overlapping flights (with buffer)
+            # 1. Check Schedule
             conflict = self.search([
                 ('id', '!=', record.id),
-                ('status', '!=', 'cancelled'),
                 ('aircraft_id', '=', record.aircraft_id.id),
                 ('start_datetime', '<', record.end_datetime + buffer),
                 ('end_datetime', '>', record.start_datetime - buffer),
@@ -470,11 +443,11 @@ class FsScheduledFlight(models.Model):
             if conflict:
                 record.has_aircraft_conflict = True
                 record.aircraft_conflict_details = _(
-                    "%(aircraft)s: conflict with '%(callsign)s' (%(start)s-%(end)s)",
-                    aircraft=record.aircraft_id.registration,  #type: ignore
-                    callsign=conflict.callsign,
-                    start=conflict.start_datetime.strftime('%H:%M') if conflict.start_datetime else '', #type: ignore
-                    end=conflict.end_datetime.strftime('%H:%M') if conflict.end_datetime else '', #type: ignore
+                    "%(aircraft)s: conflict with PLAN '%(callsign)s' (%(start)s-%(end)s)",
+                    aircraft=record.aircraft_id.registration, # type: ignore
+                    callsign=conflict.callsign, # type: ignore
+                    start=conflict.start_datetime.strftime('%H:%M') if conflict.start_datetime else '',
+                    end=conflict.end_datetime.strftime('%H:%M') if conflict.end_datetime else '',
                 )
 
     @api.depends('has_instructor_conflict', 'has_aircraft_conflict')
@@ -482,6 +455,8 @@ class FsScheduledFlight(models.Model):
         """Compute if there is any conflict."""
         for record in self:
             record.has_any_conflict = record.has_instructor_conflict or record.has_aircraft_conflict
+
+    # === Constraints & Validation ===
 
     @api.constrains('route_id', 'is_sim')
     def _check_route_required(self):
@@ -641,13 +616,6 @@ class FsScheduledFlight(models.Model):
                 record.date_month = False
                 record.date_day = False
 
-    @api.depends('actual_start', 'actual_end')
-    def _compute_actual_duration(self):
-        for record in self:
-            if record.actual_start and record.actual_end:
-                diff = record.actual_end - record.actual_start
-                record.actual_duration = diff.total_seconds() / 3600.0
-
     # === Group Expand for Timeline ===
 
     @api.model
@@ -675,6 +643,7 @@ class FsScheduledFlight(models.Model):
             'expired': 'danger',     # Red
             'no_expiry': 'secondary' # Gray
         }
+        
 
         def format_hours(h_float):
             if not h_float: return "00:00"
@@ -879,13 +848,10 @@ class FsScheduledFlight(models.Model):
             next_num = max_num + 1
             return f"{prefix}{next_num:04d}"
 
-    def action_cancel(self):
-        self.write({'status': 'cancelled'})
-
     def check_conflicts(self):
-        """Check for resource conflicts with 15-min buffer. Returns warning list."""
+        """Check for resource conflicts with 15-min buffer (Schedule Only)."""
         self.ensure_one()
-        if not self.start_datetime or not self.end_datetime or self.status == 'cancelled':
+        if not self.start_datetime or not self.end_datetime:
             return []
 
         buffer_min = int(self.env['ir.config_parameter'].sudo().get_param('flight_school.scheduling_buffer_minutes', '15')) #type: ignore
@@ -900,7 +866,6 @@ class FsScheduledFlight(models.Model):
         if self.pilot2_crew_id:
             i_conflict = self.search([
                 ('id', '!=', self.id),
-                ('status', '!=', 'cancelled'),
                 ('pilot2_crew_id', '=', self.pilot2_crew_id.id),
                 ('start_datetime', '<', end_with_buffer),
                 ('end_datetime', '>', start_with_buffer),
@@ -912,7 +877,6 @@ class FsScheduledFlight(models.Model):
         if self.aircraft_id:
             a_conflict = self.search([
                 ('id', '!=', self.id),
-                ('status', '!=', 'cancelled'),
                 ('aircraft_id', '=', self.aircraft_id.id),
                 ('start_datetime', '<', end_with_buffer),
                 ('end_datetime', '>', start_with_buffer),

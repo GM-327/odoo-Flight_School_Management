@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="fs_flights.FullscreenToggleField">
+        <button type="button" 
+                class="btn btn-lg" 
+                t-att-class="state.isFullscreen ? 'btn-warning' : 'btn-dark'"
+                t-on-click="toggleFullscreen">
+            <i class="fa" t-att-class="state.isFullscreen ? 'fa-compress' : 'fa-expand'"/>
+            <span class="ms-2">
+                <t t-if="state.isFullscreen">Exit Fullscreen</t>
+                <t t-else="">Fullscreen</t>
+            </span>
+        </button>
+    </t>
+</templates>

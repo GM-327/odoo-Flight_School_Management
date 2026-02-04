@@ -5,7 +5,9 @@
         <field name="model">fs.cancellation.reason</field>
         <field name="arch" type="xml">
             <list editable="bottom">
+                <field name="code"/>
                 <field name="name"/>
+                <field name="color" widget="color_picker" optional="hide"/>
                 <field name="active" widget="boolean_toggle"/>
             </list>
         </field>

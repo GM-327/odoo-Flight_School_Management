@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_scheduled_flight_form_inherit_flights" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.form.inherit.flights</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="inherit_id" ref="fs_scheduling.view_fs_scheduled_flight_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(fs_flights.action_fs_flight)d" type="action" 
+                        class="oe_stat_button" icon="fa-plane"
+                        invisible="not linked_flight_id"
+                        context="{'search_default_id': linked_flight_id}">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Execution</span>
+                        <span class="o_stat_text">Record</span>
+                    </div>
+                </button>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="after">
+                <div role="status" class="alert alert-success d-flex align-items-center mb-0" 
+                     invisible="not linked_flight_id"
+                     style="margin-bottom: 20px !important;">
+                    <i class="fa fa-check-circle fa-2x me-3" title="Published"/>
+                    <div>
+                        <strong>Published to Operations</strong>
+                        <div class="small">This flight has been pushed to the daily operations board.</div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

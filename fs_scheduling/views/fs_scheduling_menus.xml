@@ -23,7 +23,7 @@
               parent="menu_fs_scheduling_root"
               action="action_fs_scheduling_wizard"
               sequence="90"/>
-              
+
     <!-- Configuration Submenus -->
     <menuitem id="menu_fs_scheduling_config"
               name="Configuration"

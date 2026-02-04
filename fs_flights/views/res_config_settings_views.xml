@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 
+    Flight Operations Settings View
+    ================================
+    Extends the Flight School settings with operations board configuration.
+    -->
+
+    <record id="res_config_settings_view_form_fs_flights" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.fs_flights</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority">60</field>
+        <field name="inherit_id" ref="fs_core.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='fs_core']//block[@name='fs_general_settings']" position="after">
+                
+                <!-- Operations Board Settings -->
+                <block title="Operations Board" name="fs_operations_board_settings">
+                    <setting string="Flights per Page" help="Number of flights shown per page on the Operations Board">
+                        <field name="fs_operations_page_size"/>
+                    </setting>
+                    <setting string="Carousel Interval" help="Seconds before auto-advancing to next page">
+                        <field name="fs_operations_carousel_interval"/>
+                    </setting>
+                </block>
+
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

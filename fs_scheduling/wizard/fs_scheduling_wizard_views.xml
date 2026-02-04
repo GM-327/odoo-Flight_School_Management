@@ -267,7 +267,7 @@
                                 <button icon="fa-exclamation-triangle" class="btn-link text-warning fa-lg" 
                                         title="⚠️ EXAM - Missing Examinator Qualification!" 
                                         invisible="not has_examinator_warning" disabled="1"/>
-                                <field name="route_id" string="Route / Area" options="{'no_create': True, 'no_open': True, 'order': 'sequence, name'}"/>
+                                <field name="route_id" string="Route / Area" options="{'no_create': True, 'no_open': True}"/>
                                 <field name="duration" widget="float_time"/>
                                 <field name="flight_type_id" string="Type" column_invisible="1"/>
                                 <field name="is_exam" column_invisible="1"/>
@@ -406,7 +406,7 @@
                                 <field name="activity_id" column_invisible="1"/>
                                 <field name="custom_activity_id" column_invisible="1"/>
                                 <field name="mission_id" column_invisible="1"/>
-                                <field name="route_id" string="Route" options="{'no_create': True, 'no_open': True, 'order': 'sequence, name'}"/>
+                                <field name="route_id" string="Route" options="{'no_create': True, 'no_open': True}"/>
                                 <field name="allowed_aircraft_ids" column_invisible="1"/>
                                 <field name="aircraft_id" options="{'no_create': True}"
                                        domain="[('id', 'in', allowed_aircraft_ids)]"/>

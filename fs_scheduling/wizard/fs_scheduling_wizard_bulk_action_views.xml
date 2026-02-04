@@ -41,7 +41,7 @@
                                 </h5>
                                 <group>
                                     <field name="route_id" 
-                                           options="{'no_create': True, 'order': 'sequence, name'}"
+                                           options="{'no_create': True}"
                                            required="action_type == 'route'"
                                            string="Route / Area"/>
                                     <field name="apply_to_lines_without_route" widget="boolean_toggle"/>

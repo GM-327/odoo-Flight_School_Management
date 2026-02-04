@@ -563,7 +563,6 @@ class FsSchedulingWizard(models.TransientModel):
         # Get existing flights for this date
         existing_flights = self.env['fs.scheduled.flight'].search([
             ('date', '=', self.date),
-            ('status', '!=', 'cancelled'),
         ])
         
         # Get buffer time from config
@@ -759,7 +758,6 @@ class FsSchedulingWizard(models.TransientModel):
         # Get existing flights for this date
         existing_flights = self.env['fs.scheduled.flight'].search([
             ('date', '=', self.date),
-            ('status', '!=', 'cancelled'),
         ])
         
         # Get buffer time from config

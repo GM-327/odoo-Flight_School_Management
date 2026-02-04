@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="fs_flights.CarouselControl">
+        <div class="d-inline-block">
+            <button class="btn btn-sm" 
+                    t-att-class="state.isPlaying ? 'btn-outline-danger' : 'btn-outline-success'"
+                    t-on-click="togglePlay"
+                    t-att-title="state.isPlaying ? 'Pause auto-scroll' : 'Start auto-scroll'">
+                <i t-att-class="state.isPlaying ? 'fa fa-pause' : 'fa fa-play'"/>
+            </button>
+        </div>
+    </t>
+</templates>

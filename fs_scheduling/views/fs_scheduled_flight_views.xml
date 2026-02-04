@@ -5,10 +5,8 @@
         <field name="name">fs.scheduled.flight.list</field>
         <field name="model">fs.scheduled.flight</field>
         <field name="arch" type="xml">
-            <list decoration-muted="status == 'cancelled'" 
-                  decoration-success="status == 'done'" 
-                  decoration-info="is_sim and status not in ('cancelled', 'done')"
-                  decoration-danger="has_any_conflict and status not in ('cancelled', 'done')"
+            <list decoration-info="is_sim"
+                  decoration-danger="has_any_conflict"
                   sample="1">
                 <field name="is_sim" column_invisible="1"/>
                 <field name="has_any_conflict" column_invisible="1"/>
@@ -23,7 +21,6 @@
                 <field name="flight_type_id" string="Type" optional="show"/>
                 <field name="mission_id" optional="hide"/>
                 <field name="route_id" string="Route" optional="show"/>
-                <field name="status" widget="badge" decoration-warning="status == 'scheduled'" decoration-info="status == 'in_progress'" decoration-success="status == 'done'"/>
             </list>
         </field>
     </record>
@@ -34,20 +31,16 @@
         <field name="model">fs.scheduled.flight</field>
         <field name="arch" type="xml">
             <form class="o_fs_flight_form">
-                <header>
-                    <button name="action_cancel" string="Cancel Mission" type="object" 
-                            invisible="status in ['done', 'cancelled']" 
-                            class="btn-outline-danger" icon="fa-times-circle"/>
-                    <field name="status" widget="statusbar" statusbar_visible="scheduled,in_progress,done"/>
-                </header>
                 <sheet>
-                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_button_box" name="button_box">
+                    </div>
                     <widget name="web_ribbon" title="EXAM" bg_color="bg-warning" invisible="not is_exam"/>
-                    <widget name="web_ribbon" title="CANCELLED" bg_color="bg-danger" invisible="status != 'cancelled'"/>
                     
+                    
+
+
                     <!-- Dynamic Hero Section -->
                     <div class="card border-0 rounded-3 shadow-sm mb-4" 
-                         invisible="status == 'cancelled'"
                          style="overflow: hidden; position: relative; background: #f8fafc;">
                         <div class="card-body p-0">
                             <div class="row g-0">
@@ -226,10 +219,6 @@
                                     </h5>
                                     <group>
                                         <field name="duration" widget="float_time" string="Estimated Duration"/>
-                                        <field name="actual_duration" widget="float_time" invisible="status not in ['in_progress', 'done']" class="fw-bold text-success"/>
-                                        <hr invisible="status not in ['in_progress', 'done']"/>
-                                        <field name="actual_start" invisible="status not in ['in_progress', 'done']"/>
-                                        <field name="actual_end" invisible="status not in ['in_progress', 'done']"/>
                                     </group>
                                 </div>
                             </div>
@@ -247,7 +236,7 @@
                                             <field name="aircraft_domain" invisible="1"/>
                                             <field name="aircraft_id" options="{'no_create': True, 'no_open': False}"
                                                    domain="aircraft_domain"/>
-                                            <field name="route_id" options="{'no_create': True, 'order': 'sequence, name'}"/>
+                                            <field name="route_id" options="{'no_create': True}"/>
                                         </group>
                                         <group>
                                             <!-- Student Training: show syllabus mission -->
@@ -276,13 +265,6 @@
                             <field name="notes" placeholder="Specify mission objectives, weather minimums, or special instructions..." 
                                    class="border-0 shadow-none"/>
                         </page>
-                        <page name="cancellation" string="Cancellation Details" invisible="status != 'cancelled'">
-                            <div role="status" style="background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 1rem; border-radius: 0.25rem; margin-bottom: 1rem;">
-                                <group>
-                                    <field name="cancellation_reason_id" required="status == 'cancelled'" options="{'no_create': True}"/>
-                                </group>
-                            </div>
-                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>
@@ -301,8 +283,7 @@
                       event_open_popup="true"
                       mode="day"
                       stack="false"
-                      zoomKey="ctrlKey"
-                      colors="#f3f4f6: status == 'cancelled'; #dcfce7: status == 'done'; #fef3c7: status == 'scheduled'; #e0f2fe: status == 'in_progress'">
+                      zoomKey="ctrlKey">
                 <!-- Required Fields for Template -->
                 <field name="callsign"/>
                 <field name="flight_category"/>
@@ -387,10 +368,6 @@
                 <field name="date"/>
                 <field name="route_id"/>
                 <separator/>
-                <filter name="filter_scheduled" string="Scheduled" domain="[('status', '=', 'scheduled')]"/>
-                <filter name="filter_done" string="Done" domain="[('status', '=', 'done')]"/>
-                <filter name="filter_in_progress" string="In Progress" domain="[('status', '=', 'in_progress')]"/>
-                <separator/>
                 <filter name="filter_student" string="📚 Student Training" domain="[('flight_category', '=', 'student_training')]"/>
                 <filter name="filter_staff" string="👥 Pilot/Staff Training" domain="[('flight_category', '=', 'staff_training')]"/>
                 <separator/>
@@ -415,7 +392,6 @@
                 <filter name="group_by_month" string="Month" context="{'group_by': 'date_month'}"/>
                 <filter name="group_by_day" string="Day" context="{'group_by': 'date_day'}"/>
                 <filter name="group_by_date" string="Date" context="{'group_by': 'date'}"/>
-                <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
             </search>
         </field>
     </record>
@@ -434,10 +410,8 @@
         <field name="name">fs.scheduled.flight.list.grouped</field>
         <field name="model">fs.scheduled.flight</field>
         <field name="arch" type="xml">
-            <list decoration-muted="status == 'cancelled'" 
-                  decoration-success="status == 'done'" 
-                  decoration-info="is_sim and status not in ('cancelled', 'done')"
-                  decoration-danger="has_any_conflict and status not in ('cancelled', 'done')"
+            <list decoration-info="is_sim"
+                  decoration-danger="has_any_conflict"
                   default_group_by="date_year,date_month,date_day"
                   sample="1">
                 <field name="is_sim" column_invisible="1"/>
@@ -453,7 +427,6 @@
                 <field name="flight_type_id" string="Type" optional="show"/>
                 <field name="mission_id" optional="hide"/>
                 <field name="route_id" string="Route" optional="show"/>
-                <field name="status" widget="badge" decoration-warning="status == 'scheduled'" decoration-info="status == 'in_progress'" decoration-success="status == 'done'"/>
             </list>
         </field>
     </record>

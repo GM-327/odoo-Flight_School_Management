@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="fs_flights.SoftRefreshField">
+        <button type="button" 
+                class="btn btn-secondary btn-lg" 
+                t-on-click="softRefresh"
+                t-att-disabled="state.isRefreshing">
+            <i class="fa" t-att-class="state.isRefreshing ? 'fa-spinner fa-spin' : 'fa-refresh'"/>
+            <span class="ms-2">
+                <t t-if="state.isRefreshing">Refreshing...</t>
+                <t t-else="">Refresh</t>
+            </span>
+        </button>
+    </t>
+</templates>

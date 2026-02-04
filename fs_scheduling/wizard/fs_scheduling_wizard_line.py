@@ -84,6 +84,11 @@ class FsSchedulingWizardLine(models.TransientModel):
     training_class_code = fields.Char(string='Class Code')
     class_type_id = fields.Many2one('fs.class.type', string='Class Type')
     aircraft_type_ids = fields.Many2many('fs.aircraft.type', string='Allowed Aircraft Types')
+    aircraft_type_id = fields.Many2one(
+        'fs.aircraft.type',
+        string='Assigned Aircraft Type',
+        help="Student's specifically assigned aircraft type from their enrollment.",
+    )
     allowed_aircraft_ids = fields.Many2many(
         'fs.aircraft',
         string='Allowed Aircraft',
@@ -190,12 +195,13 @@ class FsSchedulingWizardLine(models.TransientModel):
             else:
                 line.is_sim = False
 
-    @api.depends('is_sim', 'aircraft_type_ids', 'class_type_id', 'class_type_id.aircraft_type_ids')
+    @api.depends('is_sim', 'aircraft_type_ids', 'aircraft_type_id', 'class_type_id', 'class_type_id.aircraft_type_ids')
     def _compute_allowed_aircraft_ids(self):
         """Compute allowed aircraft based on mission type.
         
         For simulator missions: airworthy simulators from the class type's aircraft types
-        For regular missions: airworthy non-simulator aircraft matching allowed types
+        For student training: filter by student's assigned aircraft type
+        For staff training / fallback: filter by allowed aircraft types from class
         """
         Aircraft = self.env['fs.aircraft']
         for line in self:
@@ -222,8 +228,15 @@ class FsSchedulingWizardLine(models.TransientModel):
                         ('is_airworthy', '=', True),
                         ('aircraft_type_id.is_simulator', '=', True),
                     ])
+            elif line.aircraft_type_id:
+                # Student has a specific assigned aircraft type - use it
+                line.allowed_aircraft_ids = Aircraft.search([
+                    ('is_airworthy', '=', True),
+                    ('aircraft_type_id', '=', line.aircraft_type_id.id), # type: ignore
+                    ('aircraft_type_id.is_simulator', '=', False),
+                ])
             elif line.aircraft_type_ids:
-                # For regular missions, filter by allowed non-simulator types
+                # Fallback to class aircraft types (for staff training or when student has no assigned type)
                 line.allowed_aircraft_ids = Aircraft.search([
                     ('is_airworthy', '=', True),
                     ('aircraft_type_id', 'in', line.aircraft_type_ids.ids), # type: ignore
@@ -348,6 +361,7 @@ class FsSchedulingWizardLine(models.TransientModel):
                         self.training_class_code = class_rec.code if class_rec else '' # type: ignore
                         self.class_type_id = class_type
                         self.aircraft_type_ids = class_rec.aircraft_type_ids if class_rec else False # type: ignore
+                        self.aircraft_type_id = enrollment.aircraft_type_id  # type: ignore
                         
                         # Auto-assign instructor to Pilot 2 if available
                         if instructor and not instructor.has_expired_qualification: # type: ignore
