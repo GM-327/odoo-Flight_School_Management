@@ -3,6 +3,8 @@ access_fs_flight_user,fs.flight.user,model_fs_flight,fs_core.group_flight_school
 access_fs_flight_manager,fs.flight.manager,model_fs_flight,fs_core.group_flight_school_manager,1,1,1,1
 access_fs_daily_operations_user,fs.daily.operations.user,model_fs_daily_operations,fs_core.group_flight_school_user,1,1,1,0
 access_fs_daily_operations_manager,fs.daily.operations.manager,model_fs_daily_operations,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_simulator_operations_user,fs.simulator.operations.user,model_fs_simulator_operations,fs_core.group_flight_school_user,1,1,1,0
+access_fs_simulator_operations_manager,fs.simulator.operations.manager,model_fs_simulator_operations,fs_core.group_flight_school_manager,1,1,1,1
 access_fs_flight_cancel_wizard,fs.flight.cancel.wizard,model_fs_flight_cancel_wizard,fs_core.group_flight_school_user,1,1,1,1
 access_fs_add_flight_wizard,fs.add.flight.wizard,model_fs_add_flight_wizard,fs_core.group_flight_school_user,1,1,1,1
 access_fs_flight_delete_wizard,fs.flight.delete.wizard,model_fs_flight_delete_wizard,fs_core.group_flight_school_user,1,1,1,1

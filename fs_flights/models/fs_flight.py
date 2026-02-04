@@ -90,34 +90,54 @@ class FsFlight(models.Model):
         store=True,
         index=True,
     )
+    simulator_ops_id = fields.Many2one(
+        'fs.simulator.operations',
+        string='Simulator Board',
+        compute='_compute_daily_ops',
+        store=True,
+        index=True,
+    )
     
     @api.depends('date', 'aircraft_id.category_id.is_simulator')
     def _compute_daily_ops(self):
-        # Identify dates needing Ops records for non-simulator flights
-        dates = {rec.date for rec in self if rec.date and not rec.aircraft_id.category_id.is_simulator} # type: ignore
-        if not dates:
-            for record in self:
-                record.daily_ops_id = False
-            return
-            
-        # Find existing Ops records
-        existing_ops = self.env['fs.daily.operations'].search([('date', 'in', list(dates))]) # type: ignore
-        ops_map = {op.date: op for op in existing_ops} # type: ignore
+        # Separate flights into simulator and non-simulator
+        non_sim_flights = self.filtered(lambda r: r.date and not r.aircraft_id.category_id.is_simulator)  # type: ignore
+        sim_flights = self.filtered(lambda r: r.date and r.aircraft_id.category_id.is_simulator)  # type: ignore
         
-        # Create missing Ops records
-        missing_dates = dates - set(ops_map.keys())
-        for d in missing_dates:
-            op = self.env['fs.daily.operations'].search([('date', '=', d)], limit=1)
-            if not op:
-                op = self.env['fs.daily.operations'].create({'date': d})
-            ops_map[d] = op
+        # Handle non-simulator flights -> daily_ops_id
+        non_sim_dates = {rec.date for rec in non_sim_flights}
+        ops_map = {}
+        if non_sim_dates:
+            existing_ops = self.env['fs.daily.operations'].search([('date', 'in', list(non_sim_dates))])
+            ops_map = {op.date: op for op in existing_ops}  # type: ignore
+            missing_dates = non_sim_dates - set(ops_map.keys())
+            for d in missing_dates:
+                op = self.env['fs.daily.operations'].search([('date', '=', d)], limit=1)
+                if not op:
+                    op = self.env['fs.daily.operations'].create({'date': d})
+                ops_map[d] = op
 
-        # Assign
+        # Handle simulator flights -> simulator_ops_id
+        sim_dates = {rec.date for rec in sim_flights}
+        sim_ops_map = {}
+        if sim_dates:
+            existing_sim_ops = self.env['fs.simulator.operations'].search([('date', 'in', list(sim_dates))])
+            sim_ops_map = {op.date: op for op in existing_sim_ops}  # type: ignore
+            missing_sim_dates = sim_dates - set(sim_ops_map.keys())
+            for d in missing_sim_dates:
+                op = self.env['fs.simulator.operations'].search([('date', '=', d)], limit=1)
+                if not op:
+                    op = self.env['fs.simulator.operations'].create({'date': d})
+                sim_ops_map[d] = op
+
+        # Assign values
         for record in self:
-            if record.aircraft_id.category_id.is_simulator: # type: ignore
+            if record.aircraft_id.category_id.is_simulator:  # type: ignore
                 record.daily_ops_id = False
+                record.simulator_ops_id = sim_ops_map.get(record.date, False)
             else:
                 record.daily_ops_id = ops_map.get(record.date, False)
+                record.simulator_ops_id = False
     scheduled_start = fields.Float(
         string='Scheduled Start',
         required=True,

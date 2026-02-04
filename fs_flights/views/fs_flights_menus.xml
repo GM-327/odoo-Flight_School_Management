@@ -14,6 +14,13 @@
               action="action_open_operations_board"
               sequence="10"/>
 
+    <!-- Simulator Board Menu -->
+    <menuitem id="menu_fs_simulator_board"
+              name="Simulator Board"
+              parent="menu_fs_flights_root"
+              action="action_open_simulator_board"
+              sequence="15"/>
+
     <!-- Flight Logs Menu -->
     <menuitem id="menu_fs_flight_logs"
               name="Flight Logs"

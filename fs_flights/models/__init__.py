@@ -4,5 +4,6 @@
 
 from . import fs_flight
 from . import fs_daily_operations
+from . import fs_simulator_operations
 from . import fs_scheduled_flight
 from . import res_config_settings

@@ -38,6 +38,7 @@ Key Features:
         'wizard/fs_import_schedule_wizard_views.xml',
         'views/fs_flight_views.xml',
         'views/fs_daily_operations_views.xml',
+        'views/fs_simulator_operations_views.xml',
         'views/fs_scheduled_flight_views.xml',
         'views/fs_flights_menus.xml',
         'views/res_config_settings_views.xml',
