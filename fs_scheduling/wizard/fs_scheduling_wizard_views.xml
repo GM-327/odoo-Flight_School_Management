@@ -233,7 +233,7 @@
                                 <field name="is_sim" column_invisible="1"/>
                                 <field name="flight_category" column_invisible="1"/>
                                 <field name="sequence" string="#" readonly="1" width="30px"/>
-                                <field name="is_added_mission" widget="boolean_toggle" string="Added"/>
+                                <field name="is_added_mission" widget="boolean_toggle" string="Added" invisible="is_sim"/>
                                 <button name="action_move_first" type="object" icon="fa-angle-double-up" title="Move to First"/>
                                 <button name="action_move_up" type="object" icon="fa-arrow-up" title="Move Up"/>
                                 <button name="action_move_down" type="object" icon="fa-arrow-down" title="Move Down"/>
@@ -393,7 +393,7 @@
                                         title="⚠️ No aircraft could be assigned - Please assign manually" 
                                         invisible="not aircraft_assignment_warning or aircraft_id" disabled="1"/>
                                 
-                                <field name="is_added_mission" widget="boolean_toggle" string="ADD"/>
+                                <field name="is_added_mission" widget="boolean_toggle" string="ADD" invisible="is_sim"/>
                                 <field name="callsign_display" string="Callsign"/>
                                 <!-- Pilot 1 -->
                                 <field name="pilot1_function" string="P1" readonly="1" optional="hide"/>

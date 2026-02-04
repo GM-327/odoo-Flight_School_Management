@@ -145,12 +145,13 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def _apply_add_mission(self):
-        """Mark lines as ADD missions."""
+        """Mark lines as ADD missions (excludes SIM sessions)."""
         wizard = self.wizard_id
-        lines = wizard.line_ids.filtered(lambda l: not l.is_added_mission)  # type: ignore
+        # Exclude SIM sessions - they don't use ADD concept
+        lines = wizard.line_ids.filtered(lambda l: not l.is_added_mission and not l.is_sim)  # type: ignore
         
         if not lines:
-            raise UserError(_("All flights are already marked as ADD."))
+            raise UserError(_("No eligible flights to mark as ADD (SIM sessions excluded)."))
         
         updated_count = 0
         for line in lines:
