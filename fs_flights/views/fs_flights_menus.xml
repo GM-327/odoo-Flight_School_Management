@@ -35,4 +35,19 @@
               action="action_fs_sim_session"
               sequence="25"/>
 
+    <!-- Initial Experience Menu -->
+    <menuitem id="menu_fs_initial_experience"
+              name="Initial Experience"
+              parent="menu_fs_flights_root"
+              action="action_fs_initial_experience"
+              sequence="30"/>
+
+    <!-- Recalculate Hours Wizard Menu (Admin Only) -->
+    <menuitem id="menu_fs_recalculate_hours"
+              name="Recalculate Hours"
+              parent="menu_fs_flights_root"
+              action="action_fs_recalculate_hours_wizard"
+              groups="base.group_system,base.group_erp_manager"
+              sequence="99"/>
+
 </odoo>

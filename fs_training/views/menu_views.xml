@@ -95,4 +95,11 @@
               action="action_admin_task"
               sequence="30"/>
 
+    <!-- Mission Completions -->
+    <menuitem id="menu_mission_completions"
+              name="Mission Completions"
+              parent="menu_training_root"
+              action="action_fs_mission_completion"
+              sequence="25"/>
+
 </odoo>

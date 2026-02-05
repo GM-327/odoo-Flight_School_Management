@@ -264,7 +264,7 @@ class FsTrainingClass(models.Model):
                 new_tasks = []
                 for line in self.class_type_id.admin_task_ids:
                     new_tasks.append((0, 0, {
-                        'name': line.template_id.name,  # type: ignore
+                        'name': line.template_id.display_name, # type: ignore
                         'sequence': line.sequence,      # type: ignore
                         'description': line.template_id.description,  # type: ignore
                         'notes': line.notes,             # type: ignore
@@ -287,7 +287,7 @@ class FsTrainingClass(models.Model):
                 for task_link in record.class_type_id.admin_task_ids:
                     template = task_link.template_id  # type: ignore
                     self.env['fs.admin.task'].create({
-                        'name': template.name,  # type: ignore
+                        'name': template.display_name, # type: ignore
                         'training_class_id': record.id,
                         'sequence': task_link.sequence,  # type: ignore
                         'description': template.description,  # type: ignore
@@ -382,7 +382,7 @@ class FsTrainingClass(models.Model):
             if low_progression:
                 warning_msg = "<b>⚠️ Low Progression Warning:</b><br/>The following students have not completed 100% of their requirements:<ul>"
                 for enrollment in low_progression:
-                    warning_msg += f"<li>{enrollment.student_id.name}: {enrollment.progression:.1f}%</li>"  # type: ignore
+                    warning_msg += f"<li>{enrollment.student_id.display_name}: {enrollment.progression:.1f}%</li>" # type: ignore
                 warning_msg += "</ul>"
                 record.message_post(body=warning_msg, message_type='notification')  # type: ignore[attr-defined]
             

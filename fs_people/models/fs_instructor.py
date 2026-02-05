@@ -84,7 +84,7 @@ class FsInstructor(models.Model):
                     f'<span style="background-color: {color}; color: {text_color}; '
                     f'padding: 2px 8px; border-radius: 4px; margin-right: 4px; '
                     f'font-size: 12px; display: inline-block;">'
-                    f'{qual.qualification_code or qual.qualification_id.name}</span>'  # type: ignore
+                    f'{qual.qualification_code or qual.qualification_id.display_name}</span>'  # type: ignore
                 )
                 badges.append(badge_html)
             record.qualification_badges = ''.join(badges) if badges else ''
@@ -294,7 +294,7 @@ class FsInstructor(models.Model):
                 ('date', '<=', current_month_end),
             ])
             record.hours_current_month = sum(
-                f.distributed_hours for f in current_month_flights
+                f.distributed_hours for f in current_month_flights # type: ignore
                 if self._is_instructor_on_flight(record, f)
             )
             
@@ -304,7 +304,7 @@ class FsInstructor(models.Model):
                 ('date', '<=', current_month_end),
             ])
             record.hours_3months = sum(
-                f.distributed_hours for f in three_month_flights
+                f.distributed_hours for f in three_month_flights # type: ignore
                 if self._is_instructor_on_flight(record, f)
             )
 

@@ -689,7 +689,6 @@ class FsFlight(models.Model):
                     if old_status != 'done':
                         # Just completed: distribute full duration
                         delta = new_duration
-                        record._update_mission_completion()
                     elif new_duration != old_distributed:
                         # Still done but duration changed: distribute delta
                         delta = new_duration - old_distributed
@@ -741,7 +740,7 @@ class FsFlight(models.Model):
             return True
         if self.activity_id and hasattr(self.activity_id, 'is_sim') and self.activity_id.is_sim:  # type: ignore
             return True
-        if self.aircraft_id and self.aircraft_id.category_id:
+        if self.aircraft_id and self.aircraft_id.category_id: # type: ignore
             return self.aircraft_id.category_id.is_simulator  # type: ignore
         return False
 
@@ -777,7 +776,7 @@ class FsFlight(models.Model):
             return {'is_counted_flight': False, 'is_counted_instructor': False, 'is_counted_solo': False}
         
         PilotFunction = self.env['fs.pilot.function']
-        func = PilotFunction.get_function_by_code(function_code)
+        func = PilotFunction.get_function_by_code(function_code) # type: ignore
         if func:
             return {
                 'is_counted_flight': func.is_counted_flight,
@@ -804,7 +803,7 @@ class FsFlight(models.Model):
         if self.aircraft_id:
             aircraft = self.aircraft_id
             vals = {}
-            vals['total_hours'] = aircraft.total_hours + hours_delta
+            vals['total_hours'] = aircraft.total_hours + hours_delta # type: ignore
             if hours_delta > 0:
                 vals['last_flight_date'] = today
             aircraft.sudo().write(vals)
@@ -830,15 +829,15 @@ class FsFlight(models.Model):
             if is_sim:
                 # Simulator hours tracked separately
                 if hasattr(person, 'total_sim_hours'):
-                    vals['total_sim_hours'] = person.total_sim_hours + hours_delta
+                    vals['total_sim_hours'] = person.total_sim_hours + hours_delta # type: ignore
             else:
                 # Flight hours
                 if func_config['is_counted_flight'] and hasattr(person, 'total_flight_hours'):
-                    vals['total_flight_hours'] = person.total_flight_hours + hours_delta
+                    vals['total_flight_hours'] = person.total_flight_hours + hours_delta # type: ignore
                 if func_config['is_counted_instructor'] and hasattr(person, 'total_instruction_hours'):
-                    vals['total_instruction_hours'] = person.total_instruction_hours + hours_delta
+                    vals['total_instruction_hours'] = person.total_instruction_hours + hours_delta # type: ignore
                 if func_config['is_counted_solo'] and hasattr(person, 'solo_hours'):
-                    vals['solo_hours'] = person.solo_hours + hours_delta
+                    vals['solo_hours'] = person.solo_hours + hours_delta # type: ignore
             
             if vals:
                 person.sudo().write(vals)
@@ -852,13 +851,13 @@ class FsFlight(models.Model):
                 vals['last_flight_date'] = today
             
             if is_sim:
-                vals['total_sim_hours'] = student.total_sim_hours + hours_delta
+                vals['total_sim_hours'] = student.total_sim_hours + hours_delta # type: ignore
             else:
-                vals['total_flight_hours'] = student.total_flight_hours + hours_delta
+                vals['total_flight_hours'] = student.total_flight_hours + hours_delta # type: ignore
                 # Check P1 function for solo
                 p1_func = self._get_pilot_function_config(self.pilot1_function)
                 if p1_func['is_counted_solo']:
-                    vals['solo_hours'] = student.solo_hours + hours_delta
+                    vals['solo_hours'] = student.solo_hours + hours_delta # type: ignore
             
             if vals:
                 student.sudo().write(vals)
@@ -918,7 +917,7 @@ class FsFlight(models.Model):
         ], limit=1)
         
         if rec:
-            new_hours = max(0, rec.hours_logged + hours_delta)  # Don't go negative
+            new_hours = max(0, rec.hours_logged + hours_delta)  # type: ignore
             rec.sudo().write({'hours_logged': new_hours})
         elif hours_delta > 0:
             # Only create new record for positive hours
@@ -952,41 +951,4 @@ class FsFlight(models.Model):
                 'size': 'sm',
             },
         }
-
-    def _update_mission_completion(self):
-        """Update mission completion status for student."""
-        self.ensure_one()
-        if not (self.status == 'done' and self.mission_id and self.student_id):
-            return
-
-        Enrollment = self.env['fs.student.enrollment']
-        MissionCompletion = self.env['fs.mission.completion']
-
-        # Find active enrollment for this student
-        # We assume the most recent in-progress enrollment
-        domain = [
-            ('student_id', '=', self.student_id.id),
-            ('state', 'in', ['in_progress', 'draft']),
-        ]
-        
-        enrollments = Enrollment.search(domain, order='create_date desc', limit=1)
-        if not enrollments:
-            return
-            
-        enrollment = enrollments[0]
-        
-        # Check if already completed
-        existing = MissionCompletion.search([
-            ('enrollment_id', '=', enrollment.id),
-            ('mission_id', '=', self.mission_id.id),
-        ], limit=1)
-        
-        if not existing:
-            MissionCompletion.create({
-                'enrollment_id': enrollment.id,
-                'mission_id': self.mission_id.id,
-                'completion_date': self.date or fields.Date.today(),
-                'flight_ref_id': self.id,
-                'notes': f"Completed on flight {self.name} ({self.date or 'No Date'})"
-            })
 

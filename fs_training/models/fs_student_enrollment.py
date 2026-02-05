@@ -67,7 +67,7 @@ class FsStudentEnrollment(models.Model):
             if record.callsign:
                 record.display_name = record.callsign
             else:
-                record.display_name = record.student_id.name or _("New Enrollment") # type: ignore
+                record.display_name = record.student_id.display_name or _("New Enrollment")
 
     @api.onchange('training_class_id', 'student_id')
     def _onchange_student_id_suggest_callsign(self):
@@ -399,8 +399,8 @@ class FsStudentEnrollment(models.Model):
                 ])
                 if other_active:
                     raise ValidationError(
-                        f"Student '{record.student_id.name}' already has an active enrollment " # type: ignore
-                        f"in class '{other_active[0].training_class_id.name}'." # type: ignore
+                        f"Student '{record.student_id.display_name}' already has an active enrollment "
+                        f"in class '{other_active[0].training_class_id.display_name}'."
                     )
 
     def action_graduate(self):
@@ -409,7 +409,7 @@ class FsStudentEnrollment(models.Model):
         for record in self:
             if record.progression < 100.0:
                 raise UserError(
-                    f"Student '{record.student_id.name}' cannot graduate yet. " # type: ignore
+                    f"Student '{record.student_id.display_name}' cannot graduate yet. "
                     f"Syllabus completion is only {record.progression:.1f}%."
                 )
             if record.status in ('enrolled', 'active'):

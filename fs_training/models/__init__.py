@@ -8,10 +8,10 @@ from . import fs_flight_activity
 from . import fs_class_requirement
 from . import fs_class_type
 from . import fs_flight_mission
-from . import fs_mission_completion
 from . import fs_admin_task
 from . import fs_training_class
 from . import fs_student_enrollment
+from . import fs_mission_completion
 from . import fs_student
 from . import fs_instructor
 from . import fs_training_dashboard

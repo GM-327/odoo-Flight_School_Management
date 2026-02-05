@@ -6,17 +6,22 @@
         <field name="model">fs.initial.experience</field>
         <field name="arch" type="xml">
             <list decoration-success="is_applied" decoration-muted="not is_applied">
-                <field name="entry_date"/>
                 <field name="person_type"/>
-                <field name="instructor_id" optional="show" invisible="person_type != 'instructor'"/>
-                <field name="pilot_id" optional="show" invisible="person_type != 'pilot'"/>
-                <field name="student_id" optional="show" invisible="person_type != 'student'"/>
+                <field name="instructor_id" invisible="person_type != 'instructor'"/>
+                <field name="pilot_id" invisible="person_type != 'pilot'"/>
+                <field name="student_id" invisible="person_type != 'student'"/>
+                <field name="entry_date"/>
                 <field name="initial_flight_hours" widget="float_time"/>
                 <field name="initial_sim_hours" widget="float_time"/>
                 <field name="initial_solo_hours" widget="float_time"/>
                 <field name="initial_instruction_hours" widget="float_time" invisible="person_type != 'instructor'"/>
-                <field name="is_applied" widget="boolean_toggle"/>
-                <field name="source" optional="hide"/>
+                <field name="description"/>
+                <field name="is_applied" widget="boolean_toggle" readonly="1"/>
+                <button name="action_apply_hours" type="object" string="Apply" 
+                        class="btn-success" icon="fa-check" invisible="is_applied"/>
+                <button name="action_revert_hours" type="object" string="Revert" 
+                        class="btn-warning" icon="fa-undo" invisible="not is_applied"
+                        confirm="Are you sure you want to revert these hours?"/>
             </list>
         </field>
     </record>
@@ -26,26 +31,24 @@
         <field name="name">fs.initial.experience.form</field>
         <field name="model">fs.initial.experience</field>
         <field name="arch" type="xml">
-            <form>
+            <form string="Initial Experience">
                 <header>
-                    <button name="action_apply_experience" type="object" 
-                            string="Apply to Totals" class="btn-primary"
-                            invisible="is_applied"
-                            confirm="This will add these hours to the person's total. Continue?"/>
-                    <button name="action_unapply_experience" type="object" 
-                            string="Revert from Totals" class="btn-warning"
-                            invisible="not is_applied"
-                            confirm="This will subtract these hours from the person's total. Continue?"/>
-                    <field name="is_applied" widget="statusbar" statusbar_visible="True,False"/>
+                    <button name="action_apply_hours" type="object" string="Apply Hours" 
+                            class="btn-primary" invisible="is_applied"/>
+                    <button name="action_revert_hours" type="object" string="Revert Hours" 
+                            class="btn-warning" invisible="not is_applied"
+                            confirm="Are you sure you want to revert these hours from the person's totals?"/>
+                    <field name="is_applied" widget="badge" 
+                           decoration-success="is_applied" decoration-muted="not is_applied"/>
                 </header>
                 <sheet>
                     <div class="alert alert-info" role="alert" invisible="is_applied">
-                        <i class="fa fa-info-circle me-2"/>
-                        This initial experience has not been applied yet. Click "Apply to Totals" to add these hours to the person's records.
+                        <span class="fa fa-info-circle me-2" title="Info"/> 
+                        Enter the initial hours and click <strong>Apply Hours</strong> to add them to the person's totals.
                     </div>
                     <div class="alert alert-success" role="alert" invisible="not is_applied">
-                        <i class="fa fa-check-circle me-2"/>
-                        Applied on <field name="applied_date" nolabel="1" readonly="1" class="d-inline"/>
+                        <span class="fa fa-check-circle me-2" title="Success"/> 
+                        These hours have been applied to the person's totals.
                     </div>
                     <group>
                         <group string="Person">
@@ -57,24 +60,27 @@
                             <field name="student_id" invisible="person_type != 'student'"
                                    required="person_type == 'student'"/>
                         </group>
-                        <group string="Metadata">
+                        <group string="Entry Details">
                             <field name="entry_date"/>
-                            <field name="source"/>
+                            <field name="description" placeholder="e.g., Previous employer, Other flight school"/>
                         </group>
                     </group>
-                    <group string="Initial Hours">
-                        <group>
+                    <group>
+                        <group string="Flight Hours">
                             <field name="initial_flight_hours" widget="float_time"/>
                             <field name="initial_sim_hours" widget="float_time"/>
-                        </group>
-                        <group>
                             <field name="initial_solo_hours" widget="float_time"/>
-                            <field name="initial_instruction_hours" widget="float_time" 
-                                   invisible="person_type != 'instructor'"/>
+                        </group>
+                        <group string="Instruction Hours" invisible="person_type != 'instructor'">
+                            <field name="initial_instruction_hours" widget="float_time"/>
                         </group>
                     </group>
+                    <group string="Application Status" invisible="not is_applied">
+                        <field name="applied_date" readonly="1"/>
+                        <field name="applied_by" readonly="1"/>
+                    </group>
                     <group string="Notes">
-                        <field name="notes" nolabel="1" colspan="2" placeholder="Additional notes about this experience entry..."/>
+                        <field name="notes" nolabel="1" placeholder="Additional notes..."/>
                     </group>
                 </sheet>
             </form>
@@ -87,10 +93,6 @@
         <field name="model">fs.initial.experience</field>
         <field name="arch" type="xml">
             <search>
-                <field name="instructor_id"/>
-                <field name="pilot_id"/>
-                <field name="student_id"/>
-                <separator/>
                 <filter name="filter_applied" string="Applied" domain="[('is_applied', '=', True)]"/>
                 <filter name="filter_pending" string="Pending" domain="[('is_applied', '=', False)]"/>
                 <separator/>
@@ -98,7 +100,8 @@
                 <filter name="filter_pilots" string="Pilots" domain="[('person_type', '=', 'pilot')]"/>
                 <filter name="filter_students" string="Students" domain="[('person_type', '=', 'student')]"/>
                 <separator/>
-                <filter name="group_type" string="Type" context="{'group_by': 'person_type'}"/>
+                <filter name="group_person_type" string="Person Type" context="{'group_by': 'person_type'}"/>
+                <filter name="group_applied" string="Applied Status" context="{'group_by': 'is_applied'}"/>
             </search>
         </field>
     </record>
@@ -108,12 +111,15 @@
         <field name="name">Initial Experience</field>
         <field name="res_model">fs.initial.experience</field>
         <field name="view_mode">list,form</field>
-        <field name="context">{'search_default_filter_pending': 1}</field>
+        <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Record initial flight experience
             </p>
-            <p>Use this to record prior flight hours for personnel who had experience before joining.</p>
+            <p>
+                Enter hours accumulated before the system was implemented, 
+                or from other flight schools/organizations.
+            </p>
         </field>
     </record>
 </odoo>
