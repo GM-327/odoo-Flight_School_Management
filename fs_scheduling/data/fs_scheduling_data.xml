@@ -6,7 +6,7 @@
         <field name="name">Weather</field>
     </record>
     <record id="cancellation_reason_aircraft" model="fs.cancellation.reason">
-        <field name="code">TECH</field>
+        <field name="code">MEC</field>
         <field name="name">Technical Issue</field>
     </record>
     <record id="cancellation_reason_personnel" model="fs.cancellation.reason">
@@ -16,14 +16,6 @@
     <record id="cancellation_reason_ops" model="fs.cancellation.reason">
         <field name="code">OPS</field>
         <field name="name">OPS</field>
-    </record>
-    <record id="cancellation_reason_maintenance" model="fs.cancellation.reason">
-        <field name="code">MAINT</field>
-        <field name="name">Maintenance</field>
-    </record>
-    <record id="cancellation_reason_sick" model="fs.cancellation.reason">
-        <field name="code">SICK</field>
-        <field name="name">Student/Instructor Sick</field>
     </record>
 
     <!-- Default Config Parameters -->

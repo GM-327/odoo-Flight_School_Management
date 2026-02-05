@@ -44,6 +44,7 @@
             <field name="code">SIM</field>
             <field name="description">Flight training devices and full-flight simulators (FNPT, FTD, FFS).</field>
             <field name="sequence">50</field>
+            <field name="is_simulator">True</field>
             <field name="color">7</field>
         </record>
 

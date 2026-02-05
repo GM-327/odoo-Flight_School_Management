@@ -28,10 +28,6 @@
             <field name="discipline_id" ref="discipline_ifr"/>
             <field name="flight_type_id" ref="flight_type_dual"/>
         </record>
-        <record id="activity_ifr_solo" model="fs.flight.activity">
-            <field name="discipline_id" ref="discipline_ifr"/>
-            <field name="flight_type_id" ref="flight_type_solo"/>
-        </record>
 
         <!-- Non Visual (VSV) -->
         <record id="activity_vsv_dual" model="fs.flight.activity">

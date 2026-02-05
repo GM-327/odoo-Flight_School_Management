@@ -84,7 +84,7 @@
                                                 <i class="fa fa-long-arrow-right mx-2 text-muted" title="to"/>
                                                 <field name="last_end_time" widget="float_time" class="oe_inline" no_label="1"/>
                                             </div>
-                                            <field name="next_callsign_number" string="Starting ID #" help="The starting number for callsigns generated in this batch."/>
+                                            <field name="next_callsign_number" string="Starting Callsign #" help="The starting number for callsigns generated in this batch."/>
                                             <field name="callsign_prefix" invisible="1"/>
                                         </group>
 

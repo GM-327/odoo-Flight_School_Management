@@ -219,39 +219,59 @@ class FsSchedulingWizard(models.TransientModel):
             wizard.examinator_warning_details = "\n".join(warning_lines) if warning_lines else False
 
     def _default_next_callsign_number(self):
-        """Get next aircraft callsign number based on existing flights for the current year."""
-        prefix = self.env['ir.config_parameter'].sudo().get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
-        # Get current year for filtering
+        """Get next aircraft callsign number based on actual flights for the current year.
+        Seeks for the last used number (done or cancelled) below the add-mission threshold."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
+        threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
+        
+        # Get current year range
         today = fields.Date.context_today(self)
         year_start = today.replace(month=1, day=1)
         year_end = today.replace(month=12, day=31)
         
-        last = self.env['fs.scheduled.flight'].search([
+        # Search in actual flights (fs.flight) instead of scheduled flights
+        # Only consider flights that are 'done' or 'cancelled' as per user request
+        flights = self.env['fs.flight'].search([
             ('callsign', '=like', f'{prefix}%'),
             ('date', '>=', year_start),
             ('date', '<=', year_end),
-        ], order='callsign desc', limit=1)
+            ('status', 'in', ['done', 'cancelled']),
+        ])
         
-        if last and last.callsign and last.callsign[len(prefix):].isdigit():  # type: ignore
-            return int(last.callsign[len(prefix):]) + 1  # type: ignore
-        return 1
+        max_num = 0
+        for flight in flights:
+            if flight.callsign and flight.callsign[len(prefix):].isdigit():  # type: ignore
+                num = int(flight.callsign[len(prefix):])  # type: ignore
+                if num < threshold and num > max_num:
+                    max_num = num
+        
+        return max_num + 1
 
     def _get_next_sim_callsign_number(self):
-        """Get next simulator callsign number based on existing SIM flights for the current year."""
+        """Get next simulator callsign number based on actual flights for the current year.
+        Seeks for the last used SIM number (done or cancelled)."""
         # Get current year for filtering
         today = fields.Date.context_today(self)
         year_start = today.replace(month=1, day=1)
         year_end = today.replace(month=12, day=31)
         
-        last = self.env['fs.scheduled.flight'].search([
+        # Search in actual flights (fs.flight) instead of scheduled flights
+        flights = self.env['fs.flight'].search([
             ('callsign', '=like', 'SIM%'),
             ('date', '>=', year_start),
             ('date', '<=', year_end),
-        ], order='callsign desc', limit=1)
+            ('status', 'in', ['done', 'cancelled']),
+        ])
         
-        if last and last.callsign and last.callsign[3:].isdigit():  # type: ignore
-            return int(last.callsign[3:]) + 1  # type: ignore
-        return 1
+        max_num = 0
+        for flight in flights:
+            if flight.callsign and flight.callsign[3:].isdigit():  # type: ignore
+                num = int(flight.callsign[3:])  # type: ignore
+                if num > max_num:
+                    max_num = num
+        
+        return max_num + 1
 
     # === Step Navigation ===
     def action_next_step(self):

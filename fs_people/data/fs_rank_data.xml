@@ -50,6 +50,12 @@
             <field name="code">COL</field>
             <field name="sequence">70</field>
         </record>
+
+        <record id="rank_senior_colonel" model="fs.rank">
+            <field name="name">Senior Colonel</field>
+            <field name="code">SCL</field>
+            <field name="sequence">75</field>
+        </record>
         
     </data>
 </odoo>

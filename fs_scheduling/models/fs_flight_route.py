@@ -10,7 +10,7 @@ class FsFlightRoute(models.Model):
     """Specific working areas or flight routes used for scheduling."""
     _name = 'fs.flight.route'
     _description = 'Flight Route / Area'
-    _order = 'sequence, name'
+    _order = 'sequence'
 
     name = fields.Char(string='Name', required=True)
     sequence = fields.Integer(string='Sequence', default=10)
