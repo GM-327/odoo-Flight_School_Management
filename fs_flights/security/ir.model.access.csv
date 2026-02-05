@@ -10,7 +10,8 @@ access_fs_add_flight_wizard,fs.add.flight.wizard,model_fs_add_flight_wizard,fs_c
 access_fs_add_sim_wizard,fs.add.sim.wizard,model_fs_add_sim_wizard,fs_core.group_flight_school_user,1,1,1,1
 access_fs_flight_delete_wizard,fs.flight.delete.wizard,model_fs_flight_delete_wizard,fs_core.group_flight_school_user,1,1,1,1
 access_fs_import_schedule_wizard,fs.import.schedule.wizard,model_fs_import_schedule_wizard,fs_core.group_flight_school_user,1,1,1,1
-access_fs_initial_experience_user,fs.initial.experience.user,model_fs_initial_experience,fs_core.group_flight_school_user,1,0,0,0
+access_fs_initial_experience_user,fs.initial.experience.user,model_fs_initial_experience,fs_core.group_flight_school_user,1,1,1,0
 access_fs_initial_experience_manager,fs.initial.experience.manager,model_fs_initial_experience,fs_core.group_flight_school_manager,1,1,1,1
 access_fs_recalculate_hours_wizard,fs.recalculate.hours.wizard,model_fs_recalculate_hours_wizard,fs_core.group_flight_school_manager,1,1,1,1
 access_fs_recalculate_hours_line,fs.recalculate.hours.line,model_fs_recalculate_hours_line,fs_core.group_flight_school_manager,1,1,1,1
+access_fs_flights_res_config_settings_admin,fs.flights.res.config.settings.admin,model_res_config_settings,fs_core.group_flight_school_admin,1,1,1,1
