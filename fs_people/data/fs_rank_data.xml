@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Military Ranks -->
         <record id="rank_cadet" model="fs.rank">
             <field name="name">E.O.A</field>
             <field name="code">E.O.A</field>
@@ -47,6 +48,30 @@
             <field name="name">Colonel Major</field>
             <field name="code">Col.M.</field>
             <field name="sequence">21</field>
+        </record>
+
+        <record id="rank_e_s_o" model="fs.rank">
+            <field name="name">NCO Cadet</field>
+            <field name="code">E.S.O</field>
+            <field name="sequence">11</field>
+        </record>
+
+        <record id="rank_civ" model="fs.rank">
+            <field name="name">Civilian</field>
+            <field name="code">CIV</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="rank_sgt" model="fs.rank">
+            <field name="name">Sergent</field>
+            <field name="code">Sgt.</field>
+            <field name="sequence">12</field>
+        </record>
+
+        <record id="rank_adj" model="fs.rank">
+            <field name="name">Adjudant</field>
+            <field name="code">Adj.</field>
+            <field name="sequence">13</field>
         </record>
 
     </data>

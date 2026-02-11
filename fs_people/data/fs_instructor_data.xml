@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Instructors -->
+        <record id="instructor_youssef_khelifa" model="fs.instructor">
+            <field name="name">Youssef Khelifa</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_lieutenant_colonel"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-06-05</field>
+            <field name="department_id" ref="fs_core.dept_mgmt"/>
+            <field name="callsign">36</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2030-05-31</field>
+        </record>
+
+        <record id="instructor_anis_gharsallah" model="fs.instructor">
+            <field name="name">Anis Gharsallah</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_major"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-06-27</field>
+            <field name="department_id" ref="fs_core.dept_mgmt"/>
+            <field name="callsign">61</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2028-06-30</field>
+        </record>
+
+        <record id="instructor_houssem_arfaoui" model="fs.instructor">
+            <field name="name">Houssem Arfaoui</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_lieutenant_colonel"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-06-15</field>
+            <field name="callsign">53</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2031-06-30</field>
+        </record>
+
+        <record id="instructor_mehdi_dhifallah" model="fs.instructor">
+            <field name="name">Mehdi Dhifallah</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_major"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2027-02-08</field>
+            <field name="department_id" ref="fs_core.dept_ops"/>
+            <field name="callsign">242</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2031-06-30</field>
+        </record>
+
+        <record id="instructor_raouf_belghaoui" model="fs.instructor">
+            <field name="name">Raouf Belghaoui</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_major"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-02-16</field>
+            <field name="callsign">253</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_4"/>
+            <field name="english_expiry">2026-06-30</field>
+        </record>
+
+        <record id="instructor_ahmed_hammami" model="fs.instructor">
+            <field name="name">Ahmed Hammami</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_major"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-04-10</field>
+            <field name="department_id" ref="fs_core.dept_simulator"/>
+            <field name="callsign">334</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2028-06-30</field>
+        </record>
+
+        <record id="instructor_nizar_amri" model="fs.instructor">
+            <field name="name">Nizar Amri</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_captain"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-09-12</field>
+            <field name="department_id" ref="fs_core.dept_ops"/>
+            <field name="callsign">112</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="license_number">1480</field>
+            <field name="license_issue_date">2020-08-08</field>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2029-06-30</field>
+        </record>
+
+        <record id="instructor_zied_ben_saad" model="fs.instructor">
+            <field name="name">Zied Ben Saad</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_first_lieutenant"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-05-25</field>
+            <field name="department_id" ref="fs_core.dept_training"/>
+            <field name="callsign">343</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2031-04-30</field>
+        </record>
+
+        <record id="instructor_yosr_gtari" model="fs.instructor">
+            <field name="name">Yosr Gtari</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_first_lieutenant"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-07-31</field>
+            <field name="department_id" ref="fs_core.dept_ops"/>
+            <field name="callsign">122</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2029-05-31</field>
+        </record>
+
+        <record id="instructor_ahmed_koubaa" model="fs.instructor">
+            <field name="name">Ahmed Koubaa</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_first_lieutenant"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-09-13</field>
+            <field name="department_id" ref="fs_core.dept_simulator"/>
+            <field name="callsign">163</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2029-11-30</field>
+        </record>
+
+    </data>
+</odoo>

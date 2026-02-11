@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Document Types -->
         <record id="document_type_medical" model="fs.document.type">
             <field name="name">Medical Certificate</field>
             <field name="code">MED</field>

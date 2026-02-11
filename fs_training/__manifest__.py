@@ -38,8 +38,10 @@ This module provides:
         'data/fs_flight_discipline_data.xml',
         'data/fs_flight_type_data.xml',
         'data/fs_flight_activity_data.xml',
+        'data/fs_class_requirement_data.xml',
         'data/fs_class_type_data.xml',
         'data/fs_class_type_hours_data.xml',
+        'data/fs_flight_mission_data.xml',
         # Views - Configuration
         'views/fs_flight_discipline_views.xml',
         'views/fs_flight_type_views.xml',

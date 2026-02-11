@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Pilots -->
+        <record id="pilot_souheil_matoussi" model="fs.pilot">
+            <field name="name">Souheil Matoussi</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_major"/>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2027-02-25</field>
+            <field name="callsign">266</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_4"/>
+            <field name="english_expiry">2027-01-31</field>
+        </record>
+
+        <record id="pilot_ghazi_marzouk" model="fs.pilot">
+            <field name="name">Ghazi Marzouk</field>
+            <field name="identification_number">06894613</field>
+            <field name="gender">male</field>
+            <field name="birth_date">1989-03-07</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="phone">55777377</field>
+            <field name="is_military">True</field>
+            <field name="rank_id" ref="rank_major"/>
+            <field name="service_number">15826/OFF</field>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-10-29</field>
+            <field name="department_id" ref="fs_core.dept_training"/>
+            <field name="callsign">327</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="license_number">1209</field>
+            <field name="license_issue_date">2014-10-17</field>
+        </record>
+
+        <record id="pilot_hamza_zammelli" model="fs.pilot">
+            <field name="name">Hamza Zammelli</field>
+            <field name="gender">male</field>
+            <field name="nationality_id" ref="base.tn"/>
+            <field name="is_military">True</field>
+            <field name="medical_class_id" ref="medical_class_1"/>
+            <field name="medical_expiry">2026-05-26</field>
+            <field name="callsign">267</field>
+            <field name="license_id" ref="license_type_cpl"/>
+            <field name="english_level_id" ref="english_level_5"/>
+            <field name="english_expiry">2031-06-30</field>
+        </record>
+
+    </data>
+</odoo>

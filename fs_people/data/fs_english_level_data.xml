@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- ICAO English Proficiency Levels -->
         <record id="english_level_4" model="fs.english.level">
             <field name="name">Level 4 - Operational</field>
             <field name="level">4</field>

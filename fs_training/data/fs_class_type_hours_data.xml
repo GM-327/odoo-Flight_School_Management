@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Class Type Hour Requirements -->
         <record id="basic_hours_man_dual" model="fs.class.type.hours" forcecreate="1">
             <field name="class_type_id" ref="class_type_basic"/>
             <field name="activity_id" ref="activity_man_dual"/>
@@ -17,6 +18,312 @@
             <field name="class_type_id" ref="class_type_basic"/>
             <field name="activity_id" ref="activity_nav_dual"/>
             <field name="minimum_hours">12.5</field>
+        </record>
+
+        <record id="class_type_hours_8" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">23.5</field>
+        </record>
+
+        <record id="class_type_hours_9" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_man_solo"/>
+            <field name="minimum_hours">3.5</field>
+        </record>
+
+        <record id="class_type_hours_10" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_nav_dual"/>
+            <field name="minimum_hours">24.0</field>
+        </record>
+
+        <record id="class_type_hours_11" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_nav_solo"/>
+            <field name="minimum_hours">2.0</field>
+        </record>
+
+        <record id="class_type_hours_12" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_vsv_dual"/>
+            <field name="minimum_hours">11.0</field>
+        </record>
+
+        <record id="class_type_hours_13" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_ifr_dual"/>
+            <field name="minimum_hours">18.5</field>
+        </record>
+
+        <record id="class_type_hours_14" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_night_dual"/>
+            <field name="minimum_hours">5.0</field>
+        </record>
+
+        <record id="class_type_hours_15" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_man_sim"/>
+            <field name="minimum_hours">2.0</field>
+        </record>
+
+        <record id="class_type_hours_16" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic_t"/>
+            <field name="activity_id" ref="activity_vsv_sim"/>
+            <field name="minimum_hours">8.0</field>
+        </record>
+
+        <record id="class_type_hours_17" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+
+        <record id="class_type_hours_18" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_nav_dual"/>
+            <field name="minimum_hours">27.0</field>
+        </record>
+
+        <record id="class_type_hours_19" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_vsv_dual"/>
+            <field name="minimum_hours">5.0</field>
+        </record>
+
+        <record id="class_type_hours_20" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_ifr_dual"/>
+            <field name="minimum_hours">20.0</field>
+        </record>
+
+        <record id="class_type_hours_21" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_night_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+
+        <record id="class_type_hours_22" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_man_sim"/>
+            <field name="minimum_hours">2.0</field>
+        </record>
+
+        <record id="class_type_hours_23" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_vsv_sim"/>
+            <field name="minimum_hours">5.0</field>
+        </record>
+
+        <record id="class_type_hours_24" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_advanced"/>
+            <field name="activity_id" ref="activity_ifr_sim"/>
+            <field name="minimum_hours">18.0</field>
+        </record>
+
+        <record id="class_type_hours_25" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="activity_id" ref="activity_nav_solo"/>
+            <field name="minimum_hours">3.5</field>
+        </record>
+
+        <record id="class_type_hours_26" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="activity_id" ref="activity_vsv_dual"/>
+            <field name="minimum_hours">6.0</field>
+        </record>
+
+        <record id="class_type_hours_27" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="activity_id" ref="activity_ifr_dual"/>
+            <field name="minimum_hours">3.0</field>
+        </record>
+
+        <record id="class_type_hours_28" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="activity_id" ref="activity_man_sim"/>
+            <field name="minimum_hours">1.0</field>
+        </record>
+
+        <record id="class_type_hours_29" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="activity_id" ref="activity_vsv_sim"/>
+            <field name="minimum_hours">7.0</field>
+        </record>
+
+        <record id="class_type_hours_30" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_basic"/>
+            <field name="activity_id" ref="activity_ifr_sim"/>
+            <field name="minimum_hours">7.5</field>
+        </record>
+
+        <record id="class_type_hours_31" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fcf_se"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">6.5</field>
+        </record>
+
+        <record id="class_type_hours_32" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fcf_me"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">5.0</field>
+        </record>
+
+        <record id="class_type_hours_33" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_uav"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+
+        <record id="class_type_hours_34" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_uav"/>
+            <field name="activity_id" ref="activity_nav_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+
+        <record id="class_type_hours_35" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_uav"/>
+            <field name="activity_id" ref="activity_vsv_dual"/>
+            <field name="minimum_hours">5.0</field>
+        </record>
+
+        <record id="class_type_hours_36" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_uav"/>
+            <field name="activity_id" ref="activity_ifr_dual"/>
+            <field name="minimum_hours">10.0</field>
+        </record>
+
+        <record id="class_type_hours_37" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_uav"/>
+            <field name="activity_id" ref="activity_vsv_sim"/>
+            <field name="minimum_hours">15.0</field>
+        </record>
+
+        <record id="class_type_hours_38" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_uav"/>
+            <field name="activity_id" ref="activity_ifr_sim"/>
+            <field name="minimum_hours">20.0</field>
+        </record>
+
+        <record id="class_type_hours_39" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fi"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">13.0</field>
+        </record>
+
+        <record id="class_type_hours_40" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fi"/>
+            <field name="activity_id" ref="activity_nav_dual"/>
+            <field name="minimum_hours">12.0</field>
+        </record>
+
+        <record id="class_type_hours_41" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fi"/>
+            <field name="activity_id" ref="activity_vsv_dual"/>
+            <field name="minimum_hours">2.0</field>
+        </record>
+
+        <record id="class_type_hours_42" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fi"/>
+            <field name="activity_id" ref="activity_ifr_dual"/>
+            <field name="minimum_hours">1.5</field>
+        </record>
+
+        <record id="class_type_hours_43" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_fi"/>
+            <field name="activity_id" ref="activity_night_dual"/>
+            <field name="minimum_hours">1.5</field>
+        </record>
+
+        <record id="class_type_hours_44" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">8.0</field>
+        </record>
+
+        <record id="class_type_hours_45" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_man_solo"/>
+            <field name="minimum_hours">6.0</field>
+        </record>
+
+        <record id="class_type_hours_46" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="flight_activity_man_mut"/>
+            <field name="minimum_hours">16.0</field>
+        </record>
+
+        <record id="class_type_hours_47" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_nav_dual"/>
+            <field name="minimum_hours">20.0</field>
+        </record>
+
+        <record id="class_type_hours_48" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_nav_solo"/>
+            <field name="minimum_hours">20.0</field>
+        </record>
+
+        <record id="class_type_hours_49" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="flight_activity_nav_mut"/>
+            <field name="minimum_hours">50.0</field>
+        </record>
+
+        <record id="class_type_hours_50" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_vsv_dual"/>
+            <field name="minimum_hours">25.0</field>
+        </record>
+
+        <record id="class_type_hours_51" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="flight_activity_vsv_mut"/>
+            <field name="minimum_hours">25.0</field>
+        </record>
+
+        <record id="class_type_hours_52" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_ifr_dual"/>
+            <field name="minimum_hours">30.0</field>
+        </record>
+
+        <record id="class_type_hours_53" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="flight_activity_ifr_mut"/>
+            <field name="minimum_hours">30.0</field>
+        </record>
+
+        <record id="class_type_hours_54" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_vsv_sim"/>
+            <field name="minimum_hours">9.0</field>
+        </record>
+
+        <record id="class_type_hours_55" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_man_sim"/>
+            <field name="minimum_hours">6.0</field>
+        </record>
+
+        <record id="class_type_hours_56" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_mur"/>
+            <field name="activity_id" ref="activity_ifr_sim"/>
+            <field name="minimum_hours">15.0</field>
+        </record>
+
+        <record id="class_type_hours_57" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">18.0</field>
+        </record>
+
+        <record id="class_type_hours_58" model="fs.class.type.hours" forcecreate="1">
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="minimum_hours">8.0</field>
         </record>
 
     </data>

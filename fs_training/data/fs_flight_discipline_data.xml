@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Flight Disciplines -->
         <record id="discipline_man" model="fs.flight.discipline">
             <field name="name">Maneuvering</field>
             <field name="code">MAN</field>

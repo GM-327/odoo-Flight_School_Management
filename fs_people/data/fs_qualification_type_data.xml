@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Qualification Types -->
         <record id="qualification_ir" model="fs.qualification.type">
             <field name="name">Instrument Rating</field>
             <field name="code">IR</field>
@@ -47,6 +48,34 @@
             <field name="sequence">9</field>
             <field name="validity_months">36</field>
             <field name="description">Rating to provide class rating instruction (e.g., MEP).</field>
+        </record>
+
+        <record id="qualification_type_fie" model="fs.qualification.type">
+            <field name="name">Flight Instructor Examiner</field>
+            <field name="code">FIE</field>
+            <field name="sequence">12</field>
+            <field name="validity_months">36</field>
+        </record>
+
+        <record id="qualification_type_fe" model="fs.qualification.type">
+            <field name="name">Flight Examiner</field>
+            <field name="code">FE</field>
+            <field name="sequence">11</field>
+            <field name="validity_months">36</field>
+        </record>
+
+        <record id="qualification_type_cre" model="fs.qualification.type">
+            <field name="name">Class Rating Examiner</field>
+            <field name="code">CRE</field>
+            <field name="sequence">13</field>
+            <field name="validity_months">36</field>
+        </record>
+
+        <record id="qualification_type_ire" model="fs.qualification.type">
+            <field name="name">Instrument Rating Examiner</field>
+            <field name="code">IRE</field>
+            <field name="sequence">14</field>
+            <field name="validity_months">36</field>
         </record>
 
     </data>

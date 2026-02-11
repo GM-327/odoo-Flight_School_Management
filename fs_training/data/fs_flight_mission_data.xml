@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Flight Missions (Syllabus) -->
+        <record id="flight_mission_warrior_3" model="fs.flight.mission">
+            <field name="name">Warrior 3</field>
+            <field name="class_type_id" ref="class_type_fcf_se"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">10</field>
+            <field name="objectives">Exécuter les procédures recommandées par le FCF check-list dictées par le manuel de maintenance.</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_arrow_3" model="fs.flight.mission">
+            <field name="name">Arrow 3</field>
+            <field name="class_type_id" ref="class_type_fcf_se"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">11</field>
+            <field name="objectives">Exécuter les procédures recommandées par le FCF check-list dictées par le manuel de maintenance.</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_tb_20gt" model="fs.flight.mission">
+            <field name="name">TB-20GT</field>
+            <field name="class_type_id" ref="class_type_fcf_se"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">12</field>
+            <field name="objectives">Exécuter les procédures recommandées par le FCF check-list dictées par le manuel de maintenance.</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_test" model="fs.flight.mission">
+            <field name="name">Test</field>
+            <field name="class_type_id" ref="class_type_fcf_se"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">True</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">2.0</field>
+            <field name="sequence">13</field>
+            <field name="objectives">Démontrer une très bonne connaissance et aisance lors de l'exécution des procédures recommandées par le FCF check-list</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_seneca_5_anlg" model="fs.flight.mission">
+            <field name="name">Seneca 5 - ANLG</field>
+            <field name="class_type_id" ref="class_type_fcf_me"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">10</field>
+            <field name="objectives">Ecécuter les procédures recommandées par le FCF Check-list dictées par le manuel de maintenance.</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_seneca_5_dig" model="fs.flight.mission">
+            <field name="name">Seneca 5 - DIG</field>
+            <field name="class_type_id" ref="class_type_fcf_me"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.5</field>
+            <field name="sequence">11</field>
+            <field name="objectives">Ecécuter les procédures recommandées par le FCF Check-list dictées par le manuel de maintenance.</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_test_2" model="fs.flight.mission">
+            <field name="name">Test</field>
+            <field name="class_type_id" ref="class_type_fcf_me"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">True</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">2.0</field>
+            <field name="sequence">12</field>
+            <field name="objectives">Démontrer une très bonne connaissance et aisance lors de l'éxécution des procédures recommandées par le FCF Check-list.</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v1" model="fs.flight.mission">
+            <field name="name">V1</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v2" model="fs.flight.mission">
+            <field name="name">V2</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">11</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v3" model="fs.flight.mission">
+            <field name="name">V3</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">12</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v4" model="fs.flight.mission">
+            <field name="name">V4</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">13</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v5" model="fs.flight.mission">
+            <field name="name">V5</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">14</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v6" model="fs.flight.mission">
+            <field name="name">V6</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">15</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v7" model="fs.flight.mission">
+            <field name="name">V7</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">16</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v8_progress" model="fs.flight.mission">
+            <field name="name">V8 (Progress)</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">True</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">17</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v9" model="fs.flight.mission">
+            <field name="name">V9</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">18</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v10" model="fs.flight.mission">
+            <field name="name">V10</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">19</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v11" model="fs.flight.mission">
+            <field name="name">V11</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">20</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v12_test" model="fs.flight.mission">
+            <field name="name">V12 (Test)</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">True</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">21</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v13" model="fs.flight.mission">
+            <field name="name">V13</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">21</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v14" model="fs.flight.mission">
+            <field name="name">V14</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">22</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v15" model="fs.flight.mission">
+            <field name="name">V15</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">23</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v16" model="fs.flight.mission">
+            <field name="name">V16</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">24</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v17" model="fs.flight.mission">
+            <field name="name">V17</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">25</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v18" model="fs.flight.mission">
+            <field name="name">V18</field>
+            <field name="class_type_id" ref="class_type_ps"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">26</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v1_2" model="fs.flight.mission">
+            <field name="name">V1</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v2_2" model="fs.flight.mission">
+            <field name="name">V2</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">11</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v3_2" model="fs.flight.mission">
+            <field name="name">V3</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">12</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v4_2" model="fs.flight.mission">
+            <field name="name">V4</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">13</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v5_2" model="fs.flight.mission">
+            <field name="name">V5</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">14</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v6_2" model="fs.flight.mission">
+            <field name="name">V6</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">15</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v7_2" model="fs.flight.mission">
+            <field name="name">V7</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">False</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">16</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="flight_mission_v8_test" model="fs.flight.mission">
+            <field name="name">V8 (Test)</field>
+            <field name="class_type_id" ref="class_type_ps_f"/>
+            <field name="activity_id" ref="activity_man_dual"/>
+            <field name="is_exam">True</field>
+            <field name="is_extra">False</field>
+            <field name="duration_hours">1.0</field>
+            <field name="sequence">17</field>
+            <field name="active">True</field>
+        </record>
+
+    </data>
+</odoo>

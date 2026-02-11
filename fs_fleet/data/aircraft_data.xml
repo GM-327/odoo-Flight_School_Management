@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Aircraft Fleet -->
+        <record id="aircraft_ts_apo" model="fs.aircraft">
+            <field name="registration">TS-APO</field>
+            <field name="aircraft_type_id" ref="aircraft_type_trin"/>
+            <field name="serial_number">2122</field>
+            <field name="year_manufactured">2002</field>
+            <field name="status">available</field>
+            <field name="total_hours">6085.55</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_app" model="fs.aircraft">
+            <field name="registration">TS-APP</field>
+            <field name="aircraft_type_id" ref="aircraft_type_trin"/>
+            <field name="serial_number">2172</field>
+            <field name="year_manufactured">2002</field>
+            <field name="status">available</field>
+            <field name="total_hours">5019.916666666667</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apq" model="fs.aircraft">
+            <field name="registration">TS-APQ</field>
+            <field name="aircraft_type_id" ref="aircraft_type_trin"/>
+            <field name="serial_number">2173</field>
+            <field name="year_manufactured">2002</field>
+            <field name="status">available</field>
+            <field name="total_hours">6725.333333333333</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apr" model="fs.aircraft">
+            <field name="registration">TS-APR</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">2842327</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">available</field>
+            <field name="total_hours">3162.9166666666665</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_aps" model="fs.aircraft">
+            <field name="registration">TS-APS</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">2842328</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">available</field>
+            <field name="total_hours">3681.1833333333334</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apt" model="fs.aircraft">
+            <field name="registration">TS-APT</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">2842329</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">maintenance</field>
+            <field name="total_hours">3842.05</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apu" model="fs.aircraft">
+            <field name="registration">TS-APU</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">2842330</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">available</field>
+            <field name="total_hours">3148.8166666666666</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apv" model="fs.aircraft">
+            <field name="registration">TS-APV</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">2842331</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">available</field>
+            <field name="total_hours">2812.25</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apw" model="fs.aircraft">
+            <field name="registration">TS-APW</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa28"/>
+            <field name="serial_number">2842332</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">available</field>
+            <field name="total_hours">3020.55</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apx" model="fs.aircraft">
+            <field name="registration">TS-APX</field>
+            <field name="aircraft_type_id" ref="aircraft_type_p28r"/>
+            <field name="serial_number">2844140</field>
+            <field name="year_manufactured">2010</field>
+            <field name="status">available</field>
+            <field name="total_hours">3354.9166666666665</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_apy" model="fs.aircraft">
+            <field name="registration">TS-APY</field>
+            <field name="aircraft_type_id" ref="aircraft_type_p28r"/>
+            <field name="serial_number">2844141</field>
+            <field name="year_manufactured">2010</field>
+            <field name="status">available</field>
+            <field name="total_hours">3651.1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_dmj" model="fs.aircraft">
+            <field name="registration">TS-DMJ</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa34"/>
+            <field name="serial_number">3449148</field>
+            <field name="year_manufactured">1999</field>
+            <field name="status">available</field>
+            <field name="total_hours">5910.616666666667</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_dmk" model="fs.aircraft">
+            <field name="registration">TS-DMK</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa34"/>
+            <field name="serial_number">3449149</field>
+            <field name="year_manufactured">1999</field>
+            <field name="status">grounded</field>
+            <field name="total_hours">3841.0666666666666</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_dml" model="fs.aircraft">
+            <field name="registration">TS-DML</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa34"/>
+            <field name="serial_number">3449401</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">grounded</field>
+            <field name="total_hours">2214.1666666666665</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_dmm" model="fs.aircraft">
+            <field name="registration">TS-DMM</field>
+            <field name="aircraft_type_id" ref="aircraft_type_pa34"/>
+            <field name="serial_number">3449402</field>
+            <field name="year_manufactured">2009</field>
+            <field name="status">available</field>
+            <field name="total_hours">3453.1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_fsb" model="fs.aircraft">
+            <field name="registration">TS-FSB</field>
+            <field name="aircraft_type_id" ref="aircraft_type_fnpt2"/>
+            <field name="status">available</field>
+            <field name="total_hours">1000.0</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="aircraft_ts_fsc" model="fs.aircraft">
+            <field name="registration">TS-FSC</field>
+            <field name="aircraft_type_id" ref="aircraft_type_fnpt2_mcc"/>
+            <field name="serial_number">88052900</field>
+            <field name="year_manufactured">2024</field>
+            <field name="status">available</field>
+            <field name="total_hours">1000.0</field>
+            <field name="active">True</field>
+        </record>
+
+    </data>
+</odoo>

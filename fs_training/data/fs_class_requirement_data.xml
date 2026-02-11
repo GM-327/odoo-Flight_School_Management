@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Class Requirements -->
+        <record id="class_requirement_valid_medical_check" model="fs.class.requirement">
+            <field name="name">Valid Medical Check</field>
+            <field name="category">medical</field>
+            <field name="is_military">True</field>
+            <field name="is_civilian">True</field>
+            <field name="is_default">True</field>
+            <field name="active">True</field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Aircraft Types -->
         <record id="aircraft_type_pa28" model="fs.aircraft.type">
             <field name="name">Warrior 3</field>
             <field name="manufacturer">Piper</field>
@@ -71,6 +72,19 @@
             <field name="suitable_for_training">True</field>
             <field name="training_notes">Approved for MCC course.</field>
             <field name="sequence">110</field>
+        </record>
+
+        <record id="aircraft_type_trin" model="fs.aircraft.type">
+            <field name="name">TB20GT</field>
+            <field name="manufacturer">Trinidad</field>
+            <field name="category_id" ref="aircraft_category_sep"/>
+            <field name="code">TRIN</field>
+            <field name="engine_count">1</field>
+            <field name="engine_type">piston</field>
+            <field name="is_complex">True</field>
+            <field name="seats">4</field>
+            <field name="suitable_for_training">True</field>
+            <field name="sequence">10</field>
         </record>
 
     </data>

@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Person Qualifications -->
+        <record id="person_qualification_3_single_engine_piston" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-03-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-08-31</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-08-31</field>
+        </record>
+
+        <record id="person_qualification_8_flight_examiner" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_type_fe"/>
+            <field name="expiry_date">2027-10-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2026-05-31</field>
+        </record>
+
+        <record id="person_qualification_6_class_rating_instructor" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_cri"/>
+            <field name="expiry_date">2026-05-31</field>
+        </record>
+
+        <record id="person_qualification_5_instrument_rating_instructor" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_iri"/>
+            <field name="expiry_date">2026-05-31</field>
+        </record>
+
+        <record id="person_qualification_9_class_rating_examiner" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_type_cre"/>
+            <field name="expiry_date">2027-02-28</field>
+        </record>
+
+        <record id="person_qualification_10_instrument_rating_examiner" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_type_ire"/>
+            <field name="expiry_date">2027-02-28</field>
+        </record>
+
+        <record id="person_qualification_7_flight_instructor_examiner" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_youssef_khelifa"/>
+            <field name="qualification_id" ref="qualification_type_fie"/>
+            <field name="expiry_date">2027-12-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-06-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-06-30</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2026-10-31</field>
+        </record>
+
+        <record id="person_qualification_8_flight_examiner_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_type_fe"/>
+            <field name="expiry_date">2026-03-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2028-11-30</field>
+        </record>
+
+        <record id="person_qualification_6_class_rating_instructor_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_cri"/>
+            <field name="expiry_date">2026-12-31</field>
+        </record>
+
+        <record id="person_qualification_5_instrument_rating_instructor_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_anis_gharsallah"/>
+            <field name="qualification_id" ref="qualification_iri"/>
+            <field name="expiry_date">2026-12-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-08-31</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-08-31</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-03-31</field>
+        </record>
+
+        <record id="person_qualification_8_flight_examiner_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_type_fe"/>
+            <field name="expiry_date">2028-01-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2027-06-30</field>
+        </record>
+
+        <record id="person_qualification_6_class_rating_instructor_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_cri"/>
+            <field name="expiry_date">2027-06-30</field>
+        </record>
+
+        <record id="person_qualification_5_instrument_rating_instructor_3" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_iri"/>
+            <field name="expiry_date">2027-06-30</field>
+        </record>
+
+        <record id="person_qualification_9_class_rating_examiner_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_type_cre"/>
+            <field name="expiry_date">2026-09-30</field>
+        </record>
+
+        <record id="person_qualification_10_instrument_rating_examiner_2" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_houssem_arfaoui"/>
+            <field name="qualification_id" ref="qualification_type_ire"/>
+            <field name="expiry_date">2026-09-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_4" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_mehdi_dhifallah"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2027-01-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_4" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_mehdi_dhifallah"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2027-01-31</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_4" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_mehdi_dhifallah"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-11-30</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_4" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_mehdi_dhifallah"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2026-10-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_5" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_raouf_belghaoui"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-09-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_5" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_raouf_belghaoui"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-09-30</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_5" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_raouf_belghaoui"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2026-07-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_5" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_raouf_belghaoui"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2027-01-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_6" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_hammami"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-04-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_6" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_hammami"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-04-30</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_6" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_hammami"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-11-30</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_6" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_hammami"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2026-08-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_7" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_nizar_amri"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-11-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_7" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_nizar_amri"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-11-30</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_7" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_nizar_amri"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2026-06-30</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_7" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_nizar_amri"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2028-03-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_8" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_zied_ben_saad"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-04-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_8" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_zied_ben_saad"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-04-30</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_8" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_zied_ben_saad"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-12-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_8" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_zied_ben_saad"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2028-01-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_9" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_yosr_gtari"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-06-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_9" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_yosr_gtari"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-06-30</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_9" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_yosr_gtari"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-01-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_9" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_yosr_gtari"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2028-10-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_10" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_koubaa"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-12-31</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_10" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_koubaa"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-12-31</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_10" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_koubaa"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-08-31</field>
+        </record>
+
+        <record id="person_qualification_4_flight_instructor_10" model="fs.person.qualification">
+            <field name="instructor_id" ref="instructor_ahmed_koubaa"/>
+            <field name="qualification_id" ref="qualification_fi"/>
+            <field name="expiry_date">2028-10-31</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_11" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_souheil_matoussi"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-10-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_11" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_souheil_matoussi"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-10-31</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_11" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_souheil_matoussi"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-02-28</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_12" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_ghazi_marzouk"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="issue_date">2025-06-09</field>
+            <field name="expiry_date">2027-06-30</field>
+        </record>
+
+        <record id="person_qualification_2_multi_engine_rating_12" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_hamza_zammelli"/>
+            <field name="qualification_id" ref="qualification_me"/>
+            <field name="expiry_date">2026-12-31</field>
+        </record>
+
+        <record id="person_qualification_1_instrument_rating_12" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_hamza_zammelli"/>
+            <field name="qualification_id" ref="qualification_ir"/>
+            <field name="expiry_date">2026-12-31</field>
+        </record>
+
+        <record id="person_qualification_3_single_engine_piston_13" model="fs.person.qualification">
+            <field name="pilot_id" ref="pilot_hamza_zammelli"/>
+            <field name="qualification_id" ref="qualification_sep"/>
+            <field name="expiry_date">2027-03-31</field>
+        </record>
+
+    </data>
+</odoo>

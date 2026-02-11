@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <!-- Departments -->
         <record id="dept_mgmt" model="fs.department">
             <field name="name">Management</field>
             <field name="code">MGMT</field>

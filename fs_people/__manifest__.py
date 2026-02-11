@@ -39,6 +39,9 @@ All personnel can optionally have Odoo user accounts for system access.
         'data/fs_qualification_type_data.xml',
         'data/fs_english_level_data.xml',
         'data/fs_medical_class_data.xml',
+        'data/fs_instructor_data.xml',
+        'data/fs_pilot_data.xml',
+        'data/fs_person_qualification_data.xml',
         # Views - Configuration
         'views/fs_rank_views.xml',
         'views/fs_license_type_views.xml',
