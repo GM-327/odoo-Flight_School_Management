@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="0">
-        <!-- Entity Types for Document Classification -->
         <record id="entity_type_student" model="fs.document.entity.type">
             <field name="name">Student</field>
             <field name="code">student</field>
@@ -31,6 +30,6 @@
             <field name="code">class_type</field>
             <field name="sequence">50</field>
         </record>
-        
+
     </data>
 </odoo>

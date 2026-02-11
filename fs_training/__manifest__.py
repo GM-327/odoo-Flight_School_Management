@@ -63,13 +63,13 @@ This module provides:
             'fs_training/static/src/js/progress_bar_patch.js',
         ],
     },
-    'demo': [
-        'demo/fs_training_demo.xml',
-        'demo/fs_training_extended_demo.xml',
-    ],
+    # 'demo': [
+    #     'demo/fs_training_demo.xml',
+    #     'demo/fs_training_extended_demo.xml',
+    # ],
     'installable': True,
     'application': True,
-    'auto_install': True,
+    'auto_install': False,
     'sequence': 30,
     'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

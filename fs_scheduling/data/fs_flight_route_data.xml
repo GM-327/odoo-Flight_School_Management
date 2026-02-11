@@ -1,151 +1,185 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <!-- Flight Routes -->
-    <record id="route_r2" model="fs.flight.route">
-        <field name="name">R2</field>
-        <field name="sequence">10</field>
-    </record>
+<odoo>
+    <data noupdate="1">
+        <record id="route_r2" model="fs.flight.route">
+            <field name="name">R2</field>
+            <field name="sequence">10</field>
+        </record>
 
-    <record id="route_tuc" model="fs.flight.route">
-        <field name="name">TUC</field>
-        <field name="sequence">20</field>
-    </record>
+        <record id="route_tuc" model="fs.flight.route">
+            <field name="name">TUC</field>
+            <field name="sequence">20</field>
+        </record>
 
-    <!-- Visual NAV Routes 01-34 -->
-    <record id="route_nav_01" model="fs.flight.route">
-        <field name="name">NAV 01</field>
-        <field name="sequence">30</field>
-    </record>
-    <record id="route_nav_02" model="fs.flight.route">
-        <field name="name">NAV 02</field>
-        <field name="sequence">40</field>
-    </record>
-    <record id="route_nav_03" model="fs.flight.route">
-        <field name="name">NAV 03</field>
-        <field name="sequence">50</field>
-    </record>
-    <record id="route_nav_04" model="fs.flight.route">
-        <field name="name">NAV 04</field>
-        <field name="sequence">60</field>
-    </record>
-    <record id="route_nav_05" model="fs.flight.route">
-        <field name="name">NAV 05</field>
-        <field name="sequence">70</field>
-    </record>
-    <record id="route_nav_06" model="fs.flight.route">
-        <field name="name">NAV 06</field>
-        <field name="sequence">80</field>
-    </record>
-    <record id="route_nav_07" model="fs.flight.route">
-        <field name="name">NAV 07</field>
-        <field name="sequence">90</field>
-    </record>
-    <record id="route_nav_08" model="fs.flight.route">
-        <field name="name">NAV 08</field>
-        <field name="sequence">100</field>
-    </record>
-    <record id="route_nav_09" model="fs.flight.route">
-        <field name="name">NAV 09</field>
-        <field name="sequence">110</field>
-    </record>
-    <record id="route_nav_10" model="fs.flight.route">
-        <field name="name">NAV 10</field>
-        <field name="sequence">120</field>
-    </record>
-    <record id="route_nav_11" model="fs.flight.route">
-        <field name="name">NAV 11</field>
-        <field name="sequence">130</field>
-    </record>
-    <record id="route_nav_12" model="fs.flight.route">
-        <field name="name">NAV 12</field>
-        <field name="sequence">140</field>
-    </record>
-    <record id="route_nav_13" model="fs.flight.route">
-        <field name="name">NAV 13</field>
-        <field name="sequence">150</field>
-    </record>
-    <record id="route_nav_14" model="fs.flight.route">
-        <field name="name">NAV 14</field>
-        <field name="sequence">160</field>
-    </record>
-    <record id="route_nav_15" model="fs.flight.route">
-        <field name="name">NAV 15</field>
-        <field name="sequence">170</field>
-    </record>
-    <record id="route_nav_16" model="fs.flight.route">
-        <field name="name">NAV 16</field>
-        <field name="sequence">180</field>
-    </record>
-    <record id="route_nav_17" model="fs.flight.route">
-        <field name="name">NAV 17</field>
-        <field name="sequence">190</field>
-    </record>
-    <record id="route_nav_18" model="fs.flight.route">
-        <field name="name">NAV 18</field>
-        <field name="sequence">200</field>
-    </record>
-    <record id="route_nav_19" model="fs.flight.route">
-        <field name="name">NAV 19</field>
-        <field name="sequence">210</field>
-    </record>
-    <record id="route_nav_20" model="fs.flight.route">
-        <field name="name">NAV 20</field>
-        <field name="sequence">220</field>
-    </record>
-    <record id="route_nav_21" model="fs.flight.route">
-        <field name="name">NAV 21</field>
-        <field name="sequence">230</field>
-    </record>
-    <record id="route_nav_22" model="fs.flight.route">
-        <field name="name">NAV 22</field>
-        <field name="sequence">240</field>
-    </record>
-    <record id="route_nav_23" model="fs.flight.route">
-        <field name="name">NAV 23</field>
-        <field name="sequence">250</field>
-    </record>
-    <record id="route_nav_24" model="fs.flight.route">
-        <field name="name">NAV 24</field>
-        <field name="sequence">260</field>
-    </record>
-    <record id="route_nav_25" model="fs.flight.route">
-        <field name="name">NAV 25</field>
-        <field name="sequence">270</field>
-    </record>
-    <record id="route_nav_26" model="fs.flight.route">
-        <field name="name">NAV 26</field>
-        <field name="sequence">280</field>
-    </record>
-    <record id="route_nav_27" model="fs.flight.route">
-        <field name="name">NAV 27</field>
-        <field name="sequence">290</field>
-    </record>
-    <record id="route_nav_28" model="fs.flight.route">
-        <field name="name">NAV 28</field>
-        <field name="sequence">300</field>
-    </record>
-    <record id="route_nav_29" model="fs.flight.route">
-        <field name="name">NAV 29</field>
-        <field name="sequence">310</field>
-    </record>
-    <record id="route_nav_30" model="fs.flight.route">
-        <field name="name">NAV 30</field>
-        <field name="sequence">320</field>
-    </record>
-    <record id="route_nav_31" model="fs.flight.route">
-        <field name="name">NAV 31</field>
-        <field name="sequence">330</field>
-    </record>
-    <record id="route_nav_32" model="fs.flight.route">
-        <field name="name">NAV 32</field>
-        <field name="sequence">340</field>
-    </record>
-    <record id="route_nav_33" model="fs.flight.route">
-        <field name="name">NAV 33</field>
-        <field name="sequence">350</field>
-    </record>
-    <record id="route_nav_34" model="fs.flight.route">
-        <field name="name">NAV 34</field>
-        <field name="sequence">360</field>
-    </record>
+        <record id="route_nav_01" model="fs.flight.route">
+            <field name="name">NAV 01</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="route_nav_02" model="fs.flight.route">
+            <field name="name">NAV 02</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="route_nav_03" model="fs.flight.route">
+            <field name="name">NAV 03</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="route_nav_04" model="fs.flight.route">
+            <field name="name">NAV 04</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="route_nav_05" model="fs.flight.route">
+            <field name="name">NAV 05</field>
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="route_nav_06" model="fs.flight.route">
+            <field name="name">NAV 06</field>
+            <field name="sequence">80</field>
+        </record>
+
+        <record id="route_nav_07" model="fs.flight.route">
+            <field name="name">NAV 07</field>
+            <field name="sequence">90</field>
+        </record>
+
+        <record id="route_nav_08" model="fs.flight.route">
+            <field name="name">NAV 08</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <record id="route_nav_09" model="fs.flight.route">
+            <field name="name">NAV 09</field>
+            <field name="sequence">110</field>
+        </record>
+
+        <record id="route_nav_10" model="fs.flight.route">
+            <field name="name">NAV 10</field>
+            <field name="sequence">120</field>
+        </record>
+
+        <record id="route_nav_11" model="fs.flight.route">
+            <field name="name">NAV 11</field>
+            <field name="sequence">130</field>
+        </record>
+
+        <record id="route_nav_12" model="fs.flight.route">
+            <field name="name">NAV 12</field>
+            <field name="sequence">140</field>
+        </record>
+
+        <record id="route_nav_13" model="fs.flight.route">
+            <field name="name">NAV 13</field>
+            <field name="sequence">150</field>
+        </record>
+
+        <record id="route_nav_14" model="fs.flight.route">
+            <field name="name">NAV 14</field>
+            <field name="sequence">160</field>
+        </record>
+
+        <record id="route_nav_15" model="fs.flight.route">
+            <field name="name">NAV 15</field>
+            <field name="sequence">170</field>
+        </record>
+
+        <record id="route_nav_16" model="fs.flight.route">
+            <field name="name">NAV 16</field>
+            <field name="sequence">180</field>
+        </record>
+
+        <record id="route_nav_17" model="fs.flight.route">
+            <field name="name">NAV 17</field>
+            <field name="sequence">190</field>
+        </record>
+
+        <record id="route_nav_18" model="fs.flight.route">
+            <field name="name">NAV 18</field>
+            <field name="sequence">200</field>
+        </record>
+
+        <record id="route_nav_19" model="fs.flight.route">
+            <field name="name">NAV 19</field>
+            <field name="sequence">210</field>
+        </record>
+
+        <record id="route_nav_20" model="fs.flight.route">
+            <field name="name">NAV 20</field>
+            <field name="sequence">220</field>
+        </record>
+
+        <record id="route_nav_21" model="fs.flight.route">
+            <field name="name">NAV 21</field>
+            <field name="sequence">230</field>
+        </record>
+
+        <record id="route_nav_22" model="fs.flight.route">
+            <field name="name">NAV 22</field>
+            <field name="sequence">240</field>
+        </record>
+
+        <record id="route_nav_23" model="fs.flight.route">
+            <field name="name">NAV 23</field>
+            <field name="sequence">250</field>
+        </record>
+
+        <record id="route_nav_24" model="fs.flight.route">
+            <field name="name">NAV 24</field>
+            <field name="sequence">260</field>
+        </record>
+
+        <record id="route_nav_25" model="fs.flight.route">
+            <field name="name">NAV 25</field>
+            <field name="sequence">270</field>
+        </record>
+
+        <record id="route_nav_26" model="fs.flight.route">
+            <field name="name">NAV 26</field>
+            <field name="sequence">280</field>
+        </record>
+
+        <record id="route_nav_27" model="fs.flight.route">
+            <field name="name">NAV 27</field>
+            <field name="sequence">290</field>
+        </record>
+
+        <record id="route_nav_28" model="fs.flight.route">
+            <field name="name">NAV 28</field>
+            <field name="sequence">300</field>
+        </record>
+
+        <record id="route_nav_29" model="fs.flight.route">
+            <field name="name">NAV 29</field>
+            <field name="sequence">310</field>
+        </record>
+
+        <record id="route_nav_30" model="fs.flight.route">
+            <field name="name">NAV 30</field>
+            <field name="sequence">320</field>
+        </record>
+
+        <record id="route_nav_31" model="fs.flight.route">
+            <field name="name">NAV 31</field>
+            <field name="sequence">330</field>
+        </record>
+
+        <record id="route_nav_32" model="fs.flight.route">
+            <field name="name">NAV 32</field>
+            <field name="sequence">340</field>
+        </record>
+
+        <record id="route_nav_33" model="fs.flight.route">
+            <field name="name">NAV 33</field>
+            <field name="sequence">350</field>
+        </record>
+
+        <record id="route_nav_34" model="fs.flight.route">
+            <field name="name">NAV 34</field>
+            <field name="sequence">360</field>
+        </record>
+
+    </data>
 </odoo>

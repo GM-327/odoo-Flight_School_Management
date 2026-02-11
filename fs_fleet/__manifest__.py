@@ -45,9 +45,9 @@ Depends on Flight School Core for security groups.
         'views/res_config_settings_views.xml',
         'views/menu_views.xml',
     ],
-    'demo': [
-        'demo/aircraft_demo.xml',
-    ],
+    # 'demo': [
+    #     'demo/aircraft_demo.xml',
+    # ],
     'installable': True,
     'application': True,
     'auto_install': True,

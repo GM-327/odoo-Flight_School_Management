@@ -6,31 +6,37 @@
             <field name="code">MGMT</field>
             <field name="sequence">1</field>
         </record>
+
         <record id="dept_ops" model="fs.department">
             <field name="name">Operations</field>
             <field name="code">OPS</field>
             <field name="sequence">2</field>
         </record>
+
         <record id="dept_training" model="fs.department">
             <field name="name">Training</field>
             <field name="code">TRG</field>
             <field name="sequence">3</field>
             <field name="parent_id" ref="dept_ops"/>
         </record>
+
         <record id="dept_maintenance" model="fs.department">
             <field name="name">Maintenance</field>
             <field name="code">MX</field>
             <field name="sequence">4</field>
         </record>
+
         <record id="dept_simulator" model="fs.department">
             <field name="name">Simulator</field>
             <field name="code">SIM</field>
             <field name="sequence">5</field>
         </record>
+
         <record id="dept_admin" model="fs.department">
             <field name="name">Administration</field>
             <field name="code">ADMIN</field>
             <field name="sequence">10</field>
         </record>
+
     </data>
 </odoo>

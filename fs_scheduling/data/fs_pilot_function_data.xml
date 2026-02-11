@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- Default Pilot Functions -->
         <record id="pilot_function_student" model="fs.pilot.function">
             <field name="code">student</field>
             <field name="name">Student</field>
@@ -55,5 +54,6 @@
             <field name="is_counted_solo">False</field>
             <field name="sequence">60</field>
         </record>
+
     </data>
 </odoo>

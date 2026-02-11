@@ -57,9 +57,9 @@ This module provides:
             'fs_documents/static/src/js/document_resizer.js',
         ],
     },
-    'demo': [
-        'demo/fs_documents_demo.xml',
-    ],
+    # 'demo': [
+    #     'demo/fs_documents_demo.xml',
+    # ],
     'installable': True,
     'application': True,
     'auto_install': True,
