@@ -20,13 +20,51 @@ class FsStudentEnrollment(models.Model):
         'This student is already enrolled in this class!',
     )
 
+    # === Enrolled person (mutually exclusive: student_id OR pilot_id/enrolled_instructor_id) ===
     student_id = fields.Many2one(
         comodel_name='fs.student',
         string='Student',
-        required=True,
         tracking=True,
         ondelete='restrict',
         domain="['!', ('enrollment_ids.status', 'in', ['enrolled', 'active'])]",
+    )
+    pilot_id = fields.Many2one(
+        comodel_name='fs.pilot',
+        string='Pilot',
+        tracking=True,
+        ondelete='restrict',
+        domain="[('active', '=', True)]",
+        help="Licensed pilot enrolled in this class (for licensed-personnel classes only).",
+    )
+    enrolled_instructor_id = fields.Many2one(
+        comodel_name='fs.instructor',
+        string='Instructor (enrolled)',
+        tracking=True,
+        ondelete='restrict',
+        domain="[('active', '=', True)]",
+        help="Instructor enrolled in this class (for licensed-personnel classes only).",
+    )
+    # Single Reference proxy used in the list-view column to select either a pilot or instructor.
+    # Stored; an onchange keeps pilot_id / enrolled_instructor_id in sync.
+    licensed_person_ref = fields.Reference(
+        selection=[('fs.pilot', 'Pilot'), ('fs.instructor', 'Instructor')],
+        string='Enrolled Person',
+        compute='_compute_licensed_person_ref',
+        inverse='_inverse_licensed_person_ref',
+        store=True,
+        help="Select the pilot or instructor enrolled in this class.",
+    )
+    # Flag mirrored from the training class for easy domain/visibility use
+    for_licensed_personnel = fields.Boolean(
+        related='training_class_id.for_licensed_personnel',
+        string='For Licensed Personnel',
+        store=True,
+    )
+    enrolled_person_name = fields.Char(
+        string='Enrolled Person',
+        compute='_compute_enrolled_person_name',
+        store=True,
+        help="Display name of the enrolled person (student, pilot, or instructor).",
     )
     training_class_id = fields.Many2one(
         comodel_name='fs.training.class',
@@ -61,45 +99,111 @@ class FsStudentEnrollment(models.Model):
     )
     display_name = fields.Char(compute='_compute_display_name', store=True)
 
-    @api.depends('callsign', 'student_id.name')
+    @api.depends('pilot_id', 'enrolled_instructor_id')
+    def _compute_licensed_person_ref(self):
+        """Build the Reference value from the concrete pilot/instructor Many2one."""
+        for record in self:
+            if record.pilot_id:
+                record.licensed_person_ref = record.pilot_id
+            elif record.enrolled_instructor_id:
+                record.licensed_person_ref = record.enrolled_instructor_id
+            else:
+                record.licensed_person_ref = False
+
+    def _inverse_licensed_person_ref(self):
+        """Propagate Reference selection back to the concrete pilot/instructor Many2one."""
+        for record in self:
+            ref = record.licensed_person_ref
+            if ref and ref._name == 'fs.pilot':  # type: ignore[union-attr]
+                record.pilot_id = ref  # type: ignore[assignment]
+                record.enrolled_instructor_id = False
+            elif ref and ref._name == 'fs.instructor':  # type: ignore[union-attr]
+                record.enrolled_instructor_id = ref  # type: ignore[assignment]
+                record.pilot_id = False
+            else:
+                record.pilot_id = False
+                record.enrolled_instructor_id = False
+
+    @api.depends('pilot_id', 'enrolled_instructor_id', 'student_id')
+    def _compute_enrolled_person_name(self):
+        for record in self:
+            if record.pilot_id:
+                record.enrolled_person_name = record.pilot_id.display_name
+            elif record.enrolled_instructor_id:
+                record.enrolled_person_name = record.enrolled_instructor_id.display_name
+            else:
+                record.enrolled_person_name = record.student_id.display_name if record.student_id else False
+
+    @api.depends('callsign', 'student_id.name', 'pilot_id.display_name', 'enrolled_instructor_id.display_name')
     def _compute_display_name(self):
         for record in self:
             if record.callsign:
                 record.display_name = record.callsign
-            else:
+            elif record.student_id:
                 record.display_name = record.student_id.display_name or _("New Enrollment")
+            elif record.pilot_id:
+                record.display_name = record.pilot_id.display_name or _("New Enrollment")
+            elif record.enrolled_instructor_id:
+                record.display_name = record.enrolled_instructor_id.display_name or _("New Enrollment")
+            else:
+                record.display_name = _("New Enrollment")
+
+    @api.onchange('licensed_person_ref')
+    def _onchange_licensed_person_ref(self):
+        """When the Reference widget changes, sync pilot_id/enrolled_instructor_id
+        and copy the person's own callsign (for licensed-personnel classes).
+        """
+        ref = self.licensed_person_ref  # type: ignore
+        if ref and ref._name == 'fs.pilot':  # type: ignore[union-attr]
+            self.pilot_id = ref  # type: ignore[assignment]
+            self.enrolled_instructor_id = False
+        elif ref and ref._name == 'fs.instructor':  # type: ignore[union-attr]
+            self.enrolled_instructor_id = ref  # type: ignore[assignment]
+            self.pilot_id = False
+        else:
+            self.pilot_id = False
+            self.enrolled_instructor_id = False
+        # Copy the person's callsign immediately
+        if ref and self.for_licensed_personnel:  # type: ignore
+            self.callsign = getattr(ref, 'callsign', '') or ''
+
+    @api.onchange('pilot_id', 'enrolled_instructor_id')
+    def _onchange_licensed_person_callsign(self):
+        """For licensed-personnel classes: copy the pilot/instructor's own callsign."""
+        if not self.for_licensed_personnel:  # type: ignore
+            return
+        person = self.pilot_id or self.enrolled_instructor_id  # type: ignore
+        if person:
+            self.callsign = person.callsign or ''  # type: ignore[union-attr]
 
     @api.onchange('training_class_id', 'student_id')
     def _onchange_student_id_suggest_callsign(self):
-        """Suggest a callsign based on class code + incrementing letter.
+        """For regular classes: suggest a callsign as ClassCode + incrementing letter.
         Supports batch adding by checking sibling lines in the UI.
         """
-        if self.training_class_id and self.training_class_id.code and not self.callsign: # type: ignore
-            class_code = self.training_class_id.code # type: ignore
-            
-            # Count sibling lines (including existing ones and draft ones in the UI)
-            # In a One2many context, self.training_class_id.enrollment_ids contains the live list.
-            # We count how many callsigns are already set to determine the next letter.
+        if self.for_licensed_personnel:  # type: ignore
+            return  # handled by _onchange_licensed_person_callsign
+        if self.training_class_id and self.training_class_id.code and not self.callsign:  # type: ignore
+            class_code = self.training_class_id.code  # type: ignore
+
+            # Count sibling lines to find the next letter slot
             count = 0
-            if self.training_class_id.enrollment_ids: # type: ignore
-                # Filter out the current record to avoid double-counting if callsign was already set
-                # and count callsigns to find the 'next' slot
-                existing_callsigns = self.training_class_id.enrollment_ids.mapped('callsign') # type: ignore
+            if self.training_class_id.enrollment_ids:  # type: ignore
+                existing_callsigns = self.training_class_id.enrollment_ids.mapped('callsign')  # type: ignore
                 count = len([c for c in existing_callsigns if c])
             else:
-                # Fallback to database search if parent collection is not accessible (e.g. standalone form)
                 count = self.env['fs.student.enrollment'].search_count([
                     ('training_class_id', '=', self.training_class_id.id),
                 ])
-            
-            # Generate next letter (A=0, B=1, etc.)
+
+            # Generate next letter (A=0, B=1, …)
             if count < 26:
                 next_letter = chr(ord('A') + count)
             else:
                 first_letter = chr(ord('A') + (count // 26) - 1)
                 second_letter = chr(ord('A') + (count % 26))
                 next_letter = first_letter + second_letter
-            
+
             self.callsign = f"{class_code}{next_letter}"
     status = fields.Selection(
         selection=[
@@ -255,37 +359,138 @@ class FsStudentEnrollment(models.Model):
     )
     student_name = fields.Char(
         string='Student Name',
-        related='student_id.name',
+        compute='_compute_personnel_fields',
         store=True,
     )
     medical_status = fields.Selection(
-        related='student_id.medical_status',
+        selection=[
+            ('valid', 'Valid'),
+            ('expiring', 'Expiring Soon'),
+            ('expired', 'Expired'),
+            ('no_expiry', 'No Info'),
+        ],
+        compute='_compute_personnel_fields',
         string='Medical Status',
+        store=True,
     )
     license_expiry_status = fields.Selection(
-        related='student_id.license_expiry_status',
+        selection=[
+            ('valid', 'Valid'),
+            ('expiring', 'Expiring Soon'),
+            ('expired', 'Expired'),
+            ('no_expiry', 'No Info'),
+        ],
+        compute='_compute_personnel_fields',
         string='License Status',
+        store=True,
     )
     security_clearance_status = fields.Selection(
-        related='student_id.security_clearance_status',
+        selection=[
+            ('valid', 'Valid'),
+            ('expiring', 'Expiring Soon'),
+            ('expired', 'Expired'),
+            ('no_expiry', 'No Info'),
+        ],
+        compute='_compute_personnel_fields',
         string='Security Status',
+        store=True,
     )
     insurance_status = fields.Selection(
-        related='student_id.insurance_status',
+        selection=[
+            ('valid', 'Valid'),
+            ('expiring', 'Expiring Soon'),
+            ('expired', 'Expired'),
+            ('no_expiry', 'No Info'),
+        ],
+        compute='_compute_personnel_fields',
         string='Insurance Status',
+        store=True,
     )
     student_image = fields.Image(
-        related='student_id.image_128',
+        compute='_compute_personnel_fields',
         string='Student Image',
+        store=True,
     )
     student_phone = fields.Char(
-        related='student_id.phone',
+        compute='_compute_personnel_fields',
         string='Phone',
+        store=True,
     )
     has_expired_status = fields.Boolean(
-        related='student_id.has_expired_status',
+        compute='_compute_personnel_fields',
         string='Has Expired Status',
+        store=True,
     )
+
+    @api.depends(
+        'student_id.name', 'pilot_id.name', 'enrolled_instructor_id.name',
+        'student_id.medical_status', 'pilot_id.medical_status', 'enrolled_instructor_id.medical_status',
+        'student_id.license_expiry_status',
+        'pilot_id.qualification_ids.expiry_status', 'enrolled_instructor_id.qualification_ids.expiry_status',
+        'student_id.security_clearance_status', 'pilot_id.security_clearance_status',
+        'student_id.insurance_status', 'pilot_id.insurance_status',
+        'student_id.image_128', 'pilot_id.image_128', 'enrolled_instructor_id.image_128',
+        'student_id.phone', 'pilot_id.phone', 'enrolled_instructor_id.phone',
+        'student_id.has_expired_status', 'pilot_id.has_expired_qualification'
+    )
+    def _compute_personnel_fields(self):
+        for record in self:
+            person = record.student_id or record.pilot_id or record.enrolled_instructor_id
+            if person:
+                record.student_name = person.name or False  # type: ignore[attr-defined]
+                record.medical_status = getattr(person, 'medical_status', 'no_expiry') or 'no_expiry'
+                
+                # License status
+                if hasattr(person, 'license_expiry_status'):
+                    record.license_expiry_status = getattr(person, 'license_expiry_status', 'no_expiry') or 'no_expiry'
+                elif hasattr(person, 'qualification_ids'):
+                    # Pilots/Instructors have qualifications instead of a single license status
+                    statuses = person.qualification_ids.mapped('expiry_status')  # type: ignore
+                    if 'expired' in statuses:
+                        record.license_expiry_status = 'expired'
+                    elif 'expiring' in statuses:
+                        record.license_expiry_status = 'expiring'
+                    elif 'valid' in statuses:
+                        record.license_expiry_status = 'valid'
+                    else:
+                        record.license_expiry_status = 'no_expiry'
+                else:
+                    record.license_expiry_status = 'no_expiry'
+                    
+                record.security_clearance_status = getattr(person, 'security_clearance_status', 'no_expiry') or 'no_expiry'
+                record.insurance_status = getattr(person, 'insurance_status', 'no_expiry') or 'no_expiry'
+                record.student_image = getattr(person, 'image_128', False)
+                record.student_phone = getattr(person, 'phone', False)
+                
+                # Overall expired status
+                if hasattr(person, 'has_expired_status'):
+                    record.has_expired_status = getattr(person, 'has_expired_status', False)
+                elif hasattr(person, 'has_expired_qualification'):
+                    # Pilot
+                    has_exp = (
+                        getattr(person, 'has_expired_qualification', False) or
+                        getattr(person, 'medical_status', False) == 'expired' or
+                        getattr(person, 'security_clearance_status', False) == 'expired' or
+                        getattr(person, 'insurance_status', False) == 'expired'
+                    )
+                    record.has_expired_status = has_exp
+                else:
+                    # Generic compute
+                    record.has_expired_status = (
+                        record.medical_status == 'expired' or
+                        record.license_expiry_status == 'expired' or
+                        record.security_clearance_status == 'expired' or
+                        record.insurance_status == 'expired'
+                    )
+            else:
+                record.student_name = False
+                record.medical_status = 'no_expiry'
+                record.license_expiry_status = 'no_expiry'
+                record.security_clearance_status = 'no_expiry'
+                record.insurance_status = 'no_expiry'
+                record.student_image = False
+                record.student_phone = False
+                record.has_expired_status = False
     remaining_hours = fields.Float(
         string='Remaining Syllabus Hours',
         compute='_compute_remaining_hours',
@@ -387,21 +592,76 @@ class FsStudentEnrollment(models.Model):
             html += '</div>'
             record.remaining_breakdown_html = html
 
-    @api.constrains('student_id', 'status')
+    @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'training_class_id', 'for_licensed_personnel')
+    def _check_enrolled_person_type(self):
+        """Enforce mutual exclusivity: students for regular classes, pilots/instructors for licensed-personnel classes."""
+        for record in self:
+            is_licensed = record.for_licensed_personnel
+            has_student = bool(record.student_id)
+            has_pilot = bool(record.pilot_id)
+            has_instr = bool(record.enrolled_instructor_id)
+
+            if is_licensed:
+                # Licensed class: pilot OR instructor required; student forbidden
+                if has_student:
+                    raise ValidationError(
+                        "This class is for licensed personnel only. "
+                        "Please select a Pilot or Instructor instead of a Student."
+                    )
+                if not has_pilot and not has_instr:
+                    raise ValidationError(
+                        "Please select a Pilot or an Instructor for this licensed-personnel class."
+                    )
+            else:
+                # Regular class: student required; pilot/instructor forbidden
+                if has_pilot or has_instr:
+                    raise ValidationError(
+                        "This class is for students only. "
+                        "Please select a Student instead of a Pilot or Instructor."
+                    )
+                if not has_student:
+                    raise ValidationError(
+                        "Please select a Student for this enrollment."
+                    )
+
+    @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'status')
     def _check_one_active_enrollment(self):
-        """Ensure student has only one active enrollment."""
+        """Ensure each person has only one active enrollment at a time."""
         for record in self:
             if record.status == 'active':
-                other_active = self.search([
-                    ('student_id', '=', record.student_id.id),
-                    ('status', '=', 'active'),
-                    ('id', '!=', record.id),
-                ])
-                if other_active:
-                    raise ValidationError(
-                        f"Student '{record.student_id.display_name}' already has an active enrollment "
-                        f"in class '{other_active[0].training_class_id.display_name}'."
-                    )
+                if record.student_id:
+                    other_active = self.search([
+                        ('student_id', '=', record.student_id.id),
+                        ('status', '=', 'active'),
+                        ('id', '!=', record.id),
+                    ])
+                    if other_active:
+                        raise ValidationError(
+                            f"Student '{record.student_id.display_name}' already has an active enrollment "
+                            f"in class '{other_active[0].training_class_id.display_name}'."
+                        )
+                if record.pilot_id:
+                    other_active = self.search([
+                        ('pilot_id', '=', record.pilot_id.id),
+                        ('status', '=', 'active'),
+                        ('id', '!=', record.id),
+                    ])
+                    if other_active:
+                        raise ValidationError(
+                            f"Pilot '{record.pilot_id.display_name}' already has an active enrollment "
+                            f"in class '{other_active[0].training_class_id.display_name}'."
+                        )
+                if record.enrolled_instructor_id:
+                    other_active = self.search([
+                        ('enrolled_instructor_id', '=', record.enrolled_instructor_id.id),
+                        ('status', '=', 'active'),
+                        ('id', '!=', record.id),
+                    ])
+                    if other_active:
+                        raise ValidationError(
+                            f"Instructor '{record.enrolled_instructor_id.display_name}' already has an active enrollment "
+                            f"in class '{other_active[0].training_class_id.display_name}'."
+                        )
 
     def action_graduate(self):
         """Mark enrollment as graduated. Checks for 100% completion."""

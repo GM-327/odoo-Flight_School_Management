@@ -761,6 +761,170 @@ class FsSchedulingWizard(models.TransientModel):
                 'callsign_number': callsign_number,
             })
 
+    def action_reschedule_time_only(self):
+        """Reschedule unlocked lines (time only): preserves aircraft assignments,
+        but respects them as scheduling constraints so overlapping aircraft slots
+        are correctly staggered.
+        """
+        # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
+        sorted_lines = self.line_ids.sorted(key=lambda l: (
+            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
+            l.sequence # type: ignore
+        ))  # type: ignore
+
+        # Update sequence numbers to reflect the new order
+        for i, line in enumerate(sorted_lines):
+            line.sequence = i + 1  # type: ignore
+
+        # Get existing scheduled flights for this date
+        existing_flights = self.env['fs.scheduled.flight'].search([
+            ('date', '=', self.date),
+        ])
+
+        # Get buffer time from config
+        buffer_minutes = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
+            'flight_school.scheduling_buffer_minutes', '15'
+        ))
+        buffer_hours = buffer_minutes / 60.0
+
+        # Build occupancy maps from existing db flights
+        crew_busy = {}
+        aircraft_busy = {}
+
+        for flight in existing_flights:
+            end_time = flight.start_time + flight.duration + buffer_hours # type: ignore
+            if flight.pilot1_crew_id: # type: ignore
+                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append( # type: ignore
+                    (flight.start_time, end_time) # type: ignore
+                )
+            if flight.pilot2_crew_id: # type: ignore
+                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append( # type: ignore
+                    (flight.start_time, end_time) # type: ignore
+                )
+            if flight.aircraft_id: # type: ignore
+                aircraft_busy.setdefault(flight.aircraft_id.id, []).append( # type: ignore
+                    (flight.start_time, end_time) # type: ignore
+                )
+
+        # Add locked lines to both occupancy maps as hard constraints
+        locked_lines = sorted_lines.filtered(lambda l: l.is_locked) # type: ignore
+        for line in locked_lines:
+            duration = line.duration or 1.0 # type: ignore
+            end_time = line.start_time + duration + buffer_hours # type: ignore
+
+            if line.pilot1_crew_id: # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
+                    (line.start_time, end_time) # type: ignore
+                )
+            if line.pilot2_crew_id: # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
+                    (line.start_time, end_time) # type: ignore
+                )
+            if line.aircraft_id: # type: ignore
+                aircraft_busy.setdefault(line.aircraft_id.id, []).append( # type: ignore
+                    (line.start_time, end_time) # type: ignore
+                )
+
+        base_start_time = self.first_start_time or 8.0
+        last_end = self.last_end_time or 15.75
+
+        # Reschedule only unlocked lines
+        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked) # type: ignore
+
+        for line in unlocked_lines:
+            duration = line.duration or 1.0 # type: ignore
+            current_aircraft_id = line.aircraft_id.id if line.aircraft_id else False  # type: ignore
+
+            # Find time slot based on crew availability first
+            start_time = base_start_time
+
+            if line.pilot1_crew_id: # type: ignore
+                start_time = max(start_time, self._find_available_slot(
+                    line.pilot1_crew_id.id, # type: ignore
+                    crew_busy,
+                    base_start_time,
+                    duration
+                ))
+
+            if line.pilot2_crew_id: # type: ignore
+                start_time = max(start_time, self._find_available_slot(
+                    line.pilot2_crew_id.id, # type: ignore
+                    crew_busy,
+                    base_start_time,
+                    duration
+                ))
+
+            # Converge: ensure both crew members are simultaneously available
+            valid_time_found = False
+            convergence_attempts = 0
+            max_convergence_attempts = 50
+            while not valid_time_found and convergence_attempts < max_convergence_attempts:
+                convergence_attempts += 1
+                valid_p1 = True
+                valid_p2 = True
+
+                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration): # type: ignore
+                    start_time = self._find_available_slot(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                    valid_p1 = False
+
+                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration): # type: ignore
+                    start_time = self._find_available_slot(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                    valid_p2 = False
+
+                if valid_p1 and valid_p2:
+                    valid_time_found = True
+
+            # If this line has an aircraft already assigned, also respect aircraft availability.
+            # Advance start_time until the aircraft is free (and crew still available).
+            if current_aircraft_id:
+                max_attempts = 100
+                attempt = 0
+                while attempt < max_attempts:
+                    if start_time + duration > last_end:
+                        break
+
+                    aircraft_ok = self._is_slot_available(current_aircraft_id, aircraft_busy, start_time, duration)
+                    p1_ok = not line.pilot1_crew_id or self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                    p2_ok = not line.pilot2_crew_id or self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+
+                    if aircraft_ok and p1_ok and p2_ok:
+                        break  # Found a valid slot
+
+                    # Advance past whichever constraint pushes furthest
+                    if not aircraft_ok:
+                        start_time = self._find_available_slot(current_aircraft_id, aircraft_busy, start_time, duration)
+                    elif not p1_ok:
+                        start_time = self._find_available_slot(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                    elif not p2_ok:
+                        start_time = self._find_available_slot(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+
+                    attempt += 1
+
+                # Mark aircraft busy for subsequent lines
+                aircraft_busy.setdefault(current_aircraft_id, []).append(
+                    (start_time, start_time + duration + buffer_hours)
+                )
+
+            # Mark crew members busy for subsequent lines
+            if line.pilot1_crew_id: # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
+                    (start_time, start_time + duration + buffer_hours)
+                )
+            if line.pilot2_crew_id: # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
+                    (start_time, start_time + duration + buffer_hours)
+                )
+
+            # Write back ONLY the start_time — aircraft_id is never modified
+            line.write({  # type: ignore
+                'start_time': start_time,
+            })
+
+        return self._reopen_wizard()
+
+
+
     def action_reschedule(self):
         """Reschedule unlocked lines while preserving locked line assignments.
         

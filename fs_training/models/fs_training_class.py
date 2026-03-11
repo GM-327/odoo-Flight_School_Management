@@ -65,10 +65,14 @@ class FsTrainingClass(models.Model):
         string='Initial End Date',
         compute='_compute_initial_end_date',
         store=True,
+        readonly=False,
         help="Computed from start date + class type duration.",
     )
     expected_end_date = fields.Date(
         string='Expected End Date',
+        compute='_compute_expected_end_date',
+        store=True,
+        readonly=False,
         tracking=True,
         help="For monitoring. Can be extended. Initially = initial end date.",
     )
@@ -196,7 +200,10 @@ class FsTrainingClass(models.Model):
                     record.initial_end_date = False
             else:
                 record.initial_end_date = False
-
+    @api.depends('initial_end_date')
+    def _compute_expected_end_date(self):
+        for record in self:
+            record.expected_end_date = record.initial_end_date
     @api.depends('expected_end_date', 'status')
     def _compute_end_date_warning(self):
         """Compute end date warning level and message based on config."""
@@ -270,12 +277,6 @@ class FsTrainingClass(models.Model):
                         'notes': line.notes,             # type: ignore
                     }))
                 self.admin_task_ids = new_tasks 
-
-    @api.onchange('initial_end_date')
-    def _onchange_initial_end_date(self):
-        """Set expected end date to initial if not set."""
-        if self.initial_end_date and not self.expected_end_date:
-            self.expected_end_date = self.initial_end_date
 
     @api.model_create_multi
     def create(self, vals_list):

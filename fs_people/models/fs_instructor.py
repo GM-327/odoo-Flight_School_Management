@@ -32,11 +32,14 @@ class FsInstructor(models.Model):
 
     @api.depends('name', 'callsign')
     def _compute_display_name(self):
+        show_name = self.env.context.get('show_name_only', False)
         for record in self:
-            if record.callsign:
+            if show_name:
+                record.display_name = record.name or ''  # type: ignore[attr-defined]
+            elif record.callsign:
                 record.display_name = record.callsign  # type: ignore
             else:
-                record.display_name = record.name or ''  # type: ignore
+                record.display_name = record.name or ''  # type: ignore[attr-defined]
 
     # === License & Qualifications ===
     license_id = fields.Many2one(

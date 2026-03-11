@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Recalculate Hours Wizard Form View -->
+    <record id="view_fs_recalculate_hours_wizard_form" model="ir.ui.view">
+        <field name="name">fs.recalculate.hours.wizard.form</field>
+        <field name="model">fs.recalculate.hours.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Recalculate Flight Hours">
+                <field name="state" invisible="1"/>
+                
+                <!-- Step 1: Select Scope -->
+                <group invisible="state != 'select'">
+                    <div class="alert alert-warning" role="alert">
+                        <span class="fa fa-exclamation-triangle me-2" title="Warning"/>
+                        <strong>Warning:</strong> This wizard will recalculate all flight hours from completed flights.
+                        Any manual adjustments will be overwritten. Use with caution.
+                    </div>
+                    <group>
+                        <field name="entity_type" widget="radio"/>
+                    </group>
+                </group>
+                
+                <!-- Step 2: Preview Changes -->
+                <group invisible="state != 'preview'">
+                    <div class="alert alert-info" role="alert">
+                        <span class="fa fa-info-circle me-2" title="Info"/>
+                        <strong>Preview:</strong> Review the changes below. 
+                        <field name="changes_count" class="fw-bold"/> discrepancies found.
+                        Toggle "Apply" to select which changes to apply.
+                    </div>
+                    <field name="line_ids" nolabel="1">
+                        <list editable="bottom" decoration-danger="difference != 0" decoration-muted="not apply">
+                            <field name="entity_name" readonly="1"/>
+                            <field name="field_name" readonly="1"/>
+                            <field name="current_value" widget="float_time" readonly="1"/>
+                            <field name="calculated_value" widget="float_time" readonly="1"/>
+                            <field name="difference" widget="float_time" readonly="1"/>
+                            <field name="apply" widget="boolean_toggle"/>
+                        </list>
+                    </field>
+                </group>
+                
+                <!-- Step 3: Done -->
+                <group invisible="state != 'done'">
+                    <div class="alert alert-success text-center" role="alert">
+                        <span class="fa fa-check-circle fa-3x mb-3 d-block" title="Success"/>
+                        <h4>Recalculation Complete</h4>
+                        <p>The selected hour values have been updated successfully.</p>
+                    </div>
+                </group>
+                
+                <footer>
+                    <button name="action_calculate" type="object" string="Calculate" 
+                            class="btn-primary" invisible="state != 'select'"/>
+                    <button name="action_back" type="object" string="Back" 
+                            class="btn-secondary" invisible="state != 'preview'"/>
+                    <button name="action_apply" type="object" string="Apply Selected Changes" 
+                            class="btn-primary" invisible="state != 'preview'"
+                            confirm="Are you sure you want to apply the selected changes? This cannot be undone."/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Recalculate Hours Wizard Action -->
+    <record id="action_fs_recalculate_hours_wizard" model="ir.actions.act_window">
+        <field name="name">Recalculate Flight Hours</field>
+        <field name="res_model">fs.recalculate.hours.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

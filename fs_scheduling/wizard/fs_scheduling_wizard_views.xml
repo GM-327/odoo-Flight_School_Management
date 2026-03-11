@@ -368,10 +368,16 @@
                                     </p>
                                 </div>
                             </div>
-                            <button name="action_reschedule" type="object" 
-                                    class="btn btn-outline-primary" icon="fa-refresh">
-                                <span>Reschedule Unlocked</span>
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button name="action_reschedule_time_only" type="object" 
+                                        class="btn btn-outline-info" icon="fa-clock-o" title="Reschedule times only without modifying aircraft assignments.">
+                                    <span>Reschedule (Time Only)</span>
+                                </button>
+                                <button name="action_reschedule" type="object" 
+                                        class="btn btn-outline-primary" icon="fa-refresh" title="Reschedule times and assign available aircraft to unlocked lines.">
+                                    <span>Reschedule &amp; Assign Aircraft</span>
+                                </button>
+                            </div>
                         </div>
 
                         <field name="line_ids">
