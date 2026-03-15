@@ -57,27 +57,27 @@
             <field name="flight_type_id" ref="flight_type_sim"/>
         </record>
 
-        <record id="flight_activity_12" model="fs.flight.activity">
+        <record id="activity_ifr_solo" model="fs.flight.activity">
             <field name="discipline_id" ref="discipline_ifr"/>
             <field name="flight_type_id" ref="flight_type_solo"/>
         </record>
 
-        <record id="flight_activity_13" model="fs.flight.activity">
+        <record id="flight_activity_man_mut" model="fs.flight.activity">
             <field name="discipline_id" ref="discipline_man"/>
             <field name="flight_type_id" ref="flight_type_mut"/>
         </record>
 
-        <record id="flight_activity_14" model="fs.flight.activity">
+        <record id="flight_activity_nav_mut" model="fs.flight.activity">
             <field name="discipline_id" ref="discipline_nav"/>
             <field name="flight_type_id" ref="flight_type_mut"/>
         </record>
 
-        <record id="flight_activity_15" model="fs.flight.activity">
+        <record id="flight_activity_vsv_mut" model="fs.flight.activity">
             <field name="discipline_id" ref="discipline_vsv"/>
             <field name="flight_type_id" ref="flight_type_mut"/>
         </record>
 
-        <record id="flight_activity_16" model="fs.flight.activity">
+        <record id="flight_activity_ifr_mut" model="fs.flight.activity">
             <field name="discipline_id" ref="discipline_ifr"/>
             <field name="flight_type_id" ref="flight_type_mut"/>
         </record>

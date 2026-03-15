@@ -39,6 +39,10 @@ class FsPersonQualification(models.Model):
         string='Code',
         related='qualification_id.code',
     )
+    qualification_name = fields.Char(
+        string='Name',
+        related='qualification_id.name',
+    )
     issue_date = fields.Date(
         string='Issue Date',
     )

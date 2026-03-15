@@ -10,7 +10,7 @@
             <field name="duration_value">20</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">10</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -24,7 +24,7 @@
             <field name="duration_value">9</field>
             <field name="duration_unit">months</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_pa34')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">14</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -38,7 +38,7 @@
             <field name="duration_value">6</field>
             <field name="duration_unit">months</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_fnpt2'), ref('fs_fleet.aircraft_type_fnpt2_mcc'), ref('fs_fleet.aircraft_type_pa28')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">19</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -52,7 +52,7 @@
             <field name="duration_value">12</field>
             <field name="duration_unit">months</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_fnpt2'), ref('fs_fleet.aircraft_type_fnpt2_mcc'), ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">22</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -66,7 +66,7 @@
             <field name="duration_value">6</field>
             <field name="duration_unit">months</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_fnpt2'), ref('fs_fleet.aircraft_type_fnpt2_mcc'), ref('fs_fleet.aircraft_type_pa34')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">23</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -80,7 +80,7 @@
             <field name="duration_value">18</field>
             <field name="duration_unit">months</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_fnpt2'), ref('fs_fleet.aircraft_type_fnpt2_mcc'), ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa34'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">11</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -94,7 +94,7 @@
             <field name="duration_value">12</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">18</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -108,7 +108,7 @@
             <field name="duration_value">18</field>
             <field name="duration_unit">months</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_fnpt2'), ref('fs_fleet.aircraft_type_fnpt2_mcc'), ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">17</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -122,7 +122,7 @@
             <field name="duration_value">35</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">12</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -136,7 +136,7 @@
             <field name="duration_value">4</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">20</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -150,7 +150,7 @@
             <field name="duration_value">3</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_pa34')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">21</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -164,7 +164,7 @@
             <field name="duration_value">23</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_pa28')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">13</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -178,7 +178,7 @@
             <field name="duration_value">11</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">15</field>
             <field name="color">0</field>
             <field name="active">True</field>
@@ -192,7 +192,7 @@
             <field name="duration_value">6</field>
             <field name="duration_unit">weeks</field>
             <field name="aircraft_type_ids" eval="[(6, 0, [ref('fs_fleet.aircraft_type_p28r'), ref('fs_fleet.aircraft_type_pa28'), ref('fs_fleet.aircraft_type_trin')])]"/>
-            <field name="requirement_ids">[]</field>
+            <field name="requirement_ids" eval="[]"/>
             <field name="sequence">16</field>
             <field name="color">0</field>
             <field name="active">True</field>

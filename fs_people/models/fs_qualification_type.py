@@ -11,6 +11,7 @@ class FsQualificationType(models.Model):
     _name = 'fs.qualification.type'
     _description = 'Qualification Type'
     _order = 'sequence, name'
+    _rec_name = 'code'
 
     name = fields.Char(
         string='Qualification Name',
