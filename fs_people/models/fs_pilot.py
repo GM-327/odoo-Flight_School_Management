@@ -188,7 +188,7 @@ class FsPilot(models.Model):
     @api.depends('english_expiry')
     def _compute_english_status(self):
         """Compute English proficiency status based on expiry date and warning period from settings."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
@@ -238,7 +238,7 @@ class FsPilot(models.Model):
     @api.depends('security_clearance_expiry')
     def _compute_security_clearance_status(self):
         """Compute security clearance status based on expiry date."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.security_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
@@ -256,7 +256,7 @@ class FsPilot(models.Model):
     @api.depends('insurance_expiry')
     def _compute_insurance_status(self):
         """Compute insurance status based on expiry date."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.insurance_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)

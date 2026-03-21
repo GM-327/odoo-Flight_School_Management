@@ -71,7 +71,7 @@ class FsPersonQualification(models.Model):
     @api.depends('expiry_date')
     def _compute_expiry_status(self):
         """Compute expiry status based on expiry date and warning period from settings."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.license_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)

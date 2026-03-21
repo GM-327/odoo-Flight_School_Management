@@ -37,8 +37,9 @@ The **Flight School Management System** is a comprehensive ERP solution designed
 - 🛩️ **Aircraft Fleet** - Complete fleet management with maintenance tracking
 - 👨‍✈️ **Personnel Management** - Students, instructors, and staff administration
 - 📚 **Training Programs** - Curriculum management following EASA regulations
-- 📊 **Scheduling & Operations** - Flight scheduling and resource allocation
-- 📝 **Compliance & Documentation** - Regulatory compliance and record-keeping
+- 📅 **Scheduling** - Advanced scheduling for instructors, students, and aircraft
+- 📊 **Flight Operations** - Real-time daily flight operations board and tracking
+- 📝 **Document Management** - Version control and expiry tracking for all related documents
 
 ### Why Choose This System?
 
@@ -71,10 +72,25 @@ The **Flight School Management System** is a comprehensive ERP solution designed
 - 📜 **License Management** - Track all pilot certifications and renewals
 - 🏥 **Medical Certificate Tracking** - Class 1/2 medical compliance
 
-### Coming Soon
-- 📅 **Training Module** - Syllabus management and progress tracking
-- 🗓️ **Scheduling Module** - Resource and flight scheduling
-- 📊 **Reports Module** - Advanced analytics and reporting
+### Training Module (`fs_training`)
+- 📚 **Curriculum Management** - Syllabus management with configurable requirements
+- 📖 **Training Classes** - Students, enrollments, and missions management
+- ✅ **Administrative Checklists** - Task checklists to assure progress tracking
+
+### Scheduling Module (`fs_scheduling`)
+- 📅 **Timeline Management** - Flight mission scheduling and timeline tracking
+- 🪄 **Batch Wizard** - Advanced wizards to generate scheduling in bulk
+- 👤 **Availability Checking** - Automatic verification of expiry and qualifications
+
+### Flights Module (`fs_flights`)
+- 📺 **Operations Board** - Full-screen real-time TV display for current flights
+- 🕒 **Live Tracking** - ATD/ATA inline entries with automatic calculation
+- 🎨 **Visual Indicators** - Color-coded status updates
+
+### Documents Module (`fs_documents`)
+- 📂 **Flexible Configuration** - User-defined document and entity types
+- 🔄 **Version Control** - Keep track of iterations for images and PDFs
+- ⏱️ **Expiry Tracking** - Sync document expiry to model fields natively
 
 ---
 
@@ -83,21 +99,39 @@ The **Flight School Management System** is a comprehensive ERP solution designed
 ```
 Flight_School_Management/
 ├── fs_core/                 # Core settings and security
-│   ├── security/           # Access rights and groups
-│   ├── views/              # Configuration views
-│   └── models/             # Core models
+│   ├── security/            # Access rights and groups
+│   ├── views/               # Configuration views
+│   └── models/              # Core models
 │
-├── fs_fleet/               # Fleet management
-│   ├── models/             # Aircraft models
-│   ├── views/              # Fleet views
-│   ├── security/           # Fleet-specific access
-│   └── data/               # Default data
+├── fs_fleet/                # Fleet management
+│   ├── models/              # Aircraft models
+│   ├── views/               # Fleet views
+│   ├── security/            # Fleet-specific access
+│   └── data/                # Default data
 │
-└── fs_people/              # Personnel management
-    ├── models/             # People models
-    ├── views/              # Personnel views
-    ├── wizards/            # Action wizards
-    └── security/           # Access rights
+├── fs_people/               # Personnel management
+│   ├── models/              # People models
+│   ├── views/               # Personnel views
+│   ├── wizards/             # Action wizards
+│   └── security/            # Access rights
+│
+├── fs_training/             # Training management
+│   ├── models/              # Training models
+│   └── views/               # Training classes and syllabus views
+│
+├── fs_scheduling/           # Flight scheduling
+│   ├── models/              # Scheduling models and mixins
+│   ├── wizard/              # Scheduling wizards
+│   └── views/               # Timeline and calendars views
+│
+├── fs_flights/              # Daily flight operations
+│   ├── models/              # Active flight models
+│   ├── wizards/             # Logging wizards
+│   └── static/              # TV Display board assets
+│
+└── fs_documents/            # Document management
+    ├── models/              # File and versioning models
+    └── views/               # Expiry and tracking views
 ```
 
 ---
@@ -110,7 +144,7 @@ Flight_School_Management/
 |-----------|----------------|-------------|
 | **Operating System** | Ubuntu 22.04 / Windows 10 | Ubuntu 24.04 / Windows 11 |
 | **Python** | 3.10 | 3.12+ |
-| **PostgreSQL** | 13 | 15+ |
+| **PostgreSQL** | 13 | 16+ |
 | **RAM** | 4 GB | 8 GB+ |
 | **Disk Space** | 10 GB | 50 GB+ |
 
@@ -150,10 +184,10 @@ cp odoo.conf.example odoo.conf
 # Edit odoo.conf with your database settings
 
 # 5. Initialize database and install modules
-./odoo-bin -c odoo.conf -d your_database -i fs_core,fs_fleet,fs_people --stop-after-init
+python3 odoo-bin -c odoo.conf -d your_database -i fs_core,fs_fleet,fs_people,fs_training,fs_scheduling,fs_flights,fs_documents --stop-after-init
 
 # 6. Start the server
-./odoo-bin -c odoo.conf
+python3 odoo-bin -c odoo.conf
 ```
 
 ### Option 2: Production Deployment
@@ -216,7 +250,7 @@ Here you can configure:
 3. Configure your **organization settings**
 4. Add your **aircraft fleet**
 5. Register **instructors** and **students**
-6. Start managing your flight school!
+6. Generate **schedules** and review **operations board**
 
 ### Quick Actions
 
@@ -226,6 +260,7 @@ Here you can configure:
 | Register Student | Flight School → People → Students → Create |
 | Add Instructor | Flight School → People → Instructors → Create |
 | View Dashboard | Flight School → Dashboard |
+| View Operations Board | Flight School → Flights → Operations Board |
 
 For detailed documentation, see our [User Guide](https://github.com/GM-327/odoo-Flight_School_Management/wiki/User-Guide).
 
@@ -247,7 +282,7 @@ pip install ruff pytest
 ruff check .
 
 # Run tests
-./odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core --stop-after-init
+python3 odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core --stop-after-init
 ```
 
 ### Project Structure
@@ -307,9 +342,8 @@ Security is a top priority. If you discover a security vulnerability:
 
 | Version | Supported |
 |---------|-----------|
-| 19.0 | ✅ Active Development |
-| 18.0 | ✅ Security fixes |
-| < 18.0 | ❌ Not supported |
+| 19.3.x | ✅ Active Development |
+| < 19.0 | ❌ Not supported |
 
 ---
 

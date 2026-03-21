@@ -265,7 +265,7 @@ class Aircraft(models.Model):
     @api.depends('remaining_maintenance_hours')
     def _compute_maintenance_hour_status(self):
         config_param = self.env['ir.config_parameter'].sudo()
-        warning_hours = float(self.env['ir.config_parameter'].sudo().get_str('flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
+        warning_hours = float(config_param.get_param('flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
         for record in self:
             status = 'ok'
             if record.remaining_maintenance_hours < 0:
@@ -278,7 +278,7 @@ class Aircraft(models.Model):
     def _compute_maintenance_date_status(self):
         today = date.today()
         config_param = self.env['ir.config_parameter'].sudo()
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str('flight_school.maintenance_warning_days', '7'))  # type: ignore
+        warning_days = int(config_param.get_param('flight_school.maintenance_warning_days', '7'))  # type: ignore
         for record in self:
             status = 'ok'
             if record.next_maintenance_date:

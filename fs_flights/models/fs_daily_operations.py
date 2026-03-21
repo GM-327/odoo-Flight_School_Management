@@ -140,7 +140,7 @@ class FsDailyOperations(models.Model):
     
     # === Pagination for Carousel ===
     def _default_page_size(self):
-        return int(self.env['ir.config_parameter'].sudo().get_str('flight_school.operations_page_size', 10)) #type: ignore
+        return int(self.env['ir.config_parameter'].sudo().get_param('flight_school.operations_page_size', 10)) #type: ignore
 
     page_size = fields.Integer(
         string='Flights per Page',
@@ -213,8 +213,8 @@ class FsDailyOperations(models.Model):
 
             # Logic to find max callsign
             ICP = self.env['ir.config_parameter'].sudo()
-            threshold = int(ICP.get_str('flight_school.first_added_mission_number', '7000')) # type: ignore
-            prefix = ICP.get_str('flight_school.mission_callsign_prefix', 'ABS') # type: ignore
+            threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000')) # type: ignore
+            prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS') # type: ignore
 
             max_num = -1
             for data in flight_data:
