@@ -70,7 +70,7 @@ class FsScheduledFlight(models.Model):
 
     def _get_active_flight_buffer(self):
         """Helper to get buffer."""
-        buffer_min = int(self.env['ir.config_parameter'].sudo().get_param( # type: ignore
+        buffer_min = int(self.env['ir.config_parameter'].sudo().get_str( # type: ignore
             'flight_school.scheduling_buffer_minutes', '15'
         ))
         return timedelta(minutes=buffer_min)

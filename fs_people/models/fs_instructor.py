@@ -181,7 +181,7 @@ class FsInstructor(models.Model):
     @api.depends('english_expiry')
     def _compute_english_status(self):
         """Compute English proficiency status based on expiry date and warning period from settings."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
@@ -199,21 +199,21 @@ class FsInstructor(models.Model):
     # === Capacity Limits ===
     max_students = fields.Integer(
         string='Max Students',
-        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
+        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
             'flight_school.default_max_students', '8')),
         help="Maximum number of students this instructor can have.",
         readonly=True,
     )
     max_hours_per_month = fields.Float(
         string='Max Hours/Month',
-        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
+        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
             'flight_school.default_max_hours_per_month', '80.0')),
         help="Maximum instruction hours per month.",
         readonly=True,
     )
     max_hours_per_3months = fields.Float(
         string='Max Hours/3 Months',
-        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
+        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
             'flight_school.default_max_hours_per_3months', '240.0')),
         help="Maximum instruction hours per rolling 3-month period.",
         readonly=True,

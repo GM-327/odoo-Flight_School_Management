@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Flights',
-    'version': '19.0.1.1.0',
+    'version': '19.3.1.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Daily flight operations monitoring and execution logging',
     'description': """
