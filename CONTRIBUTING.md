@@ -95,14 +95,14 @@ createdb flight_school_dev
 # Set db_name = flight_school_dev
 
 # 7. Install modules
-./odoo-bin -c odoo.conf -d flight_school_dev -i fs_core,fs_fleet,fs_people --stop-after-init
+./odoo-bin -c odoo.conf -d flight_school_dev -i fs_core,fs_documents,fs_fleet,fs_flights,fs_people,fs_scheduling,fs_training --stop-after-init
 ```
 
 ### Running Tests
 
 ```bash
 # Run module tests
-./odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core --stop-after-init
+./odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core,fs_documents,fs_fleet,fs_flights,fs_people,fs_scheduling,fs_training --stop-after-init
 
 # Run specific test class
 ./odoo-bin -c odoo.conf -d test_db --test-enable --test-tags /fs_core:TestClassName --stop-after-init

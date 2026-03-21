@@ -71,9 +71,27 @@ The **Flight School Management System** is a comprehensive ERP solution designed
 - 📜 **License Management** - Track all pilot certifications and renewals
 - 🏥 **Medical Certificate Tracking** - Class 1/2 medical compliance
 
+### Documents Module (`fs_documents`)
+- 📄 **Document Management** - Centralized storage and management of documents
+- 📑 **Version Control** - Document versioning and tracking
+- 📁 **Folder Organization** - Structured document storage
+
+### Flights Module (`fs_flights`)
+- 🛫 **Flight Operations** - Daily operations and flight execution tracking
+- 🛬 **Flight Logging** - Detailed flight records and statistics
+- 🗺️ **Route Management** - Flight route and waypoint management
+
+### Scheduling Module (`fs_scheduling`)
+- 🗓️ **Resource Scheduling** - Flight scheduling and resource allocation
+- 👥 **Crew Scheduling** - Instructor and student assignments
+- 📅 **Availability Tracking** - Pilot and aircraft availability management
+
+### Training Module (`fs_training`)
+- 📅 **Training Programs** - Syllabus management and progress tracking
+- 🎯 **Milestones** - Tracking training objectives and achievements
+- 📝 **Assessments** - Student performance evaluation
+
 ### Coming Soon
-- 📅 **Training Module** - Syllabus management and progress tracking
-- 🗓️ **Scheduling Module** - Resource and flight scheduling
 - 📊 **Reports Module** - Advanced analytics and reporting
 
 ---
@@ -87,17 +105,41 @@ Flight_School_Management/
 │   ├── views/              # Configuration views
 │   └── models/             # Core models
 │
+├── fs_documents/            # Document management
+│   ├── models/             # Document models
+│   ├── views/              # Document views
+│   ├── security/           # Access rights
+│   └── static/             # Static web assets
+│
 ├── fs_fleet/               # Fleet management
 │   ├── models/             # Aircraft models
 │   ├── views/              # Fleet views
 │   ├── security/           # Fleet-specific access
 │   └── data/               # Default data
 │
-└── fs_people/              # Personnel management
-    ├── models/             # People models
-    ├── views/              # Personnel views
-    ├── wizards/            # Action wizards
-    └── security/           # Access rights
+├── fs_flights/              # Flight operations
+│   ├── models/             # Flight models
+│   ├── views/              # Flight views
+│   ├── wizards/            # Action wizards
+│   └── security/           # Access rights
+│
+├── fs_people/              # Personnel management
+│   ├── models/             # People models
+│   ├── views/              # Personnel views
+│   ├── migrations/         # Database migrations
+│   └── security/           # Access rights
+│
+├── fs_scheduling/           # Resource scheduling
+│   ├── models/             # Scheduling models
+│   ├── views/              # Scheduling views
+│   ├── wizard/             # Action wizards
+│   └── security/           # Access rights
+│
+└── fs_training/             # Training programs
+    ├── models/             # Training models
+    ├── views/              # Training views
+    ├── security/           # Access rights
+    └── data/               # Default data
 ```
 
 ---
@@ -150,7 +192,7 @@ cp odoo.conf.example odoo.conf
 # Edit odoo.conf with your database settings
 
 # 5. Initialize database and install modules
-./odoo-bin -c odoo.conf -d your_database -i fs_core,fs_fleet,fs_people --stop-after-init
+./odoo-bin -c odoo.conf -d your_database -i fs_core,fs_documents,fs_fleet,fs_flights,fs_people,fs_scheduling,fs_training --stop-after-init
 
 # 6. Start the server
 ./odoo-bin -c odoo.conf
@@ -247,7 +289,7 @@ pip install ruff pytest
 ruff check .
 
 # Run tests
-./odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core --stop-after-init
+./odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core,fs_documents,fs_fleet,fs_flights,fs_people,fs_scheduling,fs_training --stop-after-init
 ```
 
 ### Project Structure
