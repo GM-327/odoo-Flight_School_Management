@@ -4,7 +4,7 @@
 
 from datetime import date, timedelta
 import json
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsFleetDashboard(models.TransientModel):

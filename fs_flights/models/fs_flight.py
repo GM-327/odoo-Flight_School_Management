@@ -4,6 +4,7 @@
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+from datetime import datetime, timedelta
 
 # Import shared constants from mixin
 from odoo.addons.fs_scheduling.models.fs_flight_mixin import (

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .fs_class_type import FsClassType
+    from .fs_admin_task import FsAdminTask, FsClassTypeAdminTask
 
 
 class FsTrainingClass(models.Model):

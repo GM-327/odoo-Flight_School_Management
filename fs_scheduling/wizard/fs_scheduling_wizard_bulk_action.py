@@ -95,9 +95,9 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         
         wizard = self.wizard_id
         if self.apply_to_lines_without_route:
-            lines = wizard.line_ids.filtered(lambda x: not x.route_id and not x.is_sim)  # type: ignore
+            lines = wizard.line_ids.filtered(lambda l: not l.route_id and not l.is_sim)  # type: ignore
         else:
-            lines = wizard.line_ids.filtered(lambda x: not x.is_sim)  # type: ignore
+            lines = wizard.line_ids.filtered(lambda l: not l.is_sim)  # type: ignore
         
         if not lines:
             raise UserError(_("No lines to update."))
@@ -148,7 +148,7 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         """Mark lines as ADD missions (excludes SIM sessions)."""
         wizard = self.wizard_id
         # Exclude SIM sessions - they don't use ADD concept
-        lines = wizard.line_ids.filtered(lambda x: not x.is_added_mission and not x.is_sim)  # type: ignore
+        lines = wizard.line_ids.filtered(lambda l: not l.is_added_mission and not l.is_sim)  # type: ignore
         
         if not lines:
             raise UserError(_("No eligible flights to mark as ADD (SIM sessions excluded)."))

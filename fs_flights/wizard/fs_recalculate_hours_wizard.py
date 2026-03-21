@@ -42,7 +42,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
     @api.depends('line_ids.difference')
     def _compute_changes_count(self):
         for record in self:
-            record.changes_count = len(record.line_ids.filtered(lambda x: x.difference != 0))
+            record.changes_count = len(record.line_ids.filtered(lambda l: l.difference != 0))
 
     def action_calculate(self):
         """Calculate differences and show preview."""
@@ -197,7 +197,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
         """Apply selected changes."""
         self.ensure_one()
         
-        lines_to_apply = self.line_ids.filtered(lambda x: x.apply and x.difference != 0)
+        lines_to_apply = self.line_ids.filtered(lambda l: l.apply and l.difference != 0)
         
         for line in lines_to_apply:
             Model = self.env[line.entity_model]

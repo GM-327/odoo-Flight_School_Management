@@ -3,7 +3,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 import json
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsDocumentsDashboard(models.TransientModel):

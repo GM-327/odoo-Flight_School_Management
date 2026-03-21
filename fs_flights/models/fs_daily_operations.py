@@ -170,7 +170,7 @@ class FsDailyOperations(models.Model):
         """Compute summary KPIs for today's flights."""
         for record in self:
             # Filter non-simulators
-            logs = record.flight_log_ids.filtered(lambda x: not x.aircraft_id.category_id.is_simulator) # type: ignore
+            logs = record.flight_log_ids.filtered(lambda l: not l.aircraft_id.category_id.is_simulator) # type: ignore
 
             record.flights_scheduled = len(logs.filtered_domain([('status', '=', 'scheduled')]))
             record.flights_in_progress = len(logs.filtered_domain([('status', '=', 'in_progress')]))

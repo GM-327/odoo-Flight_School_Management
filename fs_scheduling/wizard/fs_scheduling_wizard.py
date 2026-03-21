@@ -3,7 +3,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 import logging
-from datetime import timedelta
+from datetime import timedelta, datetime
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -161,7 +161,7 @@ class FsSchedulingWizard(models.TransientModel):
             wizard.total_flight_hours = sum(lines.mapped('duration'))
             wizard.utilized_instructors_count = len(set(lines.filtered('pilot2_crew_id').mapped('pilot2_crew_id.id')))
             wizard.utilized_aircraft_count = len(set(lines.filtered('aircraft_id').mapped('aircraft_id.id')))
-            wizard.unassigned_aircraft_count = len(lines.filtered(lambda x: not x.aircraft_id)) # type: ignore
+            wizard.unassigned_aircraft_count = len(lines.filtered(lambda l: not l.aircraft_id)) # type: ignore
 
     @api.depends('line_ids', 'line_ids.pilot1_crew_id')
     def _compute_student_double_booking_warning(self):
@@ -570,10 +570,10 @@ class FsSchedulingWizard(models.TransientModel):
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators
         # Within each group, order by instructor callsign/name then sequence
-        sorted_lines = self.line_ids.sorted(key=lambda x: (
-            2 if x.is_sim else (1 if x.is_added_mission else 0), # type: ignore
-            (x.pilot2_crew_id.name or '') if x.pilot2_crew_id else '', # type: ignore
-            x.sequence # type: ignore
+        sorted_lines = self.line_ids.sorted(key=lambda l: (
+            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
+            l.sequence # type: ignore
         ))  # type: ignore
         
         # Update sequence numbers to reflect the new order
@@ -767,10 +767,10 @@ class FsSchedulingWizard(models.TransientModel):
         are correctly staggered.
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
-        sorted_lines = self.line_ids.sorted(key=lambda x: (
-            2 if x.is_sim else (1 if x.is_added_mission else 0), # type: ignore
-            (x.pilot2_crew_id.name or '') if x.pilot2_crew_id else '', # type: ignore
-            x.sequence # type: ignore
+        sorted_lines = self.line_ids.sorted(key=lambda l: (
+            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
+            l.sequence # type: ignore
         ))  # type: ignore
 
         # Update sequence numbers to reflect the new order
@@ -808,7 +808,7 @@ class FsSchedulingWizard(models.TransientModel):
                 )
 
         # Add locked lines to both occupancy maps as hard constraints
-        locked_lines = sorted_lines.filtered(lambda x: x.is_locked) # type: ignore
+        locked_lines = sorted_lines.filtered(lambda l: l.is_locked) # type: ignore
         for line in locked_lines:
             duration = line.duration or 1.0 # type: ignore
             end_time = line.start_time + duration + buffer_hours # type: ignore
@@ -830,7 +830,7 @@ class FsSchedulingWizard(models.TransientModel):
         last_end = self.last_end_time or 15.75
 
         # Reschedule only unlocked lines
-        unlocked_lines = sorted_lines.filtered(lambda x: not x.is_locked) # type: ignore
+        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked) # type: ignore
 
         for line in unlocked_lines:
             duration = line.duration or 1.0 # type: ignore
@@ -932,10 +932,10 @@ class FsSchedulingWizard(models.TransientModel):
         Unlocked lines are rescheduled around the locked constraints.
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
-        sorted_lines = self.line_ids.sorted(key=lambda x: (
-            2 if x.is_sim else (1 if x.is_added_mission else 0), # type: ignore
-            (x.pilot2_crew_id.name or '') if x.pilot2_crew_id else '', # type: ignore
-            x.sequence # type: ignore
+        sorted_lines = self.line_ids.sorted(key=lambda l: (
+            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
+            l.sequence # type: ignore
         ))  # type: ignore
         
         # Update sequence numbers to reflect the new order
@@ -973,7 +973,7 @@ class FsSchedulingWizard(models.TransientModel):
                 )
         
         # Add locked lines to occupancy maps first (as constraints)
-        locked_lines = sorted_lines.filtered(lambda x: x.is_locked) # type: ignore
+        locked_lines = sorted_lines.filtered(lambda l: l.is_locked) # type: ignore
         for line in locked_lines:
             duration = line.duration or 1.0 # type: ignore
             end_time = line.start_time + duration + buffer_hours # type: ignore
@@ -1008,7 +1008,7 @@ class FsSchedulingWizard(models.TransientModel):
         next_sim_callsign = self._get_next_sim_callsign_number()
         
         # Reschedule only unlocked lines
-        unlocked_lines = sorted_lines.filtered(lambda x: not x.is_locked) # type: ignore
+        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked) # type: ignore
         
         for line in unlocked_lines:
             duration = line.duration or 1.0 # type: ignore
@@ -1144,7 +1144,7 @@ class FsSchedulingWizard(models.TransientModel):
         created_count = 0
 
         # Sort lines by sequence for consistent ordering
-        for line in self.line_ids.sorted(key=lambda x: x.sequence):  # type: ignore
+        for line in self.line_ids.sorted(key=lambda l: l.sequence):  # type: ignore
             callsign = line.callsign_display  # type: ignore
             
             scheduled_flights.create({
@@ -1201,7 +1201,7 @@ class FsSchedulingWizard(models.TransientModel):
     def action_bulk_assign_route(self):
         """Open wizard to bulk assign route to lines without route."""
         self.ensure_one()
-        lines_without_route = self.line_ids.filtered(lambda x: not x.route_id and not x.is_sim) # type: ignore
+        lines_without_route = self.line_ids.filtered(lambda l: not l.route_id and not l.is_sim) # type: ignore
         if not lines_without_route:
             raise UserError(_("All non-simulator flights already have a route assigned."))
         
@@ -1222,7 +1222,7 @@ class FsSchedulingWizard(models.TransientModel):
         """Mark all selected lines as ADD (added mission)."""
         self.ensure_one()
         # Get lines that are not already marked as ADD
-        lines_to_mark = self.line_ids.filtered(lambda x: not x.is_added_mission) # type: ignore
+        lines_to_mark = self.line_ids.filtered(lambda l: not l.is_added_mission) # type: ignore
         if not lines_to_mark:
             raise UserError(_("All flights are already marked as ADD."))
         
