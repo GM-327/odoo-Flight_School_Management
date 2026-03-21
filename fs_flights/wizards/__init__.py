@@ -2,8 +2,8 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from . import fs_add_flight_wizard
-from . import fs_flight_cancel_wizard
-from . import fs_flight_delete_wizard
-from . import fs_import_schedule_wizard
-from . import fs_recalculate_hours_wizard
+from . import fs_add_flight_wizard as fs_add_flight_wizard
+from . import fs_flight_cancel_wizard as fs_flight_cancel_wizard
+from . import fs_flight_delete_wizard as fs_flight_delete_wizard
+from . import fs_import_schedule_wizard as fs_import_schedule_wizard
+from . import fs_recalculate_hours_wizard as fs_recalculate_hours_wizard

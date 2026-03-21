@@ -2,7 +2,7 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models
 
 # === Constants (Fallback Defaults) ===
 # These are fallback values used when config parameters are not set.

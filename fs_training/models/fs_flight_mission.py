@@ -117,7 +117,7 @@ class FsFlightMission(models.Model):
 
         # Copy the mission with new name and slightly higher sequence
         # to ensure it appears right after the current one.
-        new_record = self.copy(default={
+        self.copy(default={
             'name': new_name,
             'sequence': self.sequence + 1,
         })

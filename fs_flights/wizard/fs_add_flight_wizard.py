@@ -2,7 +2,7 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models, _
+from odoo import api, fields, models
 
 # Import shared constants from mixin
 from odoo.addons.fs_scheduling.models.fs_flight_mixin import (

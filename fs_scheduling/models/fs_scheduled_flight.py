@@ -2,10 +2,9 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-import math
 from datetime import datetime, timedelta
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import ValidationError
 
 # Import shared constants from mixin
 from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
@@ -640,23 +639,17 @@ class FsScheduledFlight(models.Model):
         """Return all resources for timeline grouping with rich display names."""
         
         # Helper: Status Colors (Standard Bootstrap)
-        STATUS_COLORS = {
-            'valid': 'success',      # Green
-            'expiring': 'warning',   # Yellow/Orange
-            'expired': 'danger',     # Red
-            'no_expiry': 'secondary' # Gray
-        }
         
 
         def format_hours(h_float):
-            if not h_float: return "00:00"
+            if not h_float:
+                return "00:00"
             h = int(h_float)
             m = int((h_float - h) * 60)
             return f"{h:02d}:{m:02d}"
 
         if grouped_field == 'aircraft_id':
             # Parse domain to check is_sim filter state
-            show_sim = True  # Default: show all (including simulators)
             hide_sim = False
             sim_only = False
             
@@ -685,8 +678,10 @@ class FsScheduledFlight(models.Model):
                 # Maintenance Status Bar
                 maint_status = r.maintenance_status or 'ok' # type: ignore
                 color_class = 'bg-success'
-                if maint_status == 'overdue': color_class = 'bg-danger'
-                elif maint_status == 'due_soon': color_class = 'bg-warning'
+                if maint_status == 'overdue':
+                    color_class = 'bg-danger'
+                elif maint_status == 'due_soon':
+                    color_class = 'bg-warning'
                 
                 # Image URL
                 image_url = f"/web/image/fs.aircraft/{r.id}/image_128"

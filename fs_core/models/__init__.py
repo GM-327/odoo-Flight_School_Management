@@ -2,5 +2,5 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from . import fs_department
-from . import res_config_settings
+from . import fs_department as fs_department
+from . import res_config_settings as res_config_settings

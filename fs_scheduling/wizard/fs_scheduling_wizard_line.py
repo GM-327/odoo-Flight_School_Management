@@ -504,7 +504,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         """Move this line up in the sequence."""
         self.ensure_one()
         wizard = self.wizard_id
-        lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
+        lines = wizard.line_ids.sorted(key=lambda x: x.sequence)  # type: ignore
         
         for i, line in enumerate(lines):
             if line.id == self.id and i > 0:
@@ -520,7 +520,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         """Move this line down in the sequence."""
         self.ensure_one()
         wizard = self.wizard_id
-        lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
+        lines = wizard.line_ids.sorted(key=lambda x: x.sequence)  # type: ignore
         
         for i, line in enumerate(lines):
             if line.id == self.id and i < len(lines) - 1:
@@ -536,7 +536,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         """Move this line to the first position."""
         self.ensure_one()
         wizard = self.wizard_id
-        lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
+        lines = wizard.line_ids.sorted(key=lambda x: x.sequence)  # type: ignore
         
         if lines and lines[0].id != self.id:
             min_seq = lines[0].sequence - 1
@@ -548,7 +548,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         """Move this line to the last position."""
         self.ensure_one()
         wizard = self.wizard_id
-        lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
+        lines = wizard.line_ids.sorted(key=lambda x: x.sequence)  # type: ignore
         
         if lines and lines[-1].id != self.id:
             max_seq = lines[-1].sequence + 1

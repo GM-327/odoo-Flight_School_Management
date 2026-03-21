@@ -159,7 +159,7 @@ class FsSimulatorOperations(models.Model):
         """Compute summary KPIs for today's simulator sessions."""
         for record in self:
             # Filter simulators only
-            logs = record.session_ids.filtered(lambda l: l.aircraft_id.category_id.is_simulator)  # type: ignore
+            logs = record.session_ids.filtered(lambda x: x.aircraft_id.category_id.is_simulator)  # type: ignore
 
             record.sessions_scheduled = len(logs.filtered_domain([('status', '=', 'scheduled')]))
             record.sessions_in_progress = len(logs.filtered_domain([('status', '=', 'in_progress')]))
