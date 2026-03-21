@@ -48,8 +48,8 @@ class FsFlightMixin(models.AbstractModel):
         """Get callsign configuration from system parameters."""
         ICP = self.env['ir.config_parameter'].sudo()
         return {
-            'prefix': ICP.get_param('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
-            'threshold': int(ICP.get_param('flight_school.first_added_mission_number', str(DEFAULT_ADD_THRESHOLD))),  # type: ignore
+            'prefix': ICP.get_str('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
+            'threshold': int(ICP.get_str('flight_school.first_added_mission_number', str(DEFAULT_ADD_THRESHOLD))),  # type: ignore
         }
 
     @api.model
@@ -62,11 +62,11 @@ class FsFlightMixin(models.AbstractModel):
                 - buffer_minutes: Buffer time between flights in minutes
         """
         ICP = self.env['ir.config_parameter'].sudo()
-        slot_minutes = int(ICP.get_param( # type: ignore
+        slot_minutes = int(ICP.get_str( # type: ignore
             'flight_school.scheduling_time_slot_minutes', 
             str(DEFAULT_SLOT_INCREMENT_MINUTES)
         ))
-        buffer_minutes = int(ICP.get_param( # type: ignore
+        buffer_minutes = int(ICP.get_str( # type: ignore
             'flight_school.scheduling_buffer_minutes', 
             str(DEFAULT_BUFFER_MINUTES)
         ))

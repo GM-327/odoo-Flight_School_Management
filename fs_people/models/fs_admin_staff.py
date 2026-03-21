@@ -41,7 +41,7 @@ class FsAdminStaff(models.Model):
     nationality_id = fields.Many2one(
         comodel_name='res.country',
         string='Nationality',
-        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
+        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
             'flight_school.default_country_id', 0)) or False,
     )
     

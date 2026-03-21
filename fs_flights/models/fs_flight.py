@@ -317,8 +317,8 @@ class FsFlight(models.Model):
     def _get_next_add_callsign(self):
         """Generate the next available ADD callsign (e.g., ABS7001, ABS7002, etc.)."""
         ICP = self.env['ir.config_parameter'].sudo()
-        prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
-        threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
+        prefix = ICP.get_str('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
+        threshold = int(ICP.get_str('flight_school.first_added_mission_number', '7000'))  # type: ignore
         
         # Get current year range
         today = fields.Date.context_today(self)

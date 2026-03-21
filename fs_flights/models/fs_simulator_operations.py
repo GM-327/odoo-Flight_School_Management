@@ -129,7 +129,7 @@ class FsSimulatorOperations(models.Model):
 
     # === Pagination for Carousel ===
     def _default_page_size(self):
-        return int(self.env['ir.config_parameter'].sudo().get_param('flight_school.operations_page_size', 10))  # type: ignore
+        return int(self.env['ir.config_parameter'].sudo().get_str('flight_school.operations_page_size', 10))  # type: ignore
 
     page_size = fields.Integer(
         string='Sessions per Page',

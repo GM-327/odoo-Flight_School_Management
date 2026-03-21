@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Settings',
-    'version': '19.0.1.0.0',
+    'version': '19.3.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Central settings and configuration for Flight School modules',
     'description': """
