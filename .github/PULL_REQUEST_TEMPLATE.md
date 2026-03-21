@@ -28,8 +28,12 @@
 <!-- List the modules affected by this change -->
 
 - [ ] `fs_core`
+- [ ] `fs_documents`
 - [ ] `fs_fleet`
+- [ ] `fs_flights`
 - [ ] `fs_people`
+- [ ] `fs_scheduling`
+- [ ] `fs_training`
 - [ ] Other: 
 
 ---
