@@ -15,7 +15,7 @@ Training management for Military Flight School Management System.
 
 This module provides:
 ---------------------
-* Training class types with configurable requirements
+* Training class types with requirements
 * Flight disciplines (MAN, NAV, IFR, VSV) and types (Solo, Dual)
 * Training classes with student enrollments
 * Flight missions syllabus
