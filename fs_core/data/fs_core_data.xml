@@ -2,24 +2,24 @@
 <odoo>
     <data noupdate="1">
         <!-- Default Settings -->
-        <record id="config_parameter_home_base" model="ir.config_parameter">
-            <field name="key">flight_school.default_home_base</field>
-            <field name="value">DTTI</field>
-        </record>
+        <function model="ir.config_parameter" name="set_param">
+            <value>flight_school.default_home_base</value>
+            <value>DTTI</value>
+        </function>
 
-        <record id="config_parameter_tz" model="ir.config_parameter">
-            <field name="key">flight_school.default_timezone</field>
-            <field name="value">UTC</field>
-        </record>
+        <function model="ir.config_parameter" name="set_param">
+            <value>flight_school.default_timezone</value>
+            <value>UTC</value>
+        </function>
 
-        <record id="config_parameter_min_rest" model="ir.config_parameter">
-            <field name="key">flight_school.minimum_rest_hours</field>
-            <field name="value">12.0</field>
-        </record>
+        <function model="ir.config_parameter" name="set_param">
+            <value>flight_school.minimum_rest_hours</value>
+            <value>12.0</value>
+        </function>
 
-        <record id="config_parameter_max_flight" model="ir.config_parameter">
-            <field name="key">flight_school.max_daily_flight_hours</field>
-            <field name="value">8.0</field>
-        </record>
+        <function model="ir.config_parameter" name="set_param">
+            <value>flight_school.max_daily_flight_hours</value>
+            <value>8.0</value>
+        </function>
     </data>
 </odoo>

@@ -382,7 +382,7 @@ class FsScheduledFlight(models.Model):
 
     def _get_buffer_timedelta(self):
         """Get the configured buffer time as a timedelta."""
-        buffer_min = int(self.env['ir.config_parameter'].sudo().get_str( # type: ignore
+        buffer_min = int(self.env['ir.config_parameter'].sudo().get_param( # type: ignore
             'flight_school.scheduling_buffer_minutes', '15'
         ))
         return timedelta(minutes=buffer_min)
@@ -830,8 +830,8 @@ class FsScheduledFlight(models.Model):
             return f"{prefix}{next_num:04d}"
         else:
             ICP = self.env['ir.config_parameter'].sudo()
-            prefix = ICP.get_str('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
-            threshold = int(ICP.get_str('flight_school.first_added_mission_number', '7000'))  # type: ignore
+            prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
+            threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
             
             flights_this_year = self.search([
                 ('callsign', '=like', f'{prefix}%'),
@@ -857,7 +857,7 @@ class FsScheduledFlight(models.Model):
         if not self.start_datetime or not self.end_datetime:
             return []
 
-        buffer_min = int(self.env['ir.config_parameter'].sudo().get_str('flight_school.scheduling_buffer_minutes', '15')) #type: ignore
+        buffer_min = int(self.env['ir.config_parameter'].sudo().get_param('flight_school.scheduling_buffer_minutes', '15')) #type: ignore
         buffer = timedelta(minutes=buffer_min)
         
         start_with_buffer = self.start_datetime - buffer

@@ -273,6 +273,23 @@
     </record>
 
     <!-- Timeline View -->
+    <record id="view_fs_scheduled_flight_timeline" model="ir.ui.view">
+        <field name="name">fs.scheduled.flight.timeline</field>
+        <field name="model">fs.scheduled.flight</field>
+        <field name="arch" type="xml">
+            <timeline date_start="start_datetime"
+                      date_stop="end_datetime"
+                      default_group_by="aircraft_id"
+                      zoomKey="altKey"
+                      event_open_popup="true">
+                <field name="callsign"/>
+                <field name="pilot1_display"/>
+                <field name="pilot2_display"/>
+                <field name="flight_category"/>
+                <field name="is_sim"/>
+            </timeline>
+        </field>
+    </record>
 
     <!-- Search View -->
     <record id="view_fs_scheduled_flight_search" model="ir.ui.view">
@@ -359,12 +376,12 @@
     </record>
 
     <!-- Link specific views to All Flights action -->
-<!--     <record id="action_fs_scheduled_flight_all_view_timeline" model="ir.actions.act_window.view"> -->
-<!--         <field name="sequence" eval="1"/> -->
-<!--         <field name="view_mode">timeline</field> -->
-<!--         <field name="view_id" ref="view_fs_scheduled_flight_timeline"/> -->
-<!--         <field name="act_window_id" ref="action_fs_scheduled_flight_all"/> -->
-<!--     </record> -->
+    <record id="action_fs_scheduled_flight_all_view_timeline" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">timeline</field>
+        <field name="view_id" ref="view_fs_scheduled_flight_timeline"/>
+        <field name="act_window_id" ref="action_fs_scheduled_flight_all"/>
+    </record>
     <record id="action_fs_scheduled_flight_all_view_list" model="ir.actions.act_window.view">
         <field name="sequence" eval="2"/>
         <field name="view_mode">list</field>

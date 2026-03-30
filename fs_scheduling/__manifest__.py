@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Scheduling',
-    'version': '19.3.3.1.0',
+    'version': '19.0.3.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Flight mission scheduling and timeline management',
     'description': """
@@ -30,7 +30,7 @@ Key Features:
         'fs_fleet',
         'fs_people',
         'mail',
-
+        'web_timeline',
     ],
     'data': [
         'security/ir.model.access.csv',

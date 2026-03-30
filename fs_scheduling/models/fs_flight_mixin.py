@@ -48,8 +48,8 @@ class FsFlightMixin(models.AbstractModel):
         """Get callsign configuration from system parameters."""
         ICP = self.env['ir.config_parameter'].sudo()
         return {
-            'prefix': ICP.get_str('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
-            'threshold': int(ICP.get_str('flight_school.first_added_mission_number', str(DEFAULT_ADD_THRESHOLD))),  # type: ignore
+            'prefix': ICP.get_param('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
+            'threshold': int(ICP.get_param('flight_school.first_added_mission_number', str(DEFAULT_ADD_THRESHOLD))),  # type: ignore
         }
 
     @api.model
@@ -62,11 +62,11 @@ class FsFlightMixin(models.AbstractModel):
                 - buffer_minutes: Buffer time between flights in minutes
         """
         ICP = self.env['ir.config_parameter'].sudo()
-        slot_minutes = int(ICP.get_str( # type: ignore
+        slot_minutes = int(ICP.get_param( # type: ignore
             'flight_school.scheduling_time_slot_minutes', 
             str(DEFAULT_SLOT_INCREMENT_MINUTES)
         ))
-        buffer_minutes = int(ICP.get_str( # type: ignore
+        buffer_minutes = int(ICP.get_param( # type: ignore
             'flight_school.scheduling_buffer_minutes', 
             str(DEFAULT_BUFFER_MINUTES)
         ))
@@ -103,11 +103,12 @@ class FsFlightMixin(models.AbstractModel):
                 ('date', '<=', end_year),
             ], ['callsign'])
             
-            flight_data = self.env['fs.flight'].search_read([
+            flight_model = self.env.get('fs.flight')
+            flight_data = flight_model.search_read([
                 ('callsign', '=like', f'{prefix}%'),
                 ('date', '>=', start_year),
                 ('date', '<=', end_year),
-            ], ['callsign'])
+            ], ['callsign']) if flight_model is not None else []
             
             all_data = scheduled_data + flight_data
             
@@ -152,7 +153,8 @@ class FsFlightMixin(models.AbstractModel):
             if exclude_id and self._name == 'fs.flight':
                 flight_domain.append(('id', '!=', exclude_id))
             
-            flight_data = self.env['fs.flight'].search_read(flight_domain, ['callsign'])
+            flight_model = self.env.get('fs.flight')
+            flight_data = flight_model.search_read(flight_domain, ['callsign']) if flight_model is not None else []
             
             all_data = scheduled_data + flight_data
             
@@ -205,7 +207,8 @@ class FsFlightMixin(models.AbstractModel):
         if exclude_id:
             domain.append(('id', '!=', exclude_id))
         
-        flight_data = self.env['fs.flight'].search_read(domain, ['callsign'])
+        flight_model = self.env.get('fs.flight')
+        flight_data = flight_model.search_read(domain, ['callsign']) if flight_model is not None else []
         
         # Find max number at or above threshold
         max_num = threshold - 1  # So first ADD is exactly threshold

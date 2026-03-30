@@ -232,12 +232,13 @@ class FsSchedulingWizard(models.TransientModel):
         
         # Search in actual flights (fs.flight) instead of scheduled flights
         # Only consider flights that are 'done' or 'cancelled' as per user request
-        flights = self.env['fs.flight'].search([
+        flight_model = self.env.get('fs.flight')
+        flights = flight_model.search([
             ('callsign', '=like', f'{prefix}%'),
             ('date', '>=', year_start),
             ('date', '<=', year_end),
             ('status', 'in', ['done', 'cancelled']),
-        ])
+        ]) if flight_model is not None else []
         
         max_num = 0
         for flight in flights:
@@ -257,12 +258,13 @@ class FsSchedulingWizard(models.TransientModel):
         year_end = today.replace(month=12, day=31)
         
         # Search in actual flights (fs.flight) instead of scheduled flights
-        flights = self.env['fs.flight'].search([
+        flight_model = self.env.get('fs.flight')
+        flights = flight_model.search([
             ('callsign', '=like', 'SIM%'),
             ('date', '>=', year_start),
             ('date', '<=', year_end),
             ('status', 'in', ['done', 'cancelled']),
-        ])
+        ]) if flight_model is not None else []
         
         max_num = 0
         for flight in flights:

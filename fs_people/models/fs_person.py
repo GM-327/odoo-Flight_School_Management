@@ -57,7 +57,7 @@ class FsPerson(models.AbstractModel):
     nationality_id = fields.Many2one(
         comodel_name='res.country',
         string='Nationality',
-        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.default_country_id', 0)) or False,
     )
     
@@ -132,7 +132,7 @@ class FsPerson(models.AbstractModel):
     @api.depends('medical_expiry')
     def _compute_medical_status(self):
         """Compute medical status based on expiry date and warning period from settings."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.medical_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)

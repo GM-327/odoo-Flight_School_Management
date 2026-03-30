@@ -19,16 +19,16 @@
     </record>
 
     <!-- Default Config Parameters -->
-    <record id="config_param_callsign_prefix" model="ir.config_parameter">
-        <field name="key">flight_school.mission_callsign_prefix</field>
-        <field name="value">ABS</field>
-    </record>
-    <record id="config_param_buffer_minutes" model="ir.config_parameter">
-        <field name="key">flight_school.scheduling_buffer_minutes</field>
-        <field name="value">15</field>
-    </record>
-    <record id="config_param_time_slot_minutes" model="ir.config_parameter">
-        <field name="key">flight_school.scheduling_time_slot_minutes</field>
-        <field name="value">15</field>
-    </record>
+    <function model="ir.config_parameter" name="set_param">
+        <value>flight_school.mission_callsign_prefix</value>
+        <value>ABS</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>flight_school.scheduling_buffer_minutes</value>
+        <value>15</value>
+    </function>
+    <function model="ir.config_parameter" name="set_param">
+        <value>flight_school.scheduling_time_slot_minutes</value>
+        <value>15</value>
+    </function>
 </odoo>

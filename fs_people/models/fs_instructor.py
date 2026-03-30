@@ -181,7 +181,7 @@ class FsInstructor(models.Model):
     @api.depends('english_expiry')
     def _compute_english_status(self):
         """Compute English proficiency status based on expiry date and warning period from settings."""
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
@@ -199,21 +199,21 @@ class FsInstructor(models.Model):
     # === Capacity Limits ===
     max_students = fields.Integer(
         string='Max Students',
-        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.default_max_students', '8')),
         help="Maximum number of students this instructor can have.",
         readonly=True,
     )
     max_hours_per_month = fields.Float(
         string='Max Hours/Month',
-        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.default_max_hours_per_month', '80.0')),
         help="Maximum instruction hours per month.",
         readonly=True,
     )
     max_hours_per_3months = fields.Float(
         string='Max Hours/3 Months',
-        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_str(  # type: ignore
+        default=lambda self: float(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.default_max_hours_per_3months', '240.0')),
         help="Maximum instruction hours per rolling 3-month period.",
         readonly=True,
@@ -278,7 +278,12 @@ class FsInstructor(models.Model):
         # 3-month rolling boundaries (current month + 2 previous)
         three_months_start = current_month_start - relativedelta(months=2)
         
-        Flight = self.env['fs.flight']
+        FlightModel = self.env.get('fs.flight')
+        if FlightModel is None:
+            for record in self:
+                record.hours_current_month = 0.0
+                record.hours_3months = 0.0
+            return
         
         for record in self:
             # Find flights where this instructor was P1/P2 with instructor function
@@ -292,7 +297,7 @@ class FsInstructor(models.Model):
             ]
             
             # Current month hours
-            current_month_flights = Flight.search(base_domain + [
+            current_month_flights = FlightModel.search(base_domain + [
                 ('date', '>=', current_month_start),
                 ('date', '<=', current_month_end),
             ])
@@ -302,7 +307,7 @@ class FsInstructor(models.Model):
             )
             
             # 3-month rolling hours
-            three_month_flights = Flight.search(base_domain + [
+            three_month_flights = FlightModel.search(base_domain + [
                 ('date', '>=', three_months_start),
                 ('date', '<=', current_month_end),
             ])
