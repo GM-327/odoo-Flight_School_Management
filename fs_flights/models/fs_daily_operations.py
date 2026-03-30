@@ -214,7 +214,7 @@ class FsDailyOperations(models.Model):
             # Logic to find max callsign
             ICP = self.env['ir.config_parameter'].sudo()
             threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000')) # type: ignore
-            prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS') # type: ignore
+            prefix = str(ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')) # type: ignore
 
             max_num = -1
             for data in flight_data:
