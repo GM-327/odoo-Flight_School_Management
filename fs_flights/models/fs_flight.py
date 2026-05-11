@@ -1,23 +1,21 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from datetime import datetime, timedelta
 
 # Import shared constants from mixin
 from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
-    PILOT_FUNCTION_SELECTION,
     FLIGHT_CATEGORY_SELECTION,
+    PILOT_FUNCTION_SELECTION,
 )
 
 
 class FsFlight(models.Model):
     """Actual flight execution record.
-    
+
     This model represents the day-of-operations flight. It is usually created
-    by 'pushing' a scheduled flight from the scheduling module, but acts as 
+    by 'pushing' a scheduled flight from the scheduling module, but acts as
     an independent record that can be modified during execution.
     """
 
@@ -30,9 +28,9 @@ class FsFlight(models.Model):
     scheduled_flight_id = fields.Many2one(
         comodel_name='fs.scheduled.flight',
         string='Scheduled Flight',
-        required=False, # Optional (Ad-Hoc flights)
+        required=False,  # Optional (Ad-Hoc flights)
         ondelete='set null',
-        help="Link to the original plan. Changes here do not affect the plan unless synced."
+        help="Link to the original plan. Changes here do not affect the plan unless synced.",
     )
 
     # === Constraints ===
@@ -55,7 +53,7 @@ class FsFlight(models.Model):
                     _("Duplicate callsign detected! The callsign '%(callsign)s' is already assigned to another flight on %(date)s. "
                       "Each flight must have a unique callsign.",
                       callsign=record.callsign,
-                      date=duplicates.date)
+                      date=duplicates.date),
                 )
 
     # === CRUD Overrides ===
@@ -68,11 +66,11 @@ class FsFlight(models.Model):
         if self.callsign and self.callsign.upper() == 'ADD':
             new_callsign = self._get_next_add_callsign()
             self.sudo().write({'callsign': new_callsign})
-        
+
         # Determine which popup form to use based on aircraft category
         is_simulator = self.aircraft_id.category_id.is_simulator if self.aircraft_id else False  # type: ignore
         view_id = self.env.ref('fs_flights.view_fs_sim_popup_form' if is_simulator else 'fs_flights.view_fs_flight_popup_form').id
-        
+
         return {
             'name': _('Simulator Session') if is_simulator else _('Flight Details'),
             'type': 'ir.actions.act_window',
@@ -115,14 +113,14 @@ class FsFlight(models.Model):
         store=True,
         index=True,
     )
-    
+
     @api.depends('date', 'aircraft_id.category_id.is_simulator')
     def _compute_daily_ops(self):
         """Compute link to operations board. Does NOT create boards - that's handled in create/write."""
         # Collect all dates for batch lookup
         non_sim_dates = set()
         sim_dates = set()
-        
+
         for record in self:
             if not record.date:
                 continue
@@ -130,19 +128,19 @@ class FsFlight(models.Model):
                 sim_dates.add(record.date)
             else:
                 non_sim_dates.add(record.date)
-        
+
         # Batch lookup for daily operations
         ops_map = {}
         if non_sim_dates:
             existing_ops = self.env['fs.daily.operations'].search([('date', 'in', list(non_sim_dates))])
             ops_map = {op.date: op for op in existing_ops}  # type: ignore
-        
+
         # Batch lookup for simulator operations
         sim_ops_map = {}
         if sim_dates:
             existing_sim_ops = self.env['fs.simulator.operations'].search([('date', 'in', list(sim_dates))])
             sim_ops_map = {op.date: op for op in existing_sim_ops}  # type: ignore
-        
+
         # Assign values (just link, don't create)
         for record in self:
             is_sim = record.aircraft_id and record.aircraft_id.category_id and record.aircraft_id.category_id.is_simulator  # type: ignore
@@ -261,7 +259,7 @@ class FsFlight(models.Model):
     route_name = fields.Char(
         related='route_id.name',
         string='Route Name',
-        store=True,    
+        store=True,
     )
     activity_display = fields.Char(
         string='Activity',
@@ -303,7 +301,7 @@ class FsFlight(models.Model):
     class_type_id = fields.Many2one(
         related='training_class_id.class_type_id',
         store=True,
-        string='Class Type'
+        string='Class Type',
     )
     flight_code = fields.Char(
         string='Flight Code',
@@ -319,12 +317,12 @@ class FsFlight(models.Model):
         ICP = self.env['ir.config_parameter'].sudo()
         prefix = str(ICP.get_param('flight_school.mission_callsign_prefix', 'ABS') or 'ABS')
         threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
-        
+
         # Get current year range
         today = fields.Date.context_today(self)
         start_year = today.replace(month=1, day=1)
         end_year = today.replace(month=12, day=31)
-        
+
         # Search for all flights in the current year with callsigns above threshold
         domain = [
             ('date', '>=', start_year),
@@ -334,7 +332,7 @@ class FsFlight(models.Model):
             ('id', '!=', self.id if self.id else 0),  # Exclude current record
         ]
         flight_data = self.env['fs.flight'].search_read(domain, ['callsign'])
-        
+
         # Find the maximum callsign number above threshold
         max_num = threshold - 1  # Start from threshold - 1 so first is exactly threshold
         for data in flight_data:
@@ -345,7 +343,7 @@ class FsFlight(models.Model):
                     val = int(suffix)
                     if val >= threshold and val > max_num:
                         max_num = val
-        
+
         # Return the next available number
         next_num = max_num + 1
         return f"{prefix}{next_num}"
@@ -371,12 +369,12 @@ class FsFlight(models.Model):
                     if enrollment:
                         self.training_class_id = enrollment.training_class_id  # type: ignore
                         self.aircraft_type_id = enrollment.aircraft_type_id  # type: ignore
-                        
+
                         instructor = enrollment.instructor_id  # type: ignore
                         if instructor and not instructor.has_expired_qualification:  # type: ignore
                             crew_member = self.env['fs.crew.member'].search([
                                 ('source_model', '=', 'fs.instructor'),
-                                ('source_id', '=', instructor.id)
+                                ('source_id', '=', instructor.id),
                             ], limit=1)
                             if crew_member:
                                 self.pilot2_crew_id = crew_member
@@ -449,7 +447,7 @@ class FsFlight(models.Model):
                 self.scheduled_duration = self.custom_activity_id.default_duration  # type: ignore
 
     # === Execution Times ===
-    etd = fields.Float(related='scheduled_start', string='ETD', store=True, aggregator=None) # Alias for view compatibility
+    etd = fields.Float(related='scheduled_start', string='ETD', store=True, aggregator=None)  # Alias for view compatibility
     atd = fields.Float(string='ATD', tracking=True, aggregator=None)
     eta = fields.Float(string='ETA', compute='_compute_eta', store=True, aggregator=None)
     ata = fields.Float(string='ATA', tracking=True, aggregator=None)
@@ -476,7 +474,7 @@ class FsFlight(models.Model):
     )
     cancellation_reason_id = fields.Many2one('fs.cancellation.reason', string='Cancellation Reason')
     cancellation_code = fields.Char(related='cancellation_reason_id.code', store=True, string='Cancel Code')
-    
+
     status_display = fields.Char(compute='_compute_status_display', store=True)
     status_color = fields.Integer(compute='_compute_status_color')
     is_exam = fields.Boolean(string='Is Exam', compute='_compute_is_exam', store=True)
@@ -499,13 +497,13 @@ class FsFlight(models.Model):
                     warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
                 if record.flight_category == 'staff_training' and record.pilot1_crew_id.member_type == 'student':  # type: ignore
                     warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
-            
+
             if record.pilot2_crew_id:
                 if record.pilot2_crew_id.has_expired_qualification:  # type: ignore
                     warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
                 if record.flight_category == 'staff_training' and record.pilot2_crew_id.member_type == 'student':  # type: ignore
                     warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
-            
+
             if warnings:
                 record.crew_warning = "<div class='alert alert-warning p-2 mb-0' role='alert'><i class='fa fa-exclamation-triangle me-2'/>" + " | ".join(warnings) + "</div>"
             else:
@@ -522,15 +520,13 @@ class FsFlight(models.Model):
                 record.student_id = False
                 record.training_class_id = False
 
-
-
     @api.depends('mission_id', 'activity_id')
     def _compute_flight_code(self):
         for record in self:
-            if record.mission_id and record.mission_id.activity_id: # type: ignore
-                record.flight_code = record.mission_id.activity_id.code # type: ignore
-            elif record.activity_id: # type: ignore
-                record.flight_code = record.activity_id.code # type: ignore
+            if record.mission_id and record.mission_id.activity_id:  # type: ignore
+                record.flight_code = record.mission_id.activity_id.code  # type: ignore
+            elif record.activity_id:  # type: ignore
+                record.flight_code = record.activity_id.code  # type: ignore
             else:
                 record.flight_code = False
 
@@ -576,13 +572,13 @@ class FsFlight(models.Model):
     @api.onchange('atd', 'ata')
     def _onchange_execution_times(self):
         """Update status preview and force persistence for inline edits.
-        
+
         The _origin.write() pattern is critical for the operations board because
-        it uses a computed Many2many list where standard row-level saving 
+        it uses a computed Many2many list where standard row-level saving
         often fails to persist unless forced.
         """
         new_status = self._compute_status_from_times()
-        
+
         # 1. Update virtual record for UI feedback
         if self.status == 'cancelled' and new_status != 'cancelled':
             self.cancellation_reason_id = False
@@ -599,7 +595,7 @@ class FsFlight(models.Model):
             }
             if self.status == 'cancelled' and new_status != 'cancelled':
                 vals['cancellation_reason_id'] = False
-            
+
             # This triggers our recursion-safe write() method on the real record
             self._origin.write(vals)
 
@@ -636,14 +632,14 @@ class FsFlight(models.Model):
 
     def write(self, vals):
         """Override write to handle status updates and hour distribution on state changes.
-        
+
         This method is designed to be recursion-safe and batch-compatible.
         """
         # 1. Handle cross-field status automation
         # Clear times when explicit cancellation occurs
         if vals.get('status') == 'cancelled':
             vals.update({'atd': False, 'ata': False})
-            
+
         # 2. Capture pre-write state for all records in the set
         old_data = {
             r.id: {
@@ -653,7 +649,7 @@ class FsFlight(models.Model):
                 'ata': r.ata,
             } for r in self
         }
-        
+
         # 3. Handle automatic status updates from ATD/ATA changes
         if ('atd' in vals or 'ata' in vals) and 'status' not in vals:
             # Note: We don't update vals directly here for the whole set because
@@ -664,7 +660,7 @@ class FsFlight(models.Model):
                 new_atd = vals.get('atd', self.atd)
                 new_ata = vals.get('ata', self.ata)
                 computed_status = self.with_context(
-                    status=self.status, atd=new_atd, ata=new_ata
+                    status=self.status, atd=new_atd, ata=new_ata,
                 )._compute_status_from_times_batch()
                 if computed_status != self.status:
                     vals['status'] = computed_status
@@ -673,17 +669,17 @@ class FsFlight(models.Model):
 
         # 4. Perform the actual write
         res = super().write(vals)
-        
+
         # 5. Post-write adjustments (Hour distribution)
         if not self.env.context.get('skip_distribution'):
             for record in self:
                 old = old_data.get(record.id, {})
                 old_status = old.get('status')
                 old_distributed = old.get('distributed_hours', 0.0)
-                
+
                 new_status = record.status
                 new_duration = record.actual_duration
-                
+
                 delta = 0.0
                 if new_status == 'done':
                     if old_status != 'done':
@@ -701,14 +697,14 @@ class FsFlight(models.Model):
                     # Update distributed_hours directly in DB to avoid recursion
                     self.env.cr.execute(
                         "UPDATE fs_flight SET distributed_hours = %s WHERE id = %s",
-                        (record.distributed_hours + delta, record.id)
+                        (record.distributed_hours + delta, record.id),
                     )
                     record.invalidate_recordset(['distributed_hours'])
 
         # 6. Maintenance: Ensure operations boards exist
         if 'date' in vals or 'aircraft_id' in vals:
             self._ensure_operations_board()
-            
+
         return res
 
     def _compute_status_from_times_batch(self):
@@ -716,7 +712,7 @@ class FsFlight(models.Model):
         atd = self.env.context.get('atd', self.atd)
         ata = self.env.context.get('ata', self.ata)
         status = self.env.context.get('status', self.status)
-        
+
         if atd and ata:
             return 'done'
         if atd:
@@ -732,7 +728,7 @@ class FsFlight(models.Model):
 
     def _is_simulator_session(self):
         """Check if this is a simulator session.
-        
+
         Priority: mission flag > activity flag > aircraft category
         """
         self.ensure_one()
@@ -740,19 +736,19 @@ class FsFlight(models.Model):
             return True
         if self.activity_id and hasattr(self.activity_id, 'is_sim') and self.activity_id.is_sim:  # type: ignore
             return True
-        if self.aircraft_id and self.aircraft_id.category_id: # type: ignore
+        if self.aircraft_id and self.aircraft_id.category_id:  # type: ignore
             return self.aircraft_id.category_id.is_simulator  # type: ignore
         return False
 
     def _get_person_from_crew(self, crew):
         """Get the actual person record from crew member.
-        
+
         Uses member_type to determine correct model since the SQL view
         has inconsistent source_model for students.
         """
         if not crew or not crew.source_id:
             return False
-        
+
         try:
             # Map member_type to actual person model
             model_map = {
@@ -769,14 +765,14 @@ class FsFlight(models.Model):
 
     def _get_pilot_function_config(self, function_code):
         """Get pilot function configuration by code.
-        
+
         Returns dict with is_counted_flight, is_counted_instructor, is_counted_solo.
         """
         if not function_code:
             return {'is_counted_flight': False, 'is_counted_instructor': False, 'is_counted_solo': False}
-        
+
         PilotFunction = self.env['fs.pilot.function']
-        func = PilotFunction.get_function_by_code(function_code) # type: ignore
+        func = PilotFunction.get_function_by_code(function_code)  # type: ignore
         if func:
             return {
                 'is_counted_flight': func.is_counted_flight,
@@ -788,14 +784,14 @@ class FsFlight(models.Model):
 
     def _distribute_hours(self, hours_delta):
         """Distribute flight hours to Aircraft, Instructor, Pilot, and Student.
-        
+
         Args:
             hours_delta: Hours to add (positive) or subtract (negative).
         """
         self.ensure_one()
         if hours_delta == 0:
             return
-        
+
         is_sim = self._is_simulator_session()
         today = fields.Date.context_today(self)
 
@@ -803,42 +799,42 @@ class FsFlight(models.Model):
         if self.aircraft_id:
             aircraft = self.aircraft_id
             vals = {}
-            vals['total_hours'] = aircraft.total_hours + hours_delta # type: ignore
+            vals['total_hours'] = aircraft.total_hours + hours_delta  # type: ignore
             if hours_delta > 0:
                 vals['last_flight_date'] = today
             aircraft.sudo().write(vals)
 
         # 2. Update Crew members (P1 and P2)
-        for crew_attr, func_attr in [('pilot1_crew_id', 'pilot1_function'), 
+        for crew_attr, func_attr in [('pilot1_crew_id', 'pilot1_function'),
                                       ('pilot2_crew_id', 'pilot2_function')]:
             crew = getattr(self, crew_attr, False)
             func_code = getattr(self, func_attr, False)
             if not crew:
                 continue
-            
+
             person = self._get_person_from_crew(crew)
             if not person:
                 continue
-            
+
             func_config = self._get_pilot_function_config(func_code)
             vals = {}
-            
+
             if hours_delta > 0:
                 vals['last_flight_date'] = today
-            
+
             if is_sim:
                 # Simulator hours tracked separately
                 if hasattr(person, 'total_sim_hours'):
-                    vals['total_sim_hours'] = person.total_sim_hours + hours_delta # type: ignore
+                    vals['total_sim_hours'] = person.total_sim_hours + hours_delta  # type: ignore
             else:
                 # Flight hours
                 if func_config['is_counted_flight'] and hasattr(person, 'total_flight_hours'):
-                    vals['total_flight_hours'] = person.total_flight_hours + hours_delta # type: ignore
+                    vals['total_flight_hours'] = person.total_flight_hours + hours_delta  # type: ignore
                 if func_config['is_counted_instructor'] and hasattr(person, 'total_instruction_hours'):
-                    vals['total_instruction_hours'] = person.total_instruction_hours + hours_delta # type: ignore
+                    vals['total_instruction_hours'] = person.total_instruction_hours + hours_delta  # type: ignore
                 if func_config['is_counted_solo'] and hasattr(person, 'solo_hours'):
-                    vals['solo_hours'] = person.solo_hours + hours_delta # type: ignore
-            
+                    vals['solo_hours'] = person.solo_hours + hours_delta  # type: ignore
+
             if vals:
                 person.sudo().write(vals)
 
@@ -846,22 +842,22 @@ class FsFlight(models.Model):
         if self.flight_category == 'student_training' and self.student_id:
             student = self.student_id
             vals = {}
-            
+
             if hours_delta > 0:
                 vals['last_flight_date'] = today
-            
+
             if is_sim:
-                vals['total_sim_hours'] = student.total_sim_hours + hours_delta # type: ignore
+                vals['total_sim_hours'] = student.total_sim_hours + hours_delta  # type: ignore
             else:
-                vals['total_flight_hours'] = student.total_flight_hours + hours_delta # type: ignore
+                vals['total_flight_hours'] = student.total_flight_hours + hours_delta  # type: ignore
                 # Check P1 function for solo
                 p1_func = self._get_pilot_function_config(self.pilot1_function)
                 if p1_func['is_counted_solo']:
-                    vals['solo_hours'] = student.solo_hours + hours_delta # type: ignore
-            
+                    vals['solo_hours'] = student.solo_hours + hours_delta  # type: ignore
+
             if vals:
                 student.sudo().write(vals)
-            
+
             # Update enrollment activity hours
             self._update_enrollment_hours(hours_delta)
 
@@ -871,51 +867,51 @@ class FsFlight(models.Model):
             self.message_post(  # type: ignore
                 body=f"✅ Flight completed. {hours_str} hours distributed.",
                 message_type='notification',
-                subtype_xmlid='mail.mt_note'
+                subtype_xmlid='mail.mt_note',
             )
         elif hours_delta < 0:
             hours_str = f"{int(abs(hours_delta))}:{int((abs(hours_delta) % 1) * 60):02d}"
             self.message_post(  # type: ignore
                 body=f"⚠️ Hours adjusted. {hours_str} hours subtracted.",
                 message_type='notification',
-                subtype_xmlid='mail.mt_note'
+                subtype_xmlid='mail.mt_note',
             )
 
     def _update_enrollment_hours(self, hours_delta):
         """Update student enrollment activity hours.
-        
+
         Args:
             hours_delta: Hours to add (positive) or subtract (negative).
         """
         self.ensure_one()
         if not self.student_id or not self.training_class_id:
             return
-        
+
         enrollment = self.env['fs.student.enrollment'].search([
             ('student_id', '=', self.student_id.id),
             ('training_class_id', '=', self.training_class_id.id),
             ('status', '=', 'active'),
         ], limit=1)
-        
+
         if not enrollment:
             return
-        
+
         # Get activity from mission or direct activity
         activity = None
         if self.mission_id and self.mission_id.activity_id:  # type: ignore
             activity = self.mission_id.activity_id  # type: ignore
         elif self.activity_id:
             activity = self.activity_id
-        
+
         if not activity:
             return
-        
+
         EnrollmentHours = self.env['fs.enrollment.hours']
         rec = EnrollmentHours.search([
             ('enrollment_id', '=', enrollment.id),
             ('activity_id', '=', activity.id),
         ], limit=1)
-        
+
         if rec:
             new_hours = max(0, rec.hours_logged + hours_delta)  # type: ignore
             rec.sudo().write({'hours_logged': new_hours})
@@ -938,7 +934,7 @@ class FsFlight(models.Model):
         self.ensure_one()
         if self.status == 'done':
             raise UserError(_("You cannot delete a completed flight."))
-        
+
         return {
             'name': _('Confirm Deletion'),
             'type': 'ir.actions.act_window',
@@ -951,4 +947,3 @@ class FsFlight(models.Model):
                 'size': 'sm',
             },
         }
-

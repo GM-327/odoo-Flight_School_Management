@@ -2,8 +2,10 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models, _
 from datetime import timedelta
+
+from odoo import _, api, fields, models
+
 
 class FsDailyOperations(models.Model):
     """Dashboard for daily flight operations monitoring."""
@@ -28,7 +30,7 @@ class FsDailyOperations(models.Model):
                     ('date', '=', record.date),
                     ('daily_ops_id', '=', False)
                 ]).filtered(lambda f: not f.aircraft_id.category_id.is_simulator) # type: ignore
-                
+
                 if flights:
                     flights.write({'daily_ops_id': record.id})
         return records
