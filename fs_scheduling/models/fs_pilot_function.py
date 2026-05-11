@@ -7,15 +7,15 @@ from odoo import api, fields, models
 
 class FsPilotFunction(models.Model):
     """Configurable pilot function/role for flights.
-    
+
     This model defines the available pilot functions and their hour counting behavior.
     The 'code' field links to the existing Selection field values for compatibility.
     """
-    
+
     _name = 'fs.pilot.function'
     _description = 'Pilot Function'
     _order = 'sequence, id'
-    
+
     code = fields.Char(
         string='Code',
         required=True,
@@ -49,18 +49,18 @@ class FsPilotFunction(models.Model):
         string='Active',
         default=True,
     )
-    
+
     _sql_constraints = [
         ('code_unique', 'UNIQUE(code)', 'Pilot function code must be unique!'),
     ]
-    
+
     @api.model
     def get_function_by_code(self, code):
         """Get pilot function record by code.
-        
+
         Args:
             code: Selection field value (e.g., 'instructor', 'student')
-            
+
         Returns:
             fs.pilot.function record or False
         """

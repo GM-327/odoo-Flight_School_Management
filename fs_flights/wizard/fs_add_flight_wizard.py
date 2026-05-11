@@ -1,14 +1,13 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models, _
-
 # Import shared constants from mixin
-from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
-    PILOT_FUNCTION_SELECTION,
+from fs_scheduling.models.fs_flight_mixin import (
     FLIGHT_CATEGORY_SELECTION,
+    PILOT_FUNCTION_SELECTION,
 )
+
+from odoo import api, fields, models
 
 
 class FsAddFlightWizard(models.TransientModel):
@@ -29,7 +28,7 @@ class FsAddFlightWizard(models.TransientModel):
     date = fields.Date(
         string='Date',
         required=True,
-        default=fields.Date.today,
+        default=fields.Date.context_today,
     )
     start_time = fields.Float(
         string='Scheduled Time',
@@ -45,6 +44,7 @@ class FsAddFlightWizard(models.TransientModel):
         string='ETA',
         compute='_compute_eta',
     )
+
     @api.depends('start_time', 'duration')
     def _compute_eta(self):
         for record in self:
@@ -154,7 +154,7 @@ class FsAddFlightWizard(models.TransientModel):
                         if instructor and not instructor.has_expired_qualification:  # type: ignore
                             crew_member = self.env['fs.crew.member'].search([
                                 ('source_model', '=', 'fs.instructor'),
-                                ('source_id', '=', instructor.id)
+                                ('source_id', '=', instructor.id),
                             ], limit=1)
                             if crew_member:
                                 self.pilot2_crew_id = crew_member
@@ -226,13 +226,13 @@ class FsAddFlightWizard(models.TransientModel):
                     warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
                 if record.flight_category == 'staff_training' and record.pilot1_crew_id.member_type == 'student':  # type: ignore
                     warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
-            
+
             if record.pilot2_crew_id:
                 if record.pilot2_crew_id.has_expired_qualification:  # type: ignore
                     warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
                 if record.flight_category == 'staff_training' and record.pilot2_crew_id.member_type == 'student':  # type: ignore
                     warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
-            
+
             if warnings:
                 record.crew_warning = "<div class='alert alert-warning p-2 mb-0' role='alert'><i class='fa fa-exclamation-triangle me-2'/>" + " | ".join(warnings) + "</div>"
             else:
@@ -312,33 +312,5 @@ class FsAddSimWizard(FsAddFlightWizard):
 
     @api.model
     def _get_next_sim_callsign(self):
-        """Generate the next available SIM callsign (e.g., SIM0001, SIM0042, etc.)."""
-        # Get current year range
-        today = fields.Date.context_today(self)
-        start_year = today.replace(month=1, day=1)
-        end_year = today.replace(month=12, day=31)
-
-        # Search for all SIM flights in the current year
-        domain = [
-            ('date', '>=', start_year),
-            ('date', '<=', end_year),
-            ('callsign', '=like', 'SIM%'),
-        ]
-        flight_data = self.env['fs.flight'].search_read(domain, ['callsign'])
-
-        # Find the maximum callsign number
-        max_num = 0
-        for data in flight_data:
-            c = data['callsign']
-            if isinstance(c, str) and c.startswith('SIM') and len(c) > 3:
-                suffix = c[3:]
-                if suffix.isdigit():
-                    val = int(suffix)
-                    if val > max_num:
-                        max_num = val
-
-        # Return the next available number zero-padded to 4 digits
-        next_num = max_num + 1
-        return f"SIM{next_num:04d}"
-
-
+        """Generate the next available SIM callsign across flight records."""
+        return self._get_next_callsign(is_sim=True)

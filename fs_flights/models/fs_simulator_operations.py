@@ -1,9 +1,11 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import api, fields, models, _
+from calendar import day_name, month_name
 from datetime import timedelta
+
+from odoo import _, api, fields, models
+
 
 class FsSimulatorOperations(models.Model):
     """Dashboard for daily simulator operations monitoring."""
@@ -15,7 +17,7 @@ class FsSimulatorOperations(models.Model):
 
     _date_unique = models.Constraint(
         'unique(date)',
-        'Only one simulator operations board can exist per date.'
+        'Only one simulator operations board can exist per date.',
     )
 
     @api.model_create_multi
@@ -26,16 +28,16 @@ class FsSimulatorOperations(models.Model):
                 # Link existing simulator flights for this date to the new board
                 flights = self.env['fs.flight'].search([
                     ('date', '=', record.date),
-                    ('simulator_ops_id', '=', False)
+                    ('simulator_ops_id', '=', False),
                 ]).filtered(lambda f: f.aircraft_id.category_id.is_simulator)  # type: ignore
-                
+
                 if flights:
                     flights.write({'simulator_ops_id': record.id})
         return records
 
     date = fields.Date(
         string='Date',
-        default=fields.Date.today,
+        default=fields.Date.context_today,
     )
     date_display = fields.Char(string='Date Display', compute='_compute_date_display')
     name = fields.Char(compute='_compute_name')
@@ -43,21 +45,20 @@ class FsSimulatorOperations(models.Model):
     @api.depends('date')
     def _compute_name(self):
         for record in self:
-            record.name = _("Simulator Board - %s") % record.date
+            record.name = (
+                _("Simulator Board - %s") % record.date
+                if record.date
+                else _("Simulator Board")
+            )
 
     @api.depends('date')
     def _compute_date_display(self):
-        try:
-            from babel.dates import format_date
-        except ImportError:
-            format_date = None
-
         for record in self:
             if record.date:
-                if format_date:
-                    record.date_display = format_date(record.date, format='EEEE, d MMMM', locale='en_US')
-                else:
-                    record.date_display = record.date.strftime('%A, %d %B')
+                record.date_display = (
+                    f"{day_name[record.date.weekday()]}, "
+                    f"{record.date.day} {month_name[record.date.month]}"
+                )
             else:
                 record.date_display = ''
 
@@ -129,7 +130,13 @@ class FsSimulatorOperations(models.Model):
 
     # === Pagination for Carousel ===
     def _default_page_size(self):
-        return int(self.env['ir.config_parameter'].sudo().get_param('flight_school.operations_page_size', 10))  # type: ignore
+        value = self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.operations_page_size', '10',
+        )
+        try:
+            return max(1, int(value))
+        except (TypeError, ValueError):
+            return 10
 
     page_size = fields.Integer(
         string='Sessions per Page',
@@ -168,7 +175,7 @@ class FsSimulatorOperations(models.Model):
 
             # Total hours from completed sessions
             done_logs = logs.filtered_domain([('status', '=', 'done')])
-            total = sum(d.actual_duration for d in done_logs)  # type: ignore
+            total = sum(session.actual_duration or 0.0 for session in done_logs)
             record.total_hours = total
 
             # Format as HH:MM
@@ -179,7 +186,7 @@ class FsSimulatorOperations(models.Model):
     @api.depends('date')
     def _compute_last_sim_callsign(self):
         """Compute the last used simulator callsign for the current year.
-        
+
         Simulator callsigns follow the format SIM0001, SIM0002, etc.
         They increment normally (no threshold like ADD missions for flights).
         """
@@ -210,7 +217,7 @@ class FsSimulatorOperations(models.Model):
                         val = int(suffix)
                         if val > max_num:
                             max_num = val
-            
+
             if max_num != -1:
                 record.last_sim_callsign = f"SIM{max_num:04d}"
             else:
@@ -234,12 +241,12 @@ class FsSimulatorOperations(models.Model):
             page_size = record.page_size or 10
             current_page = record.current_page or 0
             total_pages = record.total_pages or 1
-            
+
             current_page = max(0, min(current_page, total_pages - 1))
-            
+
             start_idx = current_page * page_size
             end_idx = start_idx + page_size
-            
+
             all_logs = record.session_ids
             paginated = all_logs[start_idx:end_idx] if all_logs else all_logs
             record.paginated_session_ids = paginated
@@ -295,7 +302,7 @@ class FsSimulatorOperations(models.Model):
         record = self.search([('date', '=', target_date)], limit=1)
         if not record:
             record = self.create({'date': target_date})
-            
+
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'fs.simulator.operations',

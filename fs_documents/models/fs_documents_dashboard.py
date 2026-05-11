@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 import json
-from odoo import api, fields, models
+
+from odoo import fields, models
 
 
 class FsDocumentsDashboard(models.TransientModel):
     """Dashboard for Documents module - provides KPIs and quick actions.
-    
+
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
     """
@@ -112,7 +112,7 @@ class FsDocumentsDashboard(models.TransientModel):
     def _compute_doc_graph_data(self):
         """Compute document distribution graph data."""
         Doc = self.env['fs.document']
-        
+
         # Status distribution
         status_data = [
             {'label': 'Valid', 'value': Doc.search_count([('expiry_status', '=', 'valid')]), 'type': 'future'},
@@ -120,7 +120,7 @@ class FsDocumentsDashboard(models.TransientModel):
             {'label': 'Expired', 'value': Doc.search_count([('expiry_status', '=', 'expired')]), 'type': 'past'},
             {'label': 'No Expiry', 'value': Doc.search_count([('expiry_status', '=', 'no_expiry')]), 'type': 'future'},
         ]
-        
+
         # Entity distribution
         entity_data = [
             {'label': 'Students', 'value': Doc.search_count([('student_id', '!=', False)]), 'type': 'future'},
@@ -128,7 +128,7 @@ class FsDocumentsDashboard(models.TransientModel):
             {'label': 'Pilots', 'value': Doc.search_count([('pilot_id', '!=', False)]), 'type': 'future'},
             {'label': 'Classes', 'value': Doc.search_count([('training_class_id', '!=', False)]), 'type': 'future'},
         ]
-        
+
         for record in self:
             record.status_distribution = json.dumps([{
                 'values': status_data,

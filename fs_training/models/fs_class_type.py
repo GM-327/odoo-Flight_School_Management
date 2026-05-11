@@ -1,15 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 from odoo import api, fields, models
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from odoo.addons.fs_fleet.models.aircraft_type import AircraftType
-    from .fs_class_requirement import FsClassRequirement
-    from .fs_flight_mission import FsFlightMission
-    from .fs_admin_task import FsAdminTaskTemplate
 
 
 class FsClassType(models.Model):
@@ -22,33 +14,33 @@ class FsClassType(models.Model):
     name = fields.Char(
         string='Name',
         required=True,
-        help="Class type name (e.g., PPL Course, Basic Training).",
+        help='Class type name (e.g., PPL Course, Basic Training).',
     )
     code = fields.Char(
         string='Code',
-        help="Short code.",
+        help='Short code.',
     )
     is_military = fields.Boolean(
         string='Military Only',
         default=False,
-        help="This class type is for military students only.",
+        help='This class type is for military students only.',
     )
     for_licensed_personnel = fields.Boolean(
         string='For Licensed Personnel',
         default=False,
-        help="This class is for pilots/instructors (not students). "
-             "Enables English and Qualification requirements.",
+        help=(
+            'This class is for pilots/instructors (not students). '
+            'Enables English and Qualification requirements.'
+        ),
     )
-    description = fields.Text(
-        string='Description',
-    )
+    description = fields.Text(string='Description')
     reference_document = fields.Char(
         string='Reference Document',
-        help="Document reference (for fs_documents module).",
+        help='Document reference (for fs_documents module).',
     )
     duration_value = fields.Integer(
         string='Duration Value',
-        help="Duration value to be used with the duration unit.",
+        help='Duration value to be used with the duration unit.',
     )
     duration_unit = fields.Selection(
         selection=[
@@ -58,39 +50,39 @@ class FsClassType(models.Model):
         string='Duration Unit',
         default='weeks',
     )
-    aircraft_type_ids: 'AircraftType' = fields.Many2many(  # type: ignore[assignment]
+    aircraft_type_ids = fields.Many2many(
         comodel_name='fs.aircraft.type',
         relation='fs_class_type_aircraft_type_rel',
         column1='class_type_id',
         column2='aircraft_type_id',
         string='Aircraft Types',
-        help="Aircraft types used for this class.",
+        help='Aircraft types used for this class.',
     )
-    requirement_ids: 'FsClassRequirement' = fields.Many2many(  # type: ignore[assignment]
+    requirement_ids = fields.Many2many(
         comodel_name='fs.class.requirement',
         relation='fs_class_type_requirement_rel',
         column1='class_type_id',
         column2='requirement_id',
         string='Requirements',
-        help="Enrollment requirements.",
+        help='Enrollment requirements.',
     )
-    hour_requirement_ids: 'FsClassTypeHours' = fields.One2many(  # type: ignore[assignment]
+    hour_requirement_ids = fields.One2many(
         comodel_name='fs.class.type.hours',
         inverse_name='class_type_id',
         string='Hour Requirements',
-        help="Minimum flight hours per discipline and type.",
+        help='Minimum flight hours per discipline and type.',
     )
-    flight_mission_ids: 'FsFlightMission' = fields.One2many(  # type: ignore[assignment]
+    flight_mission_ids = fields.One2many(
         comodel_name='fs.flight.mission',
         inverse_name='class_type_id',
         string='Flight Missions',
-        help="Syllabus - flight missions for this class type.",
+        help='Syllabus - flight missions for this class type.',
     )
     admin_task_ids = fields.One2many(
         comodel_name='fs.class.type.admin.task',
         inverse_name='class_type_id',
         string='Admin Tasks',
-        help="Administrative tasks to create for each class (with custom order).",
+        help='Administrative tasks to create for each class (with custom order).',
     )
     sequence = fields.Integer(
         string='Sequence',
@@ -99,7 +91,7 @@ class FsClassType(models.Model):
     color = fields.Integer(
         string='Color',
         default=0,
-        help="Color index for badge display (0-11).",
+        help='Color index for badge display (0-11).',
     )
     active = fields.Boolean(
         string='Active',
@@ -113,21 +105,24 @@ class FsClassType(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Auto-add default requirements and admin tasks on create if none provided."""
-        default_reqs: 'FsClassRequirement' = self.env['fs.class.requirement'].search([('is_default', '=', True)])  # type: ignore
-        default_tasks: 'FsAdminTaskTemplate' = self.env['fs.admin.task.template'].search([('is_default', '=', True)])  # type: ignore
+        """Auto-add default requirements and admin tasks on create."""
+        default_requirements = self.env['fs.class.requirement'].search([
+            ('is_default', '=', True),
+        ])
+        default_task_templates = self.env['fs.admin.task.template'].search([
+            ('is_default', '=', True),
+        ])
+
         for vals in vals_list:
-            # Auto-add default requirements if none provided
-            if default_reqs and not vals.get('requirement_ids'):
-                # Using command (6, 0, ids) is the standard Odoo way to set M2M relations in vals
-                vals['requirement_ids'] = [(6, 0, default_reqs.ids)]
-            # Auto-add default admin tasks if none provided
-            if default_tasks and not vals.get('admin_task_ids'):
-                # Using command (0, 0, vals) to create intermediate records linking to templates
+            if default_requirements and not vals.get('requirement_ids'):
+                vals['requirement_ids'] = [(6, 0, default_requirements.ids)]
+
+            if default_task_templates and not vals.get('admin_task_ids'):
                 vals['admin_task_ids'] = [
                     (0, 0, {'template_id': task.id, 'sequence': task.sequence})
-                    for task in default_tasks
+                    for task in default_task_templates
                 ]
+
         return super().create(vals_list)
 
 

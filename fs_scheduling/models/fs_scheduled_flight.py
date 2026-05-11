@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-import math
 from datetime import datetime, timedelta
-from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError, UserError
+
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 # Import shared constants from mixin
-from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
-    PILOT_FUNCTION_SELECTION,
+from .fs_flight_mixin import (
     FLIGHT_CATEGORY_SELECTION,
+    PILOT_FUNCTION_SELECTION,
 )
 
 
@@ -97,7 +96,7 @@ class FsScheduledFlight(models.Model):
         compute='_compute_pilot1_display',
         store=True,
     )
-    
+
     # Related fields from crew member for backward compatibility
     student_id = fields.Many2one(
         comodel_name='fs.student',
@@ -574,18 +573,21 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('date', 'start_time', 'end_time')
     def _compute_datetimes(self):
-        """Compute start/end datetimes in UTC (no timezone conversion)."""
+        """Compute datetimes from the float hour fields.
+
+        Using timedeltas keeps the computation safe when rounded minutes reach the
+        next hour or when the flight duration crosses midnight.
+        """
         for record in self:
             if record.date:
-                start_hour = int(record.start_time)
-                start_min = int(round((record.start_time - start_hour) * 60))
-                
-                end_hour = int(record.end_time)
-                end_min = int(round((record.end_time - end_hour) * 60))
-                
                 base_dt = datetime.combine(record.date, datetime.min.time())
-                record.start_datetime = base_dt.replace(hour=start_hour, minute=start_min)
-                record.end_datetime = base_dt.replace(hour=end_hour, minute=end_min)
+                start_minutes = round(record.start_time * 60)
+                end_minutes = round(record.end_time * 60)
+                record.start_datetime = base_dt + timedelta(minutes=start_minutes)
+                record.end_datetime = base_dt + timedelta(minutes=end_minutes)
+            else:
+                record.start_datetime = False
+                record.end_datetime = False
 
     @api.depends('mission_id', 'mission_id.is_sim', 'activity_id', 'activity_id.is_sim')
     def _compute_is_sim_flag(self):
@@ -799,57 +801,31 @@ class FsScheduledFlight(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if not vals.get('callsign') or vals.get('callsign') == '/':
-                vals['callsign'] = self._generate_next_callsign(vals.get('date'))
+                vals['callsign'] = self._generate_next_callsign(
+                    date=vals.get('date'),
+                    is_sim=self._is_sim_callsign_context(vals),
+                )
         return super().create(vals_list)
 
+    @api.model
+    def _is_sim_callsign_context(self, vals):
+        """Infer whether a new scheduled flight needs a simulator callsign."""
+        mission_id = vals.get('mission_id')
+        if mission_id:
+            mission = self.env['fs.flight.mission'].browse(mission_id)
+            return bool(mission.is_sim)
+
+        activity_id = vals.get('activity_id')
+        if activity_id:
+            activity = self.env['fs.flight.activity'].browse(activity_id)
+            return bool(activity.is_sim)
+
+        return False
+
     def _generate_next_callsign(self, date=False, is_sim=False):
-        """Generate next callsign based on prefix and sequence."""
-        from datetime import datetime
-        current_year = datetime.now().year
-        year_start = f"{current_year}-01-01"
-        year_end = f"{current_year}-12-31"
-        
-        if is_sim:
-            prefix = 'SIM'
-            flights_this_year = self.search([
-                ('callsign', '=like', f'{prefix}%'),
-                ('date', '>=', year_start),
-                ('date', '<=', year_end),
-            ])
-            
-            max_num = 0
-            for flight in flights_this_year:
-                if flight.callsign and flight.callsign.startswith(prefix):
-                    num_part = flight.callsign[len(prefix):]
-                    if num_part.isdigit():
-                        num = int(num_part)
-                        if num > max_num:
-                            max_num = num
-            
-            next_num = max_num + 1
-            return f"{prefix}{next_num:04d}"
-        else:
-            ICP = self.env['ir.config_parameter'].sudo()
-            prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
-            threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
-            
-            flights_this_year = self.search([
-                ('callsign', '=like', f'{prefix}%'),
-                ('date', '>=', year_start),
-                ('date', '<=', year_end),
-            ])
-            
-            max_num = 0
-            for flight in flights_this_year:
-                if flight.callsign and flight.callsign.startswith(prefix):
-                    num_part = flight.callsign[len(prefix):]
-                    if num_part.isdigit():
-                        num = int(num_part)
-                        if num < threshold and num > max_num:
-                            max_num = num
-            
-            next_num = max_num + 1
-            return f"{prefix}{next_num:04d}"
+        """Generate the next callsign using the shared mixin rules."""
+        reference_date = fields.Date.to_date(date) if date else None
+        return self._get_next_callsign(is_sim=is_sim, date=reference_date)
 
     def check_conflicts(self):
         """Check for resource conflicts with 15-min buffer (Schedule Only)."""

@@ -1,14 +1,15 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
-
-# Import shared constants from mixin
-from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
+# Import shared constants from the sibling addon package.
+# This path is resolvable by both Odoo and static analyzers in this workspace.
+from fs_scheduling.models.fs_flight_mixin import (
     FLIGHT_CATEGORY_SELECTION,
     PILOT_FUNCTION_SELECTION,
 )
+
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class FsFlight(models.Model):
@@ -46,6 +47,7 @@ class FsFlight(models.Model):
             # Check for duplicates
             duplicates = self.search([
                 ('callsign', '=ilike', record.callsign),
+                ('date', '=', record.date),
                 ('id', '!=', record.id),
             ], limit=1)
             if duplicates:
@@ -64,7 +66,7 @@ class FsFlight(models.Model):
         self.ensure_one()
         # Auto-convert ADD callsign when opening for edit
         if self.callsign and self.callsign.upper() == 'ADD':
-            new_callsign = self._get_next_add_callsign()
+            new_callsign = self._get_next_add_callsign(self.date)
             self.sudo().write({'callsign': new_callsign})
 
         # Determine which popup form to use based on aircraft category
@@ -312,16 +314,16 @@ class FsFlight(models.Model):
 
     # === Onchange Methods ===
 
-    def _get_next_add_callsign(self):
+    def _get_next_add_callsign(self, reference_date=None):
         """Generate the next available ADD callsign (e.g., ABS7001, ABS7002, etc.)."""
         ICP = self.env['ir.config_parameter'].sudo()
         prefix = str(ICP.get_param('flight_school.mission_callsign_prefix', 'ABS') or 'ABS')
         threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
 
         # Get current year range
-        today = fields.Date.context_today(self)
-        start_year = today.replace(month=1, day=1)
-        end_year = today.replace(month=12, day=31)
+        target_date = reference_date or self.date or fields.Date.context_today(self)
+        start_year = target_date.replace(month=1, day=1)
+        end_year = target_date.replace(month=12, day=31)
 
         # Search for all flights in the current year with callsigns above threshold
         domain = [
@@ -488,7 +490,17 @@ class FsFlight(models.Model):
         for record in self:
             record.is_exam = record.mission_id.is_exam if record.mission_id else False  # type: ignore
 
-    @api.depends('pilot1_crew_id', 'pilot2_crew_id', 'flight_category')
+    @api.depends(
+        'pilot1_crew_id',
+        'pilot1_crew_id.name',
+        'pilot1_crew_id.member_type',
+        'pilot1_crew_id.has_expired_qualification',
+        'pilot2_crew_id',
+        'pilot2_crew_id.name',
+        'pilot2_crew_id.member_type',
+        'pilot2_crew_id.has_expired_qualification',
+        'flight_category',
+    )
     def _compute_crew_warning(self):
         for record in self:
             warnings = []
@@ -509,18 +521,24 @@ class FsFlight(models.Model):
             else:
                 record.crew_warning = False
 
-    @api.depends('pilot1_crew_id')
+    @api.depends(
+        'pilot1_crew_id',
+        'pilot1_crew_id.member_type',
+        'pilot1_crew_id.enrollment_id',
+    )
     def _compute_student_info(self):
         for record in self:
             if record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student' and record.pilot1_crew_id.enrollment_id:  # type: ignore
-                enrollment = self.env['fs.student.enrollment'].browse(record.pilot1_crew_id.enrollment_id)  # type: ignore
-                record.student_id = enrollment.student_id  # type: ignore
-                record.training_class_id = enrollment.training_class_id  # type: ignore
+                enrollment = self.env['fs.student.enrollment'].browse(
+                    record.pilot1_crew_id.enrollment_id,  # type: ignore
+                ).exists()
+                record.student_id = enrollment.student_id if enrollment else False  # type: ignore
+                record.training_class_id = enrollment.training_class_id if enrollment else False  # type: ignore
             else:
                 record.student_id = False
                 record.training_class_id = False
 
-    @api.depends('mission_id', 'activity_id')
+    @api.depends('mission_id', 'mission_id.activity_id', 'mission_id.activity_id.code', 'activity_id', 'activity_id.code')
     def _compute_flight_code(self):
         for record in self:
             if record.mission_id and record.mission_id.activity_id:  # type: ignore
@@ -538,8 +556,11 @@ class FsFlight(models.Model):
     @api.depends('atd', 'ata')
     def _compute_actual_duration(self):
         for record in self:
-            if record.atd and record.ata and record.ata > record.atd:
-                record.actual_duration = record.ata - record.atd
+            if record.atd is not False and record.ata is not False:
+                if record.ata >= record.atd:
+                    record.actual_duration = record.ata - record.atd
+                else:
+                    record.actual_duration = (24.0 - record.atd) + record.ata
             else:
                 record.actual_duration = 0.0
 
@@ -562,9 +583,9 @@ class FsFlight(models.Model):
 
     def _compute_status_from_times(self):
         """Determine status based on presence of ATD/ATA. Entering times overrides cancellation."""
-        if self.atd and self.ata:
+        if self.atd is not False and self.ata is not False:
             return 'done'
-        if self.atd:
+        if self.atd is not False:
             return 'in_progress'
         # Respect 'cancelled' if no execution times are present
         return self.status if self.status == 'cancelled' else 'scheduled'
@@ -578,9 +599,10 @@ class FsFlight(models.Model):
         often fails to persist unless forced.
         """
         new_status = self._compute_status_from_times()
+        was_cancelled = self.status == 'cancelled'
 
         # 1. Update virtual record for UI feedback
-        if self.status == 'cancelled' and new_status != 'cancelled':
+        if was_cancelled and new_status != 'cancelled':
             self.cancellation_reason_id = False
         self.status = new_status
 
@@ -593,7 +615,7 @@ class FsFlight(models.Model):
                 'ata': self.ata,
                 'status': new_status,
             }
-            if self.status == 'cancelled' and new_status != 'cancelled':
+            if was_cancelled and new_status != 'cancelled':
                 vals['cancellation_reason_id'] = False
 
             # This triggers our recursion-safe write() method on the real record
@@ -670,6 +692,16 @@ class FsFlight(models.Model):
         # 4. Perform the actual write
         res = super().write(vals)
 
+        # 4b. Multi-record time updates need a per-record status reconciliation.
+        if len(self) > 1 and ('atd' in vals or 'ata' in vals) and 'status' not in vals:
+            for record in self:
+                computed_status = record._compute_status_from_times()
+                if computed_status != record.status:
+                    status_vals = {'status': computed_status}
+                    if record.status == 'cancelled' and computed_status != 'cancelled':
+                        status_vals['cancellation_reason_id'] = False
+                    record.write(status_vals)
+
         # 5. Post-write adjustments (Hour distribution)
         if not self.env.context.get('skip_distribution'):
             for record in self:
@@ -713,9 +745,9 @@ class FsFlight(models.Model):
         ata = self.env.context.get('ata', self.ata)
         status = self.env.context.get('status', self.status)
 
-        if atd and ata:
+        if atd is not False and ata is not False:
             return 'done'
-        if atd:
+        if atd is not False:
             return 'in_progress'
         return status if status == 'cancelled' else 'scheduled'
 
@@ -749,19 +781,17 @@ class FsFlight(models.Model):
         if not crew or not crew.source_id:
             return False
 
-        try:
-            # Map member_type to actual person model
-            model_map = {
-                'student': 'fs.student',
-                'instructor': 'fs.instructor',
-                'pilot': 'fs.pilot',
-            }
-            model = model_map.get(crew.member_type)
-            if model:
-                return self.env[model].browse(crew.source_id)
+        # Map member_type to actual person model
+        model_map = {
+            'student': 'fs.student',
+            'instructor': 'fs.instructor',
+            'pilot': 'fs.pilot',
+        }
+        model = model_map.get(crew.member_type)
+        if not model or model not in self.env:
             return False
-        except Exception:
-            return False
+
+        return self.env[model].browse(crew.source_id).exists()
 
     def _get_pilot_function_config(self, function_code):
         """Get pilot function configuration by code.

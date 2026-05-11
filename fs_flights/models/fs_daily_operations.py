@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+from calendar import day_name, month_name
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -17,7 +17,7 @@ class FsDailyOperations(models.Model):
 
     _date_unique = models.Constraint(
         'unique(date)',
-        'Only one operations board can exist per date.'
+        'Only one operations board can exist per date.',
     )
 
     @api.model_create_multi
@@ -26,10 +26,16 @@ class FsDailyOperations(models.Model):
         for record in records:
             if record.date:
                 # Link existing flights (NOT simulators) for this date to the new board
-                flights = self.env['fs.flight'].search([
-                    ('date', '=', record.date),
-                    ('daily_ops_id', '=', False)
-                ]).filtered(lambda f: not f.aircraft_id.category_id.is_simulator) # type: ignore
+                flights = (
+                    self.env['fs.flight']
+                    .search([
+                        ('date', '=', record.date),
+                        ('daily_ops_id', '=', False),
+                    ])
+                    .filtered(
+                        lambda flight: not flight.aircraft_id.category_id.is_simulator,
+                    )  # type: ignore
+                )
 
                 if flights:
                     flights.write({'daily_ops_id': record.id})
@@ -39,34 +45,32 @@ class FsDailyOperations(models.Model):
         string='Date',
         default=fields.Date.today,
     )
-    date_display = fields.Char(string='Date Display', compute='_compute_date_display')
+    date_display = fields.Char(
+        string='Date Display',
+        compute='_compute_date_display',
+    )
     name = fields.Char(compute='_compute_name')
-
 
     @api.depends('date')
     def _compute_name(self):
         for record in self:
-            record.name = _("Operations Board - %s") % record.date
+            record.name = (
+                _("Operations Board - %s") % record.date
+                if record.date
+                else _("Operations Board")
+            )
 
     @api.depends('date')
     def _compute_date_display(self):
-        try:
-            from babel.dates import format_date
-        except ImportError:
-            format_date = None
-
         for record in self:
             if record.date:
-                # Format: Thursday, 22 January
-                if format_date:
-                    record.date_display = format_date(record.date, format='EEEE, d MMMM', locale='en_US')
-                else:
-                    # Fallback logic if babel is missing
-                    record.date_display = record.date.strftime('%A, %d %B')
+                record.date_display = (
+                    f"{day_name[record.date.weekday()]}, "
+                    f"{record.date.day} {month_name[record.date.month]}"
+                )
             else:
                 record.date_display = ''
 
-    # === Summary KPIs ===
     # === Summary KPIs ===
     flights_scheduled = fields.Integer(
         string='Scheduled',
@@ -105,9 +109,18 @@ class FsDailyOperations(models.Model):
     )
 
     # === UI Fields ===
-    fullscreen_dummy = fields.Boolean(string='Fullscreen Toggle', store=False)
-    refresh_dummy = fields.Boolean(string='Refresh Button', store=False)
-    carousel_control_dummy = fields.Boolean(string='Carousel Control', store=False)
+    fullscreen_dummy = fields.Boolean(
+        string='Fullscreen Toggle',
+        store=False,
+    )
+    refresh_dummy = fields.Boolean(
+        string='Refresh Button',
+        store=False,
+    )
+    carousel_control_dummy = fields.Boolean(
+        string='Carousel Control',
+        store=False,
+    )
 
     # === Available Aircraft Footer ===
     available_aircraft_html = fields.Html(
@@ -134,15 +147,21 @@ class FsDailyOperations(models.Model):
         compute='_compute_flight_log_count',
         store=True,
     )
-    
+
     @api.depends('flight_log_ids')
     def _compute_flight_log_count(self):
-         for record in self:
-             record.flight_log_count = len(record.flight_log_ids)
-    
+        for record in self:
+            record.flight_log_count = len(record.flight_log_ids)
+
     # === Pagination for Carousel ===
     def _default_page_size(self):
-        return int(self.env['ir.config_parameter'].sudo().get_param('flight_school.operations_page_size', 10)) #type: ignore
+        value = self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.operations_page_size', '10',
+        )
+        try:
+            return max(1, int(value))
+        except (TypeError, ValueError):
+            return 10
 
     page_size = fields.Integer(
         string='Flights per Page',
@@ -167,30 +186,42 @@ class FsDailyOperations(models.Model):
         relation='fs_daily_ops_paginated_flights_rel',
     )
 
-    @api.depends('flight_log_ids', 'flight_log_ids.status', 'flight_log_ids.actual_duration', 'flight_log_ids.aircraft_id')
+    @api.depends(
+        'flight_log_ids',
+        'flight_log_ids.status',
+        'flight_log_ids.actual_duration',
+        'flight_log_ids.aircraft_id',
+    )
     def _compute_kpis(self):
         """Compute summary KPIs for today's flights."""
         for record in self:
             # Filter non-simulators
-            logs = record.flight_log_ids.filtered(lambda l: not l.aircraft_id.category_id.is_simulator) # type: ignore
+            logs = record.flight_log_ids.filtered(
+                lambda flight: not flight.aircraft_id.category_id.is_simulator,
+            )  # type: ignore
 
-            record.flights_scheduled = len(logs.filtered_domain([('status', '=', 'scheduled')]))
-            record.flights_in_progress = len(logs.filtered_domain([('status', '=', 'in_progress')]))
-            record.flights_completed = len(logs.filtered_domain([('status', '=', 'done')]))
-            record.flights_cancelled = len(logs.filtered_domain([('status', '=', 'cancelled')]))
+            record.flights_scheduled = len(
+                logs.filtered_domain([('status', '=', 'scheduled')]),
+            )
+            record.flights_in_progress = len(
+                logs.filtered_domain([('status', '=', 'in_progress')]),
+            )
+            record.flights_completed = len(
+                logs.filtered_domain([('status', '=', 'done')]),
+            )
+            record.flights_cancelled = len(
+                logs.filtered_domain([('status', '=', 'cancelled')]),
+            )
 
             # Total hours from completed flights
             done_logs = logs.filtered_domain([('status', '=', 'done')])
-            total = sum(d.actual_duration for d in done_logs) # type: ignore
+            total = sum(log.actual_duration or 0.0 for log in done_logs)
             record.total_hours = total
 
             # Format as HH:MM
             hours = int(total)
             minutes = int((total - hours) * 60)
             record.total_hours_display = f"{hours:02d}:{minutes:02d}"
-
-
-
 
     @api.depends('date')
     def _compute_last_add_callsign(self):
@@ -214,20 +245,26 @@ class FsDailyOperations(models.Model):
             flight_data = self.env['fs.flight'].search_read(domain, ['callsign'])
 
             # Logic to find max callsign
-            ICP = self.env['ir.config_parameter'].sudo()
-            threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000')) # type: ignore
-            prefix = str(ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')) # type: ignore
+            icp = self.env['ir.config_parameter'].sudo()
+            threshold = int(
+                icp.get_param('flight_school.first_added_mission_number', '7000'),
+            )
+            prefix = str(icp.get_param('flight_school.mission_callsign_prefix', 'ABS'))
 
             max_num = -1
             for data in flight_data:
-                c = data['callsign']
-                if isinstance(c, str) and c.startswith(prefix) and len(c) > len(prefix):
-                    suffix = c[len(prefix):]
+                callsign = data['callsign']
+                if (
+                    isinstance(callsign, str)
+                    and callsign.startswith(prefix)
+                    and len(callsign) > len(prefix)
+                ):
+                    suffix = callsign[len(prefix):]
                     if suffix.isdigit():
-                        val = int(suffix)
-                        if val >= threshold and val > max_num:
-                            max_num = val
-            
+                        value = int(suffix)
+                        if value >= threshold and value > max_num:
+                            max_num = value
+
             if max_num != -1:
                 record.last_add_callsign = f"{prefix}{max_num}"
             else:
@@ -237,27 +274,27 @@ class FsDailyOperations(models.Model):
     def _compute_pagination(self):
         """Compute pagination info."""
         for record in self:
-            page_size = record.page_size or 10
+            page_size = max(record.page_size or 10, 1)
             total_count = record.flight_log_count
             total_pages = max(1, (total_count + page_size - 1) // page_size)
             record.total_pages = total_pages
-            current = min(record.current_page, total_pages - 1)
+            current = max(0, min(record.current_page, total_pages - 1))
             record.page_info = f"Page {current + 1} of {total_pages}"
 
     @api.depends('flight_log_ids', 'current_page', 'page_size')
     def _compute_paginated_flights(self):
         """Get the flights for the current page."""
         for record in self:
-            page_size = record.page_size or 10
+            page_size = max(record.page_size or 10, 1)
             current_page = record.current_page or 0
             total_pages = record.total_pages or 1
-            
+
             # Ensure current_page is within bounds
             current_page = max(0, min(current_page, total_pages - 1))
-            
+
             start_idx = current_page * page_size
             end_idx = start_idx + page_size
-            
+
             # Slice the flight logs
             all_logs = record.flight_log_ids
             paginated = all_logs[start_idx:end_idx] if all_logs else all_logs
@@ -285,9 +322,12 @@ class FsDailyOperations(models.Model):
             ])
 
             html = '<div class="d-flex flex-wrap gap-2 justify-content-center">'
-            # Use read() to iterate over dictionaries, avoiding linter errors on field access
+            # Use read() to iterate over dictionaries and avoid field access warnings.
             for ac_data in available.read(['registration']):
-                html += f'<span class="badge bg-success fs-6 text-white">{ac_data["registration"]}</span>'
+                html += (
+                    f'<span class="badge bg-success fs-6 text-white">'
+                    f'{ac_data["registration"]}</span>'
+                )
             if not available:
                 html += '<span class="text-muted">No aircraft available</span>'
             html += '</div>'
@@ -305,16 +345,25 @@ class FsDailyOperations(models.Model):
             ])
 
             if not cancelled:
-                record.cancellation_summary_html = '<span class="text-muted">No cancellations</span>'
+                record.cancellation_summary_html = (
+                    '<span class="text-muted">No cancellations</span>'
+                )
                 continue
 
             # Group by reason
             reasons: dict = {}
             # Use read() to iterate over dictionaries
-            for log_data in cancelled.read(['cancellation_code', 'cancellation_reason_id']):
+            for log_data in cancelled.read([
+                'cancellation_code',
+                'cancellation_reason_id',
+            ]):
                 reason_code = log_data['cancellation_code'] or 'N/A'
                 # M2O field in read() returns (id, displayName)
-                reason_name = log_data['cancellation_reason_id'][1] if log_data['cancellation_reason_id'] else 'Unknown'
+                reason_name = (
+                    log_data['cancellation_reason_id'][1]
+                    if log_data['cancellation_reason_id']
+                    else 'Unknown'
+                )
                 if reason_code not in reasons:
                     reasons[reason_code] = {'name': reason_name, 'count': 0}
                 reasons[reason_code]['count'] += 1
@@ -346,14 +395,14 @@ class FsDailyOperations(models.Model):
         record = self.search([('date', '=', target_date)], limit=1)
         if not record:
             record = self.create({'date': target_date})
-            
+
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'fs.daily.operations',
             'res_id': record.id,
             'view_mode': 'form',
-            'target': 'main', # Keep existing target
-            'flags': {'mode': 'edit'}, # Keep edit mode
+            'target': 'main',  # Keep existing target
+            'flags': {'mode': 'edit'},  # Keep edit mode
         }
 
     def action_add_flight(self):
@@ -380,7 +429,7 @@ class FsDailyOperations(models.Model):
         record = self.search([('date', '=', today)], limit=1)
         if not record:
             record = self.create({'date': today})
-            
+
         return {
             'name': _('Daily Operations'),
             'type': 'ir.actions.act_window',

@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 from datetime import timedelta
+
 from odoo import api, fields, models
 
 
 class FsInstructor(models.Model):
     """Flight instructor in the flight school system."""
-    
+
     _name = 'fs.instructor'
     _description = 'Flight Instructor'
     _inherit = ['fs.person']
@@ -68,7 +68,7 @@ class FsInstructor(models.Model):
         compute='_compute_qualification_badges',
         sanitize=False,
     )
-    
+
     @api.depends('qualification_ids', 'qualification_ids.qualification_code', 'qualification_ids.expiry_status')
     def _compute_qualification_badges(self):
         """Compute HTML badges for qualifications with status-based colors."""
@@ -126,8 +126,8 @@ class FsInstructor(models.Model):
         store=True,
         help="The most urgent expiry date among medical, english, and qualifications.",
     )
-    
-    @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date', 
+
+    @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date',
                  'medical_expiry', 'english_expiry')
     def _compute_has_expired_qualification(self):
         """Check if any qualification or status is expired and find the earliest expiry date."""
@@ -140,22 +140,22 @@ class FsInstructor(models.Model):
             )
             record.has_expired_qualification = has_expired
             record.eligibility_status = 'not_eligible' if has_expired else 'eligible'
-            
+
             # Find earliest expiry date
             expiries = []
             med_exp = getattr(record, 'medical_expiry', False)
             if med_exp:
                 expiries.append(med_exp)
-            
+
             eng_exp = getattr(record, 'english_expiry', False)
             if eng_exp:
                 expiries.append(eng_exp)
-                
+
             for qual in record.qualification_ids:
                 q_exp = getattr(qual, 'expiry_date', False)
                 if q_exp:
                     expiries.append(q_exp)
-            
+
             record.earliest_expiry_date = min(expiries) if expiries else False
 
     # === English Proficiency ===
@@ -177,7 +177,7 @@ class FsInstructor(models.Model):
         compute='_compute_english_status',
         store=True,
     )
-    
+
     @api.depends('english_expiry')
     def _compute_english_status(self):
         """Compute English proficiency status based on expiry date and warning period from settings."""
@@ -185,7 +185,7 @@ class FsInstructor(models.Model):
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.english_expiry:
                 record.english_status = 'no_expiry'
@@ -195,7 +195,7 @@ class FsInstructor(models.Model):
                 record.english_status = 'expiring'
             else:
                 record.english_status = 'valid'
-    
+
     # === Capacity Limits ===
     max_students = fields.Integer(
         string='Max Students',
@@ -218,7 +218,7 @@ class FsInstructor(models.Model):
         help="Maximum instruction hours per rolling 3-month period.",
         readonly=True,
     )
-    
+
     # === Experience ===
     total_flight_hours = fields.Float(
         string='Total Flight Hours',
@@ -240,7 +240,7 @@ class FsInstructor(models.Model):
         string='Last Flight Date',
         help="Date of the most recent flight.",
     )
-    
+
     hours_current_month = fields.Float(
         string='Hours (Current Month)',
         compute='_compute_rolling_hours',
@@ -251,7 +251,7 @@ class FsInstructor(models.Model):
         compute='_compute_rolling_hours',
         help="Instruction hours logged in the current and previous two months.",
     )
-    
+
     hours_current_month_status = fields.Selection(
         selection=[('ok', 'OK'), ('warning', 'Near Limit'), ('danger', 'Over Limit')],
         compute='_compute_rolling_hours_status',
@@ -263,28 +263,28 @@ class FsInstructor(models.Model):
 
     def _compute_rolling_hours(self):
         """Compute monthly and 3-month rolling instruction hours.
-        
+
         Uses calendar months for calculation (1st to last day of month).
         """
         from datetime import date
         from dateutil.relativedelta import relativedelta  # type: ignore
-        
+
         today = date.today()
         # Current month boundaries
         current_month_start = today.replace(day=1)
         next_month = current_month_start + relativedelta(months=1)
         current_month_end = next_month - relativedelta(days=1)
-        
+
         # 3-month rolling boundaries (current month + 2 previous)
         three_months_start = current_month_start - relativedelta(months=2)
-        
+
         FlightModel = self.env.get('fs.flight')
         if FlightModel is None:
             for record in self:
                 record.hours_current_month = 0.0
                 record.hours_3months = 0.0
             return
-        
+
         for record in self:
             # Find flights where this instructor was P1/P2 with instructor function
             base_domain = [
@@ -295,37 +295,37 @@ class FsInstructor(models.Model):
                 '&', ('pilot2_crew_id.source_model', '=', 'fs.instructor'),
                      ('pilot2_crew_id.source_id', '=', record.id),
             ]
-            
+
             # Current month hours
             current_month_flights = FlightModel.search(base_domain + [
                 ('date', '>=', current_month_start),
                 ('date', '<=', current_month_end),
             ])
             record.hours_current_month = sum(
-                f.distributed_hours for f in current_month_flights # type: ignore
+                f.distributed_hours for f in current_month_flights  # type: ignore
                 if self._is_instructor_on_flight(record, f)
             )
-            
+
             # 3-month rolling hours
             three_month_flights = FlightModel.search(base_domain + [
                 ('date', '>=', three_months_start),
                 ('date', '<=', current_month_end),
             ])
             record.hours_3months = sum(
-                f.distributed_hours for f in three_month_flights # type: ignore
+                f.distributed_hours for f in three_month_flights  # type: ignore
                 if self._is_instructor_on_flight(record, f)
             )
 
     def _is_instructor_on_flight(self, instructor, flight):
         """Check if instructor was assigned with instructor function on flight."""
         # Check P1
-        if (flight.pilot1_crew_id and 
+        if (flight.pilot1_crew_id and
             flight.pilot1_crew_id.source_model == 'fs.instructor' and
             flight.pilot1_crew_id.source_id == instructor.id and
             flight.pilot1_function == 'instructor'):
             return True
         # Check P2
-        if (flight.pilot2_crew_id and 
+        if (flight.pilot2_crew_id and
             flight.pilot2_crew_id.source_model == 'fs.instructor' and
             flight.pilot2_crew_id.source_id == instructor.id and
             flight.pilot2_function == 'instructor'):
@@ -347,7 +347,7 @@ class FsInstructor(models.Model):
                     record.hours_current_month_status = 'ok'
             else:
                 record.hours_current_month_status = 'ok'
-                
+
             # 3-Month Status
             if record.max_hours_per_3months > 0:
                 ratio = record.hours_3months / record.max_hours_per_3months
@@ -364,4 +364,3 @@ class FsInstructor(models.Model):
     # These fields are and logic are handled in the fs_training module
     # via model inheritance to avoid circular dependencies and errors
     # when the Training module is not installed.
-

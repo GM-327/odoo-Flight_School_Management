@@ -22,6 +22,6 @@ class FsFlightRoute(models.Model):
         search_domain = Domain([('name', operator, name)]) if name else Domain.TRUE
         if domain:
             search_domain = search_domain & Domain(domain)
-        
+
         records = self.search(search_domain, limit=limit, order='sequence, name')
         return [(int(record.id), str(record.display_name)) for record in records]

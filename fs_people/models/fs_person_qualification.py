@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from datetime import timedelta
-from dateutil.relativedelta import relativedelta
+from calendar import monthrange
+from datetime import date, timedelta
+
 from odoo import api, fields, models
 
 
 class FsPersonQualification(models.Model):
     """Person's qualification with issue/expiry tracking.
-    
+
     This model links a person (instructor/pilot) to their qualifications
     with individual issue and expiry dates.
     """
-    
+
     _name = 'fs.person.qualification'
     _description = 'Person Qualification'
     _order = 'expiry_date'
@@ -75,7 +75,7 @@ class FsPersonQualification(models.Model):
             'flight_school.license_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.expiry_date:
                 record.expiry_status = 'no_expiry'
@@ -89,15 +89,16 @@ class FsPersonQualification(models.Model):
     @api.onchange('qualification_id', 'issue_date')
     def _onchange_calculate_expiry(self):
         """Calculate expiry date based on issue date and validity months.
-        
+
         The expiry date is set to the last day of the month after adding
         the validity period.
         """
         for record in self:
             if record.issue_date and record.qualification_id and record.qualification_id.validity_months:  # type: ignore
-                # Add validity months then go to last day of that month
-                expiry_month = record.issue_date + relativedelta(
-                    months=record.qualification_id.validity_months  # type: ignore
-                )
-                # Go to first day of next month, then subtract one day to get last day
-                record.expiry_date = expiry_month + relativedelta(day=31)
+                total_months = record.issue_date.month - 1 + record.qualification_id.validity_months  # type: ignore
+                expiry_year = record.issue_date.year + (total_months // 12)
+                expiry_month = (total_months % 12) + 1
+                last_day = monthrange(expiry_year, expiry_month)[1]
+                record.expiry_date = date(expiry_year, expiry_month, last_day)
+            else:
+                record.expiry_date = False

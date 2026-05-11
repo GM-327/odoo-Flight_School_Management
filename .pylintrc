@@ -1,0 +1,20 @@
+[MASTER]
+load-plugins=pylint_odoo
+init-hook='import sys; sys.path.extend([r"D:/Odoo19/server", r"D:/Odoo19/server/odoo/addons", r"D:/Odoo19/server/addons", r"D:/Odoo19/server/addons/Flight_School_Management"])'
+
+[ODOOLINT]
+valid-odoo-versions=19.0
+
+[MESSAGES CONTROL]
+disable=
+    attribute-defined-outside-init,
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    abstract-method,
+    too-few-public-methods,
+    invalid-name,
+    attribute-string-redundant
+
+[FORMAT]
+max-line-length=120
