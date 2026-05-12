@@ -3,15 +3,16 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class FsAdminStaff(models.Model):
     """Administrative personnel in the flight school.
-    
+
     All administrative staff are military personnel.
     They may have system access for administrative tasks.
     """
-    
+
     _name = 'fs.admin.staff'
     _description = 'Administrative Staff'
     _inherit = ['mail.thread', 'mail.activity.mixin']
@@ -44,7 +45,7 @@ class FsAdminStaff(models.Model):
         default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.default_country_id', 0)) or False,
     )
-    
+
     # === Military Information ===
     rank_id = fields.Many2one(
         comodel_name='fs.rank',
@@ -55,7 +56,7 @@ class FsAdminStaff(models.Model):
         string='Service Number',
         help="Military service number.",
     )
-    
+
     # === Contact ===
     phone = fields.Char(
         string='Phone',
@@ -63,7 +64,7 @@ class FsAdminStaff(models.Model):
     address = fields.Text(
         string='Address',
     )
-    
+
     # === Employment ===
     department_id = fields.Many2one(
         'fs.department',
@@ -72,7 +73,7 @@ class FsAdminStaff(models.Model):
     position = fields.Char(
         string='Position',
     )
-    
+
     # === System Access ===
     user_id = fields.Many2one(
         comodel_name='res.users',
@@ -85,7 +86,7 @@ class FsAdminStaff(models.Model):
         compute='_compute_has_user',
         store=True,
     )
-    
+
     # === Status ===
     active = fields.Boolean(
         string='Active',
@@ -94,21 +95,20 @@ class FsAdminStaff(models.Model):
     notes = fields.Text(
         string='Notes',
     )
-    
+
     @api.depends('user_id')
     def _compute_has_user(self):
         for record in self:
             record.has_user = bool(record.user_id)
-    
+
     def action_create_user(self):
         """Create an Odoo user account for this person."""
         self.ensure_one()
         if self.user_id:
-            from odoo.exceptions import UserError
-            raise UserError("This person already has a user account.")
-        
+            raise UserError(self.env._("This person already has a user account."))
+
         return {
-            'name': 'Create User Account',
+            'name': self.env._('Create User Account'),
             'type': 'ir.actions.act_window',
             'res_model': 'res.users',
             'view_mode': 'form',
@@ -116,18 +116,17 @@ class FsAdminStaff(models.Model):
             'context': {
                 'default_name': self.name,
                 'default_login': self.name.lower().replace(' ', '.') if self.name else '',
-                'default_groups_id': [(4, self.env.ref('fs_core.group_flight_school_user').id)],
+                'default_group_ids': [(4, self.env.ref('fs_core.group_flight_school_user').id)],
                 'fs_person_id': self.id,
                 'fs_person_model': self._name,
             },
         }
-    
+
     def action_view_user(self):
         """Open the linked user account."""
         self.ensure_one()
         if not self.user_id:
-            from odoo.exceptions import UserError
-            raise UserError("This person does not have a user account.")
+            raise UserError(self.env._("This person does not have a user account."))
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'res.users',
@@ -137,6 +136,6 @@ class FsAdminStaff(models.Model):
         }
 
     _service_number_unique = models.Constraint(
-        'UNIQUE(service_number)', 
+        'UNIQUE(service_number)',
         'Service number must be unique!',
     )

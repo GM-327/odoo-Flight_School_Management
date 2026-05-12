@@ -8,11 +8,11 @@ from odoo import api, fields, models
 
 class FsPilot(models.Model):
     """Licensed pilot using the flight school fleet.
-    
+
     Pilots are licensed aviators who use the school's aircraft
     but are not students or instructors.
     """
-    
+
     _name = 'fs.pilot'
     _description = 'Pilot'
     _inherit = ['fs.person']
@@ -39,11 +39,13 @@ class FsPilot(models.Model):
         show_name = self.env.context.get('show_name_only', False)
         for record in self:
             if show_name:
-                record.display_name = record.name or ''  # type: ignore[attr-defined]
+                # type: ignore[attr-defined]
+                record.display_name = record.name or ''
             elif record.callsign:
                 record.display_name = record.callsign  # type: ignore
             else:
-                record.display_name = record.name or ''  # type: ignore[attr-defined]
+                # type: ignore[attr-defined]
+                record.display_name = record.name or ''
 
     # === License & Qualifications ===
     license_id = fields.Many2one(
@@ -59,7 +61,7 @@ class FsPilot(models.Model):
     license_number = fields.Char(
         string='License #',
     )
-    
+
     license_issue_date = fields.Date(
         string='License Issue Date',
     )
@@ -78,7 +80,7 @@ class FsPilot(models.Model):
         compute='_compute_has_expired_qualification',
         store=True,
     )
-    
+
     @api.depends('qualification_ids', 'qualification_ids.qualification_code', 'qualification_ids.expiry_status')
     def _compute_qualification_badges(self):
         """Compute HTML badges for qualifications with status-based colors."""
@@ -91,13 +93,15 @@ class FsPilot(models.Model):
         for record in self:
             badges = []
             for qual in record.qualification_ids:
-                color = status_colors.get(qual.expiry_status, '#6c757d')  # type: ignore
+                color = status_colors.get(
+                    qual.expiry_status, '#6c757d')  # type: ignore
                 text_color = '#212529' if qual.expiry_status == 'expiring' else '#ffffff'  # type: ignore
                 badge_html = (
                     f'<span style="background-color: {color}; color: {text_color}; '
                     f'padding: 2px 8px; border-radius: 4px; margin-right: 4px; '
                     f'font-size: 12px; display: inline-block;">'
-                    f'{qual.qualification_code or qual.qualification_id.name}</span>'  # type: ignore
+                    # type: ignore
+                    f'{qual.qualification_code or qual.qualification_id.name}</span>'
                 )
                 badges.append(badge_html)
             record.qualification_badges = ''.join(badges) if badges else ''
@@ -114,7 +118,7 @@ class FsPilot(models.Model):
             'context': {'default_pilot_id': self.id},
             'target': 'new',
         }
-    
+
     has_expired_qualification = fields.Boolean(
         string='Has Expired Qualification',
         compute='_compute_has_expired_qualification',
@@ -127,42 +131,43 @@ class FsPilot(models.Model):
         help="The most urgent expiry date among medical, english, security, insurance, and qualifications.",
     )
 
-    @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date', 'medical_status', 
+    @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date', 'medical_status',
                  'english_status', 'security_clearance_status', 'insurance_status')
     def _compute_has_expired_qualification(self):
         """Check if any qualification or status is expired and find earliest expiry."""
         for record in self:
             record.has_expired_qualification = (
-                any(qual.expiry_status == 'expired' for qual in record.qualification_ids) or  # type: ignore
+                # type: ignore
+                any(qual.expiry_status == 'expired' for qual in record.qualification_ids) or
                 getattr(record, 'medical_status', False) == 'expired' or
                 record.english_status == 'expired' or  # type: ignore
                 record.security_clearance_status == 'expired' or  # type: ignore
                 record.insurance_status == 'expired'  # type: ignore
             )
-            
+
             # Find earliest expiry date
             expiries = []
             med_exp = getattr(record, 'medical_expiry', False)
             if med_exp:
                 expiries.append(med_exp)
-            
+
             eng_exp = getattr(record, 'english_expiry', False)
             if eng_exp:
                 expiries.append(eng_exp)
-                
+
             sec_exp = getattr(record, 'security_clearance_expiry', False)
             if sec_exp:
                 expiries.append(sec_exp)
-                
+
             ins_exp = getattr(record, 'insurance_expiry', False)
             if ins_exp:
                 expiries.append(ins_exp)
-                
+
             for qual in record.qualification_ids:
                 q_exp = getattr(qual, 'expiry_date', False)
                 if q_exp:
                     expiries.append(q_exp)
-            
+
             record.earliest_expiry_date = min(expiries) if expiries else False
 
     # === English Proficiency ===
@@ -184,7 +189,7 @@ class FsPilot(models.Model):
         compute='_compute_english_status',
         store=True,
     )
-    
+
     @api.depends('english_expiry')
     def _compute_english_status(self):
         """Compute English proficiency status based on expiry date and warning period from settings."""
@@ -192,7 +197,7 @@ class FsPilot(models.Model):
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.english_expiry:
                 record.english_status = 'no_expiry'
@@ -202,7 +207,7 @@ class FsPilot(models.Model):
                 record.english_status = 'expiring'
             else:
                 record.english_status = 'valid'
-    
+
     # === Civilian Specific (when is_military = False) ===
     security_clearance_expiry = fields.Date(
         string='Security Clearance Expiry',
@@ -234,7 +239,7 @@ class FsPilot(models.Model):
         compute='_compute_insurance_status',
         store=True,
     )
-    
+
     @api.depends('security_clearance_expiry')
     def _compute_security_clearance_status(self):
         """Compute security clearance status based on expiry date."""
@@ -242,7 +247,7 @@ class FsPilot(models.Model):
             'flight_school.security_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.security_clearance_expiry:
                 record.security_clearance_status = 'no_expiry'
@@ -252,7 +257,7 @@ class FsPilot(models.Model):
                 record.security_clearance_status = 'expiring'
             else:
                 record.security_clearance_status = 'valid'
-    
+
     @api.depends('insurance_expiry')
     def _compute_insurance_status(self):
         """Compute insurance status based on expiry date."""
@@ -260,7 +265,7 @@ class FsPilot(models.Model):
             'flight_school.insurance_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.insurance_expiry:
                 record.insurance_status = 'no_expiry'
@@ -270,8 +275,7 @@ class FsPilot(models.Model):
                 record.insurance_status = 'expiring'
             else:
                 record.insurance_status = 'valid'
-    
-    
+
     # === Financial ===
     advance_payment = fields.Monetary(
         string='Advance Payment',
@@ -283,7 +287,7 @@ class FsPilot(models.Model):
         string='Currency',
         default=lambda self: self.env.company.currency_id,  # type: ignore
     )
-    
+
     # === Experience ===
     total_flight_hours = fields.Float(
         string='Total Flight Hours',
@@ -301,4 +305,3 @@ class FsPilot(models.Model):
         string='Last Flight Date',
         help="Date of the most recent flight.",
     )
-

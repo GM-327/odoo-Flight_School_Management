@@ -7,7 +7,7 @@ from odoo import api, fields, models
 
 class FsMissionCompletion(models.Model):
     """Track mission completion status per enrollment.
-    
+
     This model records which missions have been completed by students
     within their enrollment, along with completion dates and notes.
     """
@@ -46,7 +46,7 @@ class FsMissionCompletion(models.Model):
         related='mission_id.name',
         string='Mission Name',
     )
-    
+
     is_completed = fields.Boolean(
         string='Completed',
         default=False,
@@ -59,7 +59,7 @@ class FsMissionCompletion(models.Model):
     notes = fields.Text(
         string='Notes',
     )
-    
+
     display_name = fields.Char(
         compute='_compute_display_name',
         store=True,

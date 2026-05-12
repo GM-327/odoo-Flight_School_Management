@@ -21,15 +21,15 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         required=True,
         ondelete='cascade',
     )
-    
+
     action_type = fields.Selection([
         ('route', 'Assign Route'),
         ('aircraft_type', 'Assign Aircraft Type'),
         ('add_mission', 'Mark as ADD Mission'),
     ], string='Action Type', required=True)
-    
+
     line_count = fields.Integer(string='Lines to Update', readonly=True)
-    
+
     # Route assignment fields
     route_id = fields.Many2one(
         'fs.flight.route',
@@ -41,7 +41,7 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         default=True,
         help="If checked, only lines without a route will be updated.",
     )
-    
+
     # Aircraft type assignment fields
     aircraft_type_id = fields.Many2one(
         'fs.aircraft.type',
@@ -53,17 +53,17 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         default=False,
         help="If checked, replaces existing aircraft types. Otherwise, adds to existing.",
     )
-    
+
     # ADD mission fields
     mark_all_as_add = fields.Boolean(
         string='Mark All as ADD',
         default=True,
         help="Mark all eligible lines as ADD missions.",
     )
-    
+
     # UI helper
     display_name = fields.Char(compute='_compute_display_name')
-    
+
     @api.depends('action_type')
     def _compute_display_name(self):
         action_labels = {
@@ -78,53 +78,53 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
     def action_apply(self):
         """Apply the bulk action to the wizard lines."""
         self.ensure_one()
-        
+
         if self.action_type == 'route':
             return self._apply_route_assignment()
         elif self.action_type == 'aircraft_type':
             return self._apply_aircraft_type_assignment()
         elif self.action_type == 'add_mission':
             return self._apply_add_mission()
-        
+
         raise UserError(_("Unknown action type."))
 
     def _apply_route_assignment(self):
         """Assign route to wizard lines."""
         if not self.route_id:
             raise UserError(_("Please select a route to assign."))
-        
+
         wizard = self.wizard_id
         if self.apply_to_lines_without_route:
             lines = wizard.line_ids.filtered(lambda l: not l.route_id and not l.is_sim)  # type: ignore
         else:
             lines = wizard.line_ids.filtered(lambda l: not l.is_sim)  # type: ignore
-        
+
         if not lines:
             raise UserError(_("No lines to update."))
-        
+
         updated_count = 0
         for line in lines:
             line.route_id = self.route_id  # type: ignore
             updated_count += 1
-        
+
         _logger.info(
             "Bulk route assignment: %d lines updated with route '%s'",
             updated_count, self.route_id.name  # type: ignore
         )
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def _apply_aircraft_type_assignment(self):
         """Assign aircraft type to wizard lines."""
         if not self.aircraft_type_id:
             raise UserError(_("Please select an aircraft type to assign."))
-        
+
         wizard = self.wizard_id
         lines = wizard.line_ids  # type: ignore
-        
+
         if not lines:
             raise UserError(_("No lines to update."))
-        
+
         updated_count = 0
         for line in lines:
             if self.replace_existing:
@@ -136,12 +136,12 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
                     current_ids.append(self.aircraft_type_id.id)
                     line.aircraft_type_ids = [(6, 0, current_ids)]  # type: ignore
             updated_count += 1
-        
+
         _logger.info(
             "Bulk aircraft type assignment: %d lines updated with type '%s'",
             updated_count, self.aircraft_type_id.name  # type: ignore
         )
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def _apply_add_mission(self):
@@ -149,20 +149,20 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         wizard = self.wizard_id
         # Exclude SIM sessions - they don't use ADD concept
         lines = wizard.line_ids.filtered(lambda l: not l.is_added_mission and not l.is_sim)  # type: ignore
-        
+
         if not lines:
             raise UserError(_("No eligible flights to mark as ADD (SIM sessions excluded)."))
-        
+
         updated_count = 0
         for line in lines:
             line.is_added_mission = True  # type: ignore
             updated_count += 1
-        
+
         _logger.info(
             "Bulk ADD mission assignment: %d lines marked as ADD",
             updated_count
         )
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def action_cancel(self):

@@ -7,7 +7,7 @@ from odoo import api, fields, models
 
 class FsStudent(models.Model):
     """Extend student model with training-specific availability logic."""
-    
+
     _inherit = 'fs.student'  # type: ignore
 
     is_available_for_enrollment = fields.Boolean(
@@ -21,7 +21,7 @@ class FsStudent(models.Model):
         inverse_name='student_id',
         string='Enrollments',
     )
-    
+
     callsign = fields.Char(
         string='Callsign',
         compute='_compute_enrollment_data',
@@ -78,8 +78,10 @@ class FsStudent(models.Model):
                 # Then sort by date DESC
                 sorted_enrollments = enrollments.sorted(
                     lambda e: (
-                        1 if getattr(e, 'status', False) == 'active' else (0.5 if getattr(e, 'status', False) == 'enrolled' else 0),
-                        getattr(e, 'enrollment_date', fields.Date.from_string('1970-01-01')) or fields.Date.from_string('1970-01-01'),
+                        1 if getattr(e, 'status', False) == 'active' else (
+                            0.5 if getattr(e, 'status', False) == 'enrolled' else 0),
+                        getattr(e, 'enrollment_date', fields.Date.from_string(
+                            '1970-01-01')) or fields.Date.from_string('1970-01-01'),
                         e.id
                     ),
                     reverse=True
@@ -92,7 +94,8 @@ class FsStudent(models.Model):
                 record.enrollment_progression = getattr(last_enrollment, 'progression', 0.0)
                 record.enrollment_total_hours = getattr(last_enrollment, 'total_hours', 0.0)
                 record.enrollment_remaining_hours = getattr(last_enrollment, 'remaining_hours', 0.0)
-                record.enrollment_expected_end_date = getattr(class_rec, 'expected_end_date', False) if class_rec else False
+                record.enrollment_expected_end_date = getattr(
+                    class_rec, 'expected_end_date', False) if class_rec else False
             else:
                 record.callsign = False
                 record.current_class_code = False

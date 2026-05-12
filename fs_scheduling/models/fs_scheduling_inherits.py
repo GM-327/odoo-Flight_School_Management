@@ -22,10 +22,9 @@ class FsStudentEnrollment(models.Model):
     def _compute_scheduled_flights(self):
         """Compute scheduled flights by searching for crew members matching this enrollment."""
         for record in self:
-            # For students, the enrollment ID is used directly as crew member ID
+            # Student crew rows keep source_id as the student id and expose enrollment_id separately.
             crew_member = self.env['fs.crew.member'].search([
-                ('source_model', '=', 'fs.student.enrollment'),
-                ('source_id', '=', record.id)
+                ('enrollment_id', '=', record.id),
             ], limit=1)
             if crew_member:
                 record.scheduled_flight_ids = self.env['fs.scheduled.flight'].search([
@@ -93,4 +92,3 @@ class FsAircraft(models.Model):
     def _compute_scheduled_count(self):
         for record in self:
             record.scheduled_count = len(record.scheduled_flight_ids)
-

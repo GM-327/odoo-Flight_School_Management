@@ -3,9 +3,10 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
 from datetime import date, timedelta
+from typing import TYPE_CHECKING
+
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .fs_class_type import FsClassType
@@ -32,13 +33,13 @@ class FsTrainingClass(models.Model):
         tracking=True,
         help="Short reference code (e.g., CPL24). This code is used as a prefix for all student callsigns in this class (e.g., CPL24A).",
     )
-    class_type_id: 'FsClassType' = fields.Many2one( # type: ignore[assignment]
+    class_type_id: 'FsClassType' = fields.Many2one(  # type: ignore[assignment]
         comodel_name='fs.class.type',
         string='Class Type',
         required=True,
         tracking=True,
         ondelete='restrict',
-    )  
+    )
     is_military = fields.Boolean(
         string='Military Class',
         related='class_type_id.is_military',
@@ -200,31 +201,35 @@ class FsTrainingClass(models.Model):
                     record.initial_end_date = False
             else:
                 record.initial_end_date = False
+
     @api.depends('initial_end_date')
     def _compute_expected_end_date(self):
         for record in self:
             record.expected_end_date = record.initial_end_date
+
     @api.depends('expected_end_date', 'status')
     def _compute_end_date_warning(self):
         """Compute end date warning level and message based on config."""
         today = date.today()
         # Get warning days from config
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param('flight_school.class_end_warning_days', '14'))  # type: ignore[attr-defined]
-        
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.class_end_warning_days', '14'))  # type: ignore[attr-defined]
+
         for record in self:
             level = 'none'
             message = False
-            
+
             if record.status == 'in_progress' and record.expected_end_date:
                 days_left = (record.expected_end_date - today).days
-                
+
                 if days_left < 0:
                     level = 'danger'
-                    message = "This class is OVERDUE! The expected end date was %s." % fields.Date.to_string(record.expected_end_date)
+                    message = "This class is OVERDUE! The expected end date was %s." % fields.Date.to_string(
+                        record.expected_end_date)
                 elif days_left <= warning_days:
                     level = 'warning'
                     message = "This class is nearing its expected end date (%s days remaining)." % days_left
-            
+
             record.end_date_warning_level = level
             record.end_date_warning_message = message
 
@@ -271,12 +276,12 @@ class FsTrainingClass(models.Model):
                 new_tasks = []
                 for line in self.class_type_id.admin_task_ids:
                     new_tasks.append((0, 0, {
-                        'name': line.template_id.display_name, # type: ignore
+                        'name': line.template_id.display_name,  # type: ignore
                         'sequence': line.sequence,      # type: ignore
                         'description': line.template_id.description,  # type: ignore
                         'notes': line.notes,             # type: ignore
                     }))
-                self.admin_task_ids = new_tasks 
+                self.admin_task_ids = new_tasks
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -288,7 +293,7 @@ class FsTrainingClass(models.Model):
                 for task_link in record.class_type_id.admin_task_ids:
                     template = task_link.template_id  # type: ignore
                     self.env['fs.admin.task'].create({
-                        'name': template.display_name, # type: ignore
+                        'name': template.display_name,  # type: ignore
                         'training_class_id': record.id,
                         'sequence': task_link.sequence,  # type: ignore
                         'description': template.description,  # type: ignore
@@ -310,7 +315,7 @@ class FsTrainingClass(models.Model):
                 # 1. Moving to In Progress (Start Class)
                 if new_status == 'in_progress':
                     record.enrollment_ids.filtered_domain([('status', '=', 'enrolled')]).write({'status': 'active'})
-                
+
                 # 2. Moving to Completed (Set End Date)
                 elif new_status == 'completed':
                     if not vals.get('actual_end_date') and not record.actual_end_date:
@@ -323,7 +328,7 @@ class FsTrainingClass(models.Model):
                         'status': 'graduated',
                         'graduation_date': today,
                     })
-                
+
                 # 3. Moving to Cancelled
                 elif new_status == 'cancelled':
                     if not vals.get('actual_end_date') and not record.actual_end_date:
@@ -338,7 +343,7 @@ class FsTrainingClass(models.Model):
                     record.enrollment_ids.filtered_domain([('status', '=', 'active')]).write({'status': 'enrolled'})
 
         result = super().write(vals)
-        
+
         # Original Archive logic
         if 'active' in vals and not vals['active']:
             for record in self:
@@ -374,7 +379,7 @@ class FsTrainingClass(models.Model):
                 raise ValidationError("Only in-progress classes can be completed.")
             if not record.actual_end_date:
                 raise ValidationError("Please set the actual end date before completing.")
-            
+
             # Check for students with low progression and log warning
             active_enrollments = record.enrollment_ids.filtered_domain([
                 ('status', 'not in', ['dropped', 'graduated'])
@@ -383,10 +388,11 @@ class FsTrainingClass(models.Model):
             if low_progression:
                 warning_msg = "<b>⚠️ Low Progression Warning:</b><br/>The following students have not completed 100% of their requirements:<ul>"
                 for enrollment in low_progression:
-                    warning_msg += f"<li>{enrollment.student_id.display_name}: {enrollment.progression:.1f}%</li>" # type: ignore
+                    # type: ignore
+                    warning_msg += f"<li>{enrollment.student_id.display_name}: {enrollment.progression:.1f}%</li>"
                 warning_msg += "</ul>"
                 record.message_post(body=warning_msg, message_type='notification')  # type: ignore[attr-defined]
-            
+
             record.status = 'completed'
             # Graduate all active enrollments (not dropped) and set graduation date
             active_enrollments.write({

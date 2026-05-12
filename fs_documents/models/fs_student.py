@@ -59,11 +59,16 @@ class FsStudent(models.Model):
         for record in self:
             docs = record.document_ids
             # Find document where display_field matches the entity field
-            record.medical_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'medical_expiry')])[:1]
-            record.license_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'license_expiry')])[:1]
-            record.security_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'security_clearance_expiry')])[:1]
-            record.insurance_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'insurance_expiry')])[:1]
-            record.id_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'identification_number')])[:1]
+            record.medical_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'medical_expiry')])[:1]
+            record.license_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'license_expiry')])[:1]
+            record.security_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'security_clearance_expiry')])[:1]
+            record.insurance_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'insurance_expiry')])[:1]
+            record.id_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'identification_number')])[:1]
 
     def action_view_documents(self):
         """View all documents for this student."""

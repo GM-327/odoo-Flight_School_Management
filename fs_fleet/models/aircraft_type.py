@@ -44,7 +44,7 @@ class AircraftType(models.Model):
         string='Description',
         help="Detailed description of this aircraft type.",
     )
-    
+
     # Technical specifications
     engine_count = fields.Integer(
         string='Number of Engines',
@@ -75,7 +75,7 @@ class AircraftType(models.Model):
         default=4,
         help="Number of seats including pilot.",
     )
-    
+
     # Training suitability
     suitable_for_training = fields.Boolean(
         string='Suitable for Training',
@@ -90,7 +90,7 @@ class AircraftType(models.Model):
     currency_id = fields.Many2one(
         comodel_name='res.currency',
         string='Currency',
-        default=lambda self: self.env.company.currency_id, #type: ignore
+        default=lambda self: self.env.company.currency_id,  # type: ignore
     )
     hour_price_solo = fields.Monetary(
         string='Solo Hour Price',
@@ -113,7 +113,7 @@ class AircraftType(models.Model):
         store=True,
         readonly=True,
     )
-    
+
     # Related aircraft
     aircraft_ids = fields.One2many(
         comodel_name='fs.aircraft',
@@ -125,14 +125,14 @@ class AircraftType(models.Model):
         compute='_compute_aircraft_count',
         store=True,
     )
-    
+
     # Image
     image = fields.Image(
         string='Image',
         max_width=1024,
         max_height=1024,
     )
-    
+
     sequence = fields.Integer(
         string='Sequence',
         default=10,

@@ -9,7 +9,7 @@ from odoo import api, fields, models
 
 class FsTrainingDashboard(models.TransientModel):
     """Dashboard for Training module - provides KPIs and quick actions.
-    
+
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
     """
@@ -133,7 +133,7 @@ class FsTrainingDashboard(models.TransientModel):
         data = [
             {'label': 'Draft', 'value': Class.search_count([('status', '=', 'draft')]), 'type': 'future'},
             {'label': 'In Progress', 'value': Class.search_count([('status', '=', 'in_progress')]), 'type': 'future'},
-            {'label': 'Finished', 'value': Class.search_count([('status', '=', 'finished')]), 'type': 'past'},
+            {'label': 'Finished', 'value': Class.search_count([('status', '=', 'completed')]), 'type': 'past'},
             {'label': 'Cancelled', 'value': Class.search_count([('status', '=', 'cancelled')]), 'type': 'past'},
         ]
         for record in self:

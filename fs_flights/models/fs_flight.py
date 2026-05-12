@@ -1,15 +1,15 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
 # Import shared constants from the sibling addon package.
 # This path is resolvable by both Odoo and static analyzers in this workspace.
 from fs_scheduling.models.fs_flight_mixin import (
     FLIGHT_CATEGORY_SELECTION,
     PILOT_FUNCTION_SELECTION,
 )
-
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
 
 
 class FsFlight(models.Model):
@@ -71,7 +71,8 @@ class FsFlight(models.Model):
 
         # Determine which popup form to use based on aircraft category
         is_simulator = self.aircraft_id.category_id.is_simulator if self.aircraft_id else False  # type: ignore
-        view_id = self.env.ref('fs_flights.view_fs_sim_popup_form' if is_simulator else 'fs_flights.view_fs_flight_popup_form').id
+        view_id = self.env.ref(
+            'fs_flights.view_fs_sim_popup_form' if is_simulator else 'fs_flights.view_fs_flight_popup_form').id
 
         return {
             'name': _('Simulator Session') if is_simulator else _('Flight Details'),
@@ -367,7 +368,8 @@ class FsFlight(models.Model):
                 if self.pilot1_function not in ('student', 'solo'):
                     self.pilot1_function = 'student'
                 if self.pilot1_crew_id.enrollment_id:  # type: ignore
-                    enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)  # type: ignore
+                    enrollment = self.env['fs.student.enrollment'].browse(
+                        self.pilot1_crew_id.enrollment_id)  # type: ignore
                     if enrollment:
                         self.training_class_id = enrollment.training_class_id  # type: ignore
                         self.aircraft_type_id = enrollment.aircraft_type_id  # type: ignore
@@ -449,7 +451,8 @@ class FsFlight(models.Model):
                 self.scheduled_duration = self.custom_activity_id.default_duration  # type: ignore
 
     # === Execution Times ===
-    etd = fields.Float(related='scheduled_start', string='ETD', store=True, aggregator=None)  # Alias for view compatibility
+    etd = fields.Float(related='scheduled_start', string='ETD', store=True,
+                       aggregator=None)  # Alias for view compatibility
     atd = fields.Float(string='ATD', tracking=True, aggregator=None)
     eta = fields.Float(string='ETA', compute='_compute_eta', store=True, aggregator=None)
     ata = fields.Float(string='ATA', tracking=True, aggregator=None)
@@ -506,18 +509,27 @@ class FsFlight(models.Model):
             warnings = []
             if record.pilot1_crew_id:
                 if record.pilot1_crew_id.has_expired_qualification:  # type: ignore
-                    warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot1_crew_id.name}</strong> has expired qualifications/medical.")
                 if record.flight_category == 'staff_training' and record.pilot1_crew_id.member_type == 'student':  # type: ignore
-                    warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot1_crew_id.name}</strong> is a student (Staff Training selected).")
 
             if record.pilot2_crew_id:
                 if record.pilot2_crew_id.has_expired_qualification:  # type: ignore
-                    warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot2_crew_id.name}</strong> has expired qualifications/medical.")
                 if record.flight_category == 'staff_training' and record.pilot2_crew_id.member_type == 'student':  # type: ignore
-                    warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot2_crew_id.name}</strong> is a student (Staff Training selected).")
 
             if warnings:
-                record.crew_warning = "<div class='alert alert-warning p-2 mb-0' role='alert'><i class='fa fa-exclamation-triangle me-2'/>" + " | ".join(warnings) + "</div>"
+                record.crew_warning = "<div class='alert alert-warning p-2 mb-0' role='alert'><i class='fa fa-exclamation-triangle me-2'/>" + \
+                    " | ".join(warnings) + "</div>"
             else:
                 record.crew_warning = False
 
@@ -836,10 +848,18 @@ class FsFlight(models.Model):
 
         # 2. Update Crew members (P1 and P2)
         for crew_attr, func_attr in [('pilot1_crew_id', 'pilot1_function'),
-                                      ('pilot2_crew_id', 'pilot2_function')]:
+                                     ('pilot2_crew_id', 'pilot2_function')]:
             crew = getattr(self, crew_attr, False)
             func_code = getattr(self, func_attr, False)
             if not crew:
+                continue
+            if (
+                crew.member_type == 'student'
+                and self.flight_category == 'student_training'
+                and self.student_id
+                and crew.source_id == self.student_id.id
+            ):
+                # Student-training flights are accounted through student_id below.
                 continue
 
             person = self._get_person_from_crew(crew)

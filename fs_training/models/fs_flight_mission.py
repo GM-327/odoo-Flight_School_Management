@@ -93,7 +93,7 @@ class FsFlightMission(models.Model):
         """Default duration from discipline."""
         for record in self:
             if record.discipline_id and not record.duration_hours:
-                record.duration_hours = record.discipline_id.default_flight_duration # type: ignore
+                record.duration_hours = record.discipline_id.default_flight_duration  # type: ignore
             elif not record.duration_hours:
                 record.duration_hours = 1.0
 

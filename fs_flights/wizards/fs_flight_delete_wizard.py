@@ -25,7 +25,7 @@ class FsFlightDeleteWizard(models.TransientModel):
         flight = self.flight_log_id
         if flight.status == 'done':
             raise UserError(_("You cannot delete a completed flight."))
-        
+
         # Capture schedule ID before deletion
         schedule = flight.scheduled_flight_id
 
@@ -35,5 +35,5 @@ class FsFlightDeleteWizard(models.TransientModel):
         # Also delete the underlying scheduled flight if it exists (maintaining previous behavior)
         if schedule:
             schedule.unlink()
-        
+
         return {'type': 'ir.actions.act_window_close'}

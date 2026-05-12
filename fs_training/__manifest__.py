@@ -7,23 +7,7 @@
     'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Training classes, enrollments, and flight missions',
-    'description': """
-Flight School Training
-======================
-
-Training management for Military Flight School Management System.
-
-This module provides:
----------------------
-* Training class types with requirements
-* Flight disciplines (MAN, NAV, IFR, VSV) and types (Solo, Dual)
-* Training classes with student enrollments
-* Flight missions syllabus
-* Student progress tracking
-* Administrative task checklists
-    """,
-    'author': 'Ghazi Marzouk',
-    'website': '',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'fs_core',
@@ -69,9 +53,7 @@ This module provides:
     #     'demo/fs_training_demo.xml',
     #     'demo/fs_training_extended_demo.xml',
     # ],
-    'installable': True,
     'application': True,
-    'auto_install': False,
     'sequence': 30,
     'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

@@ -9,7 +9,7 @@ from odoo import api, fields, models
 
 class FsDocumentVersion(models.Model):
     """Version of a document - stores actual file and metadata.
-    
+
     Each version has its own file, expiry date, issue date, and reference.
     When a new version is uploaded, it becomes the current version.
     """
@@ -30,7 +30,7 @@ class FsDocumentVersion(models.Model):
         required=True,
         default=1,
     )
-    
+
     # === File Data ===
     file = fields.Binary(
         string='File',
@@ -134,7 +134,7 @@ class FsDocumentVersion(models.Model):
                 doc_ids_to_unset.add(doc_id)
                 # Auto-set as current version
                 vals['is_current'] = True
-                
+
                 # Auto-calculate version number if not provided
                 if not vals.get('version_number'):
                     max_version = self.search([
@@ -152,10 +152,10 @@ class FsDocumentVersion(models.Model):
                 existing_current.write({'is_current': False})
 
         records = super().create(vals_list)
-        
+
         # Sync expiry to parent document's related entity
         records.document_id.sync_expiry_to_related()  # type: ignore
-        
+
         return records
 
     def write(self, vals):
@@ -167,7 +167,7 @@ class FsDocumentVersion(models.Model):
                     ('id', '!=', record.id),
                     ('is_current', '=', True),
                 ]).write({'is_current': False})
-        
+
         result = super().write(vals)
         if 'expiry_date' in vals:
             # If this is the current version, sync to related entity
@@ -189,7 +189,7 @@ class FsDocumentVersion(models.Model):
 
     def action_open_preview(self):
         """Open a popup preview of this specific version.
-        
+
         Reuses the document preview view logic by displaying this version.
         """
         self.ensure_one()

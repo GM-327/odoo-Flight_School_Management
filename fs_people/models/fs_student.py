@@ -8,11 +8,11 @@ from odoo import api, fields, models
 
 class FsStudent(models.Model):
     """Flight student in the flight school system.
-    
+
     Note: Enrollment in training classes is handled by fs_training module.
     A student can be enrolled in multiple classes but active in only one.
     """
-    
+
     _name = 'fs.student'
     _description = 'Flight Student'
     _inherit = ['fs.person']
@@ -48,7 +48,7 @@ class FsStudent(models.Model):
         compute='_compute_license_expiry_status',
         store=True,
     )
-    
+
     @api.depends('license_expiry')
     def _compute_license_expiry_status(self):
         """Compute license expiry status based on expiry date."""
@@ -56,7 +56,7 @@ class FsStudent(models.Model):
             'flight_school.license_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.license_expiry:
                 record.license_expiry_status = 'no_expiry'
@@ -66,13 +66,13 @@ class FsStudent(models.Model):
                 record.license_expiry_status = 'expiring'
             else:
                 record.license_expiry_status = 'valid'
-    
+
     has_expired_status = fields.Boolean(
         string='Has Expired Status',
         compute='_compute_has_expired_status',
         store=True,
     )
-    
+
     @api.depends('license_expiry_status', 'medical_status', 'security_clearance_status', 'insurance_status')
     def _compute_has_expired_status(self):
         """Check if any status is expired for row decoration."""
@@ -115,7 +115,7 @@ class FsStudent(models.Model):
         compute='_compute_insurance_status',
         store=True,
     )
-    
+
     @api.depends('security_clearance_expiry')
     def _compute_security_clearance_status(self):
         """Compute security clearance status based on expiry date."""
@@ -123,7 +123,7 @@ class FsStudent(models.Model):
             'flight_school.security_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.security_clearance_expiry:
                 record.security_clearance_status = 'no_expiry'
@@ -133,7 +133,7 @@ class FsStudent(models.Model):
                 record.security_clearance_status = 'expiring'
             else:
                 record.security_clearance_status = 'valid'
-    
+
     @api.depends('insurance_expiry')
     def _compute_insurance_status(self):
         """Compute insurance status based on expiry date."""
@@ -141,7 +141,7 @@ class FsStudent(models.Model):
             'flight_school.insurance_warning_days', '30'))
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
-        
+
         for record in self:
             if not record.insurance_expiry:
                 record.insurance_status = 'no_expiry'
@@ -161,7 +161,7 @@ class FsStudent(models.Model):
         string='Currency',
         default=lambda self: self.env.company.currency_id,  # type: ignore
     )
-    
+
     # === Experience ===
     total_flight_hours = fields.Float(
         string='Total Flight Hours',
@@ -181,9 +181,3 @@ class FsStudent(models.Model):
     )
 
     # Enrollment availability logic moved to fs_training module
-
-
-    
-
-
-

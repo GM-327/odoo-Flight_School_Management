@@ -7,7 +7,7 @@ from odoo import fields, models
 
 class FsEnglishLevel(models.Model):
     """ICAO English proficiency levels (Level 4, 5, 6)."""
-    
+
     _name = 'fs.english.level'
     _description = 'English Proficiency Level'
     _order = 'level'

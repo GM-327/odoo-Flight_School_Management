@@ -14,7 +14,7 @@ STATUS_SELECTION = [
 
 class FsCrewMember(models.Model):
     """Unified view of all crew members (students, instructors, pilots) for scheduling.
-    
+
     This is a SQL view-based model that combines fs.student, fs.instructor, and fs.pilot
     into a single selectable list for crew assignment.
     """
@@ -35,21 +35,21 @@ class FsCrewMember(models.Model):
     source_model = fields.Char(string='Source Model', readonly=True)
     has_expired_qualification = fields.Boolean(string='Has Expired', readonly=True)
     department_id = fields.Many2one('fs.department', string='Department', readonly=True)
-    
+
     # === Expiry Status Fields ===
     medical_status = fields.Selection(STATUS_SELECTION, string='Medical', readonly=True)
     english_status = fields.Selection(STATUS_SELECTION, string='English', readonly=True)
     license_status = fields.Selection(STATUS_SELECTION, string='License', readonly=True)
     security_status = fields.Selection(STATUS_SELECTION, string='Security', readonly=True)
     insurance_status = fields.Selection(STATUS_SELECTION, string='Insurance', readonly=True)
-    
+
     # Computed HTML badges field for qualifications/license
     qualification_badges = fields.Html(
         string='Qualifications',
         compute='_compute_qualification_badges',
         sanitize=False,
     )
-    
+
     earliest_expiry_date = fields.Date(string='Earliest Expiry', readonly=True)
     # For students - enrollment reference
     enrollment_id = fields.Integer(string='Enrollment ID', readonly=True)
@@ -67,7 +67,7 @@ class FsCrewMember(models.Model):
                     COALESCE(e.callsign, s.name) AS display_name,
                     'student' AS member_type,
                     s.id AS source_id,
-                    'fs.student.enrollment' AS source_model,
+                    'fs.student' AS source_model,
                     s.has_expired_status AS has_expired_qualification,
                     NULL::integer AS department_id,
                     s.medical_status AS medical_status,
@@ -150,7 +150,7 @@ class FsCrewMember(models.Model):
         if self.source_model and self.source_id:
             return self.env[self.source_model].browse(self.source_id)
         return False
-    
+
     def get_enrollment_record(self):
         """Return the enrollment record for students."""
         self.ensure_one()
@@ -169,13 +169,13 @@ class FsCrewMember(models.Model):
         }
         for record in self:
             badges_html = ''
-            
+
             if record.member_type in ('instructor', 'pilot'):
                 # Get qualification badges from source record
                 source = record.get_source_record()
                 if source and hasattr(source, 'qualification_badges'):
                     badges_html = source.qualification_badges or ''  # type: ignore
-            
+
             elif record.member_type == 'student':
                 # Generate license badge for students
                 if record.license_status:
@@ -188,5 +188,5 @@ class FsCrewMember(models.Model):
                         f'font-size: 12px; display: inline-block;">'
                         f'{label}</span>'
                     )
-            
+
             record.qualification_badges = badges_html

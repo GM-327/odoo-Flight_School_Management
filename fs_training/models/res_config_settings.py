@@ -8,8 +8,7 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     """Configuration settings for flight school training module."""
 
-    _name = 'res.config.settings'
-    _inherit = ['res.config.settings']
+    _inherit = 'res.config.settings'
 
     # === Training Warnings ===
     fs_training_class_end_warning_days = fields.Integer(

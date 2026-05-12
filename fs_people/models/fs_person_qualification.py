@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from calendar import monthrange
 from datetime import date, timedelta
 
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class FsPersonQualification(models.Model):
@@ -68,6 +69,16 @@ class FsPersonQualification(models.Model):
         string='Notes',
     )
 
+    @api.constrains('instructor_id', 'pilot_id', 'qualification_id')
+    def _check_single_owner(self):
+        """Require each qualification to belong to exactly one person."""
+        for record in self:
+            owner_count = int(bool(record.instructor_id)) + int(bool(record.pilot_id))
+            if owner_count != 1:
+                raise ValidationError(
+                    self.env._("A qualification must be linked to exactly one instructor or one pilot.")
+                )
+
     @api.depends('expiry_date')
     def _compute_expiry_status(self):
         """Compute expiry status based on expiry date and warning period from settings."""
@@ -94,11 +105,15 @@ class FsPersonQualification(models.Model):
         the validity period.
         """
         for record in self:
-            if record.issue_date and record.qualification_id and record.qualification_id.validity_months:  # type: ignore
-                total_months = record.issue_date.month - 1 + record.qualification_id.validity_months  # type: ignore
+            validity_months = record.qualification_id.validity_months
+            if record.issue_date and record.qualification_id and validity_months:  # type: ignore
+                total_months = record.issue_date.month - 1 + validity_months
                 expiry_year = record.issue_date.year + (total_months // 12)
                 expiry_month = (total_months % 12) + 1
-                last_day = monthrange(expiry_year, expiry_month)[1]
-                record.expiry_date = date(expiry_year, expiry_month, last_day)
+                if expiry_month == 12:
+                    first_day_next_month = date(expiry_year + 1, 1, 1)
+                else:
+                    first_day_next_month = date(expiry_year, expiry_month + 1, 1)
+                record.expiry_date = first_day_next_month - timedelta(days=1)
             else:
                 record.expiry_date = False

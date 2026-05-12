@@ -8,8 +8,7 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     """Configuration settings for flight school scheduling module."""
 
-    _name = 'res.config.settings'
-    _inherit = ['res.config.settings']
+    _inherit = 'res.config.settings'
 
     # === Scheduling Settings ===
     fs_mission_callsign_prefix = fields.Char(

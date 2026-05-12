@@ -8,8 +8,7 @@ from odoo import fields, models
 class ResConfigSettings(models.TransientModel):
     """Configuration settings for flight school personnel module."""
 
-    _name = 'res.config.settings'
-    _inherit = ['res.config.settings']
+    _inherit = 'res.config.settings'
 
     # === Instructor Limits ===
     fs_default_max_students = fields.Integer(

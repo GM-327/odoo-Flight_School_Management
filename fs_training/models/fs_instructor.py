@@ -7,7 +7,7 @@ from odoo import api, fields, models
 
 class FsInstructor(models.Model):
     """Extend instructor model with training-specific student assignment logic."""
-    
+
     _inherit = 'fs.instructor'  # type: ignore
 
     enrollment_ids = fields.One2many(

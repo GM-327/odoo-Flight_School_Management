@@ -7,7 +7,7 @@ from odoo import fields, models
 
 class FsQualificationType(models.Model):
     """Qualification types configuration (IR, ME, FI, SEP, MEP)."""
-    
+
     _name = 'fs.qualification.type'
     _description = 'Qualification Type'
     _order = 'sequence, name'

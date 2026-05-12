@@ -105,4 +105,3 @@ class FsDocumentType(models.Model):
         'UNIQUE(code)',
         'Document type code must be unique!',
     )
-

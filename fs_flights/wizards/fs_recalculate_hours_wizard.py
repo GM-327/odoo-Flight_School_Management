@@ -7,7 +7,7 @@ from odoo import api, fields, models
 
 class FsRecalculateHoursWizard(models.TransientModel):
     """Wizard to recalculate flight hours from completed flights.
-    
+
     Shows a preview of calculated values vs current values,
     highlighting differences. Administrators can select which
     values to apply.
@@ -38,7 +38,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
     changes_count = fields.Integer(
         compute='_compute_changes_count',
     )
-    
+
     @api.depends('line_ids.difference')
     def _compute_changes_count(self):
         for record in self:
@@ -48,28 +48,28 @@ class FsRecalculateHoursWizard(models.TransientModel):
         """Calculate differences and show preview."""
         self.ensure_one()
         self.line_ids.unlink()
-        
+
         lines = []
         Flight = self.env['fs.flight']
-        
+
         # Get all completed flights
         completed_flights = Flight.search([('status', '=', 'done')])
-        
+
         if self.entity_type in ('all', 'aircraft'):
             lines.extend(self._calculate_aircraft_hours(completed_flights))
-        
+
         if self.entity_type in ('all', 'instructors'):
             lines.extend(self._calculate_person_hours('fs.instructor', completed_flights))
-        
+
         if self.entity_type in ('all', 'pilots'):
             lines.extend(self._calculate_person_hours('fs.pilot', completed_flights))
-        
+
         if self.entity_type in ('all', 'students'):
             lines.extend(self._calculate_person_hours('fs.student', completed_flights))
-        
+
         if lines:
             self.env['fs.recalculate.hours.line'].create(lines)
-        
+
         self.state = 'preview'
         return self._reopen_wizard()
 
@@ -77,7 +77,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
         """Calculate aircraft hours from flights."""
         lines = []
         Aircraft = self.env['fs.aircraft']
-        
+
         # Group flights by aircraft
         aircraft_hours = {}
         for flight in flights:
@@ -85,7 +85,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
                 key = flight.aircraft_id.id
                 aircraft_hours.setdefault(key, 0.0)
                 aircraft_hours[key] += flight.distributed_hours or 0.0
-        
+
         # Compare with current values
         for aircraft_id, calc_hours in aircraft_hours.items():
             aircraft = Aircraft.browse(aircraft_id)
@@ -108,7 +108,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
         """Calculate person hours from flights."""
         lines = []
         Model = self.env[model_name]
-        
+
         # Determine member type for crew matching
         member_type_map = {
             'fs.instructor': 'instructor',
@@ -116,36 +116,45 @@ class FsRecalculateHoursWizard(models.TransientModel):
             'fs.student': 'student',
         }
         member_type = member_type_map.get(model_name, '')
-        
+
         # Collect hours per person per field
         person_hours = {}  # {person_id: {'total_flight_hours': x, 'total_sim_hours': y, ...}}
-        
+
         for flight in flights:
             hours = flight.distributed_hours or 0.0
             if hours <= 0:
                 continue
-            
+
             is_sim = flight._is_simulator_session() if hasattr(flight, '_is_simulator_session') else False
-            
+
             # Check P1 and P2 crew members
             for crew, func_field in [(flight.pilot1_crew_id, flight.pilot1_function),
-                                      (flight.pilot2_crew_id, flight.pilot2_function)]:
+                                     (flight.pilot2_crew_id, flight.pilot2_function)]:
                 if not crew or crew.member_type != member_type:
                     continue
-                
+                if (
+                    model_name == 'fs.student'
+                    and flight.flight_category == 'student_training'
+                    and flight.student_id
+                    and crew.source_id == flight.student_id.id
+                ):
+                    # Student-training flights are accounted through student_id below.
+                    continue
+
                 person_id = crew.source_id
                 if not person_id:
                     continue
-                
+
                 person_hours.setdefault(person_id, {
                     'total_flight_hours': 0.0,
                     'total_sim_hours': 0.0,
                     'solo_hours': 0.0,
                     'total_instruction_hours': 0.0,
                 })
-                
-                func_config = flight._get_pilot_function_config(func_field) if hasattr(flight, '_get_pilot_function_config') else {}
-                
+
+                func_config = flight._get_pilot_function_config(func_field) if hasattr(
+                    flight, '_get_pilot_function_config') else {}
+
                 if is_sim:
                     person_hours[person_id]['total_sim_hours'] += hours
                 else:
@@ -155,7 +164,7 @@ class FsRecalculateHoursWizard(models.TransientModel):
                         person_hours[person_id]['total_instruction_hours'] += hours
                     if func_config.get('is_counted_solo', False):
                         person_hours[person_id]['solo_hours'] += hours
-            
+
             # For students, also check direct student assignment
             if model_name == 'fs.student' and flight.flight_category == 'student_training' and flight.student_id:
                 person_id = flight.student_id.id
@@ -168,13 +177,17 @@ class FsRecalculateHoursWizard(models.TransientModel):
                     person_hours[person_id]['total_sim_hours'] += hours
                 else:
                     person_hours[person_id]['total_flight_hours'] += hours
-        
+                    p1_func = flight._get_pilot_function_config(flight.pilot1_function) if hasattr(
+                        flight, '_get_pilot_function_config') else {}
+                    if p1_func.get('is_counted_solo', False):
+                        person_hours[person_id]['solo_hours'] += hours
+
         # Compare with current values
         for person_id, calc_data in person_hours.items():
             person = Model.browse(person_id)
             if not person.exists():
                 continue
-            
+
             for field_name, calc_value in calc_data.items():
                 if not hasattr(person, field_name):
                     continue
@@ -190,21 +203,21 @@ class FsRecalculateHoursWizard(models.TransientModel):
                         'calculated_value': calc_value,
                         'apply': True,
                     })
-        
+
         return lines
 
     def action_apply(self):
         """Apply selected changes."""
         self.ensure_one()
-        
+
         lines_to_apply = self.line_ids.filtered(lambda l: l.apply and l.difference != 0)
-        
+
         for line in lines_to_apply:
             Model = self.env[line.entity_model]
             record = Model.browse(line.entity_id)
             if record.exists():
                 record.sudo().write({line.field_name: line.calculated_value})
-        
+
         self.state = 'done'
         return self._reopen_wizard()
 

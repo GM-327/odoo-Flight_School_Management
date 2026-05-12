@@ -5,7 +5,7 @@
 from odoo import api, fields, models, _
 
 # Import shared constants from mixin
-from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
+from ..models.fs_flight_mixin import (
     PILOT_FUNCTION_SELECTION,
     FLIGHT_CATEGORY_SELECTION,
 )
@@ -16,7 +16,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     _description = 'Scheduling Wizard Line'
     _order = 'sequence, id'
 
-    wizard_id = fields.Many2one('fs.scheduling.wizard', ondelete='cascade') # type: ignore
+    wizard_id = fields.Many2one('fs.scheduling.wizard', ondelete='cascade')  # type: ignore
     sequence = fields.Integer(string='Sequence', default=10)
     callsign_number = fields.Integer(string='#', help='Callsign sequence number')
     callsign_display = fields.Char(
@@ -25,7 +25,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         inverse='_inverse_callsign_display',
         store=False,
     )
-    
+
     # === Category (2 options only) ===
     flight_category = fields.Selection(
         selection=FLIGHT_CATEGORY_SELECTION,
@@ -33,10 +33,10 @@ class FsSchedulingWizardLine(models.TransientModel):
         default='student_training',
         required=True,
     )
-    
+
     # === Pilot 1 (Primary Position) - Unified Crew Member ===
     pilot1_crew_id = fields.Many2one(
-        'fs.crew.member', # type: ignore
+        'fs.crew.member',  # type: ignore
         string='Pilot 1',
         help="Select crew member for Pilot 1 position (student, instructor, or pilot).",
     )
@@ -45,17 +45,17 @@ class FsSchedulingWizardLine(models.TransientModel):
         string='P1 Function',
         help="Function/role of Pilot 1",
     )
-    
+
     # Computed display field for Pilot 1
     pilot1_display = fields.Char(
         string='Pilot 1',
         compute='_compute_pilot1_display',
         store=False,
     )
-    
+
     # === Pilot 2 (Secondary Position) - Unified Crew Member ===
     pilot2_crew_id = fields.Many2one(
-        'fs.crew.member', # type: ignore
+        'fs.crew.member',  # type: ignore
         string='Pilot 2',
         help="Select crew member for Pilot 2 position (instructor or pilot).",
     )
@@ -64,14 +64,14 @@ class FsSchedulingWizardLine(models.TransientModel):
         string='P2 Function',
         help="Function/role of Pilot 2",
     )
-    
+
     # Computed display field for Pilot 2
     pilot2_display = fields.Char(
         string='Pilot 2',
         compute='_compute_pilot2_display',
         store=False,
     )
-    
+
     # === Flight Type (from existing model) ===
     flight_type_id = fields.Many2one(
         'fs.flight.type',
@@ -81,7 +81,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         readonly=False,
         help="Auto-determined from crew configuration, can be manually overridden.",
     )
-    
+
     # === Class & Mission Info ===
     training_class_code = fields.Char(string='Class Code')
     class_type_id = fields.Many2one('fs.class.type', string='Class Type')
@@ -105,18 +105,18 @@ class FsSchedulingWizardLine(models.TransientModel):
         help="Flight activity (discipline + type) for staff training flights.",
     )
     custom_activity_id = fields.Many2one(
-        comodel_name='fs.custom.flight.type', # type: ignore
+        comodel_name='fs.custom.flight.type',  # type: ignore
         string='Custom Activity',
         help="Non-syllabus activity (e.g. test flight, ferry).",
     )
-    
+
     # Computed display field for activity
     activity_display = fields.Char(
         string='Activity',
         compute='_compute_activity_display',
         store=False,
     )
-    
+
     is_sim = fields.Boolean(
         string='Is Simulator',
         compute='_compute_is_sim',
@@ -136,7 +136,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         default=False,
         help="If locked, this assignment will be preserved during rescheduling.",
     )
-    route_id = fields.Many2one('fs.flight.route', string='Route / Area') # type: ignore
+    route_id = fields.Many2one('fs.flight.route', string='Route / Area')  # type: ignore
     is_added_mission = fields.Boolean(
         string='Added Mission',
         default=False,
@@ -173,19 +173,19 @@ class FsSchedulingWizardLine(models.TransientModel):
         dual_type = FlightType.search([('code', '=', 'DUAL')], limit=1)
         solo_type = FlightType.search([('code', '=', 'SOLO')], limit=1)
         sim_type = FlightType.search([('code', '=', 'SIM')], limit=1)
-        
+
         for line in self:
             if line.is_sim and sim_type:
                 line.flight_type_id = sim_type
             elif line.pilot1_function in ('solo', 'pilot') and line.pilot2_function in ('supervisor', 'safety_pilot', False):
                 # Solo: flying alone or with safety pilot/supervisor (who doesn't log PIC)
-                line.flight_type_id = solo_type if solo_type else False # type: ignore
+                line.flight_type_id = solo_type if solo_type else False  # type: ignore
             elif line.pilot1_function == 'instructor' and not line.pilot2_function:
                 # Instructor flying alone
-                line.flight_type_id = solo_type if solo_type else False # type: ignore
+                line.flight_type_id = solo_type if solo_type else False  # type: ignore
             else:
                 # Dual: instructor + student, or any two pilots flying together
-                line.flight_type_id = dual_type if dual_type else False # type: ignore
+                line.flight_type_id = dual_type if dual_type else False  # type: ignore
 
     @api.depends('mission_id', 'mission_id.is_sim', 'activity_id', 'activity_id.is_sim')
     def _compute_is_sim(self):
@@ -200,7 +200,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     @api.depends('is_sim', 'aircraft_type_ids', 'aircraft_type_id', 'class_type_id', 'class_type_id.aircraft_type_ids')
     def _compute_allowed_aircraft_ids(self):
         """Compute allowed aircraft based on mission type.
-        
+
         For simulator missions: airworthy simulators from the class type's aircraft types
         For student training: filter by student's assigned aircraft type
         For staff training / fallback: filter by allowed aircraft types from class
@@ -209,14 +209,14 @@ class FsSchedulingWizardLine(models.TransientModel):
         for line in self:
             if line.is_sim:
                 # For simulator missions, show simulators from the class type's aircraft types
-                if line.class_type_id and line.class_type_id.aircraft_type_ids: # type: ignore
-                    sim_types = line.class_type_id.aircraft_type_ids.filtered( # type: ignore
+                if line.class_type_id and line.class_type_id.aircraft_type_ids:  # type: ignore
+                    sim_types = line.class_type_id.aircraft_type_ids.filtered(  # type: ignore
                         lambda t: t.is_simulator  # type: ignore
                     )
                     if sim_types:
                         line.allowed_aircraft_ids = Aircraft.search([
                             ('is_airworthy', '=', True),
-                            ('aircraft_type_id', 'in', sim_types.ids), # type: ignore
+                            ('aircraft_type_id', 'in', sim_types.ids),  # type: ignore
                         ])
                     else:
                         # Fallback: show all airworthy simulators if none assigned to class
@@ -234,14 +234,14 @@ class FsSchedulingWizardLine(models.TransientModel):
                 # Student has a specific assigned aircraft type - use it
                 line.allowed_aircraft_ids = Aircraft.search([
                     ('is_airworthy', '=', True),
-                    ('aircraft_type_id', '=', line.aircraft_type_id.id), # type: ignore
+                    ('aircraft_type_id', '=', line.aircraft_type_id.id),  # type: ignore
                     ('aircraft_type_id.is_simulator', '=', False),
                 ])
             elif line.aircraft_type_ids:
                 # Fallback to class aircraft types (for staff training or when student has no assigned type)
                 line.allowed_aircraft_ids = Aircraft.search([
                     ('is_airworthy', '=', True),
-                    ('aircraft_type_id', 'in', line.aircraft_type_ids.ids), # type: ignore
+                    ('aircraft_type_id', 'in', line.aircraft_type_ids.ids),  # type: ignore
                     ('aircraft_type_id.is_simulator', '=', False),
                 ])
             else:
@@ -251,7 +251,7 @@ class FsSchedulingWizardLine(models.TransientModel):
                     ('aircraft_type_id.is_simulator', '=', False),
                 ])
 
-    @api.depends('mission_id', 'mission_id.is_exam', 'custom_activity_id', 'custom_activity_id.is_exam') # type: ignore
+    @api.depends('mission_id', 'mission_id.is_exam', 'custom_activity_id', 'custom_activity_id.is_exam')  # type: ignore
     def _compute_is_exam(self):
         for line in self:
             if line.mission_id:
@@ -261,20 +261,20 @@ class FsSchedulingWizardLine(models.TransientModel):
             else:
                 line.is_exam = False
 
-    @api.depends('activity_id', 'activity_id.code', 'custom_activity_id', 'custom_activity_id.code', # type: ignore
-                 'custom_activity_id.name', 'mission_id', 'mission_id.activity_id', 'mission_id.activity_id.code') # type: ignore
+    @api.depends('activity_id', 'activity_id.code', 'custom_activity_id', 'custom_activity_id.code',  # type: ignore
+                 'custom_activity_id.name', 'mission_id', 'mission_id.activity_id', 'mission_id.activity_id.code')  # type: ignore
     def _compute_activity_display(self):
         """Compute display value for activity column showing activity/custom_activity code."""
         for line in self:
-            if line.mission_id and line.mission_id.activity_id: # type: ignore
+            if line.mission_id and line.mission_id.activity_id:  # type: ignore
                 # For student training: show mission's activity code
-                line.activity_display = line.mission_id.activity_id.code or '' # type: ignore
+                line.activity_display = line.mission_id.activity_id.code or ''  # type: ignore
             elif line.activity_id:
                 # For staff training with activity
-                line.activity_display = line.activity_id.code or '' # type: ignore
+                line.activity_display = line.activity_id.code or ''  # type: ignore
             elif line.custom_activity_id:
                 # For staff training with custom activity
-                line.activity_display = line.custom_activity_id.code or line.custom_activity_id.name or '' # type: ignore
+                line.activity_display = line.custom_activity_id.code or line.custom_activity_id.name or ''  # type: ignore
             else:
                 line.activity_display = ''
 
@@ -315,14 +315,14 @@ class FsSchedulingWizardLine(models.TransientModel):
             self.custom_activity_id = False
             # Set default functions based on crew member type
             if self.pilot1_crew_id:
-                if self.pilot1_crew_id.member_type == 'student':  #type: ignore
+                if self.pilot1_crew_id.member_type == 'student':  # type: ignore
                     self.pilot1_function = 'student'
-                elif self.pilot1_crew_id.member_type == 'instructor':  #type: ignore
+                elif self.pilot1_crew_id.member_type == 'instructor':  # type: ignore
                     self.pilot1_function = 'instructor'
                 else:
                     self.pilot1_function = 'pilot'
             if self.pilot2_crew_id:
-                if self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
+                if self.pilot2_crew_id.member_type == 'instructor':  # type: ignore
                     self.pilot2_function = 'instructor'
                 else:
                     self.pilot2_function = 'pilot'
@@ -330,18 +330,18 @@ class FsSchedulingWizardLine(models.TransientModel):
             # Clear mission for staff training
             self.mission_id = False
             # Filter out students from selection if they exist
-            if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  #type: ignore
+            if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  # type: ignore
                 self.pilot1_crew_id = False
-            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'student':  #type: ignore
+            if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'student':  # type: ignore
                 self.pilot2_crew_id = False
             # Set default functions
             if self.pilot1_crew_id:
-                if self.pilot1_crew_id.member_type == 'instructor':  #type: ignore
+                if self.pilot1_crew_id.member_type == 'instructor':  # type: ignore
                     self.pilot1_function = 'instructor'
                 else:
                     self.pilot1_function = 'pilot'
             if self.pilot2_crew_id:
-                if self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
+                if self.pilot2_crew_id.member_type == 'instructor':  # type: ignore
                     self.pilot2_function = 'instructor'
                 else:
                     self.pilot2_function = 'pilot'
@@ -350,28 +350,29 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _onchange_pilot1_crew(self):
         """Smart assignment when Pilot 1 crew member is selected."""
         if self.pilot1_crew_id:
-            member_type = self.pilot1_crew_id.member_type  #type: ignore
+            member_type = self.pilot1_crew_id.member_type  # type: ignore
             if member_type == 'student':
                 self.pilot1_function = 'student'
                 # Auto-populate class info from enrollment
-                if self.pilot1_crew_id.enrollment_id: # type: ignore
-                    enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id) # type: ignore
+                if self.pilot1_crew_id.enrollment_id:  # type: ignore
+                    enrollment = self.env['fs.student.enrollment'].browse(
+                        self.pilot1_crew_id.enrollment_id)  # type: ignore
                     if enrollment:
                         class_rec = enrollment.training_class_id  # type: ignore
-                        class_type = class_rec.class_type_id if class_rec else False # type: ignore
-                        instructor = enrollment.instructor_id # type: ignore
-                        
-                        self.training_class_code = class_rec.code if class_rec else '' # type: ignore
+                        class_type = class_rec.class_type_id if class_rec else False  # type: ignore
+                        instructor = enrollment.instructor_id  # type: ignore
+
+                        self.training_class_code = class_rec.code if class_rec else ''  # type: ignore
                         self.class_type_id = class_type
-                        self.aircraft_type_ids = class_rec.aircraft_type_ids if class_rec else False # type: ignore
+                        self.aircraft_type_ids = class_rec.aircraft_type_ids if class_rec else False  # type: ignore
                         self.aircraft_type_id = enrollment.aircraft_type_id  # type: ignore
-                        
+
                         # Auto-assign instructor to Pilot 2 if available
-                        if instructor and not instructor.has_expired_qualification: # type: ignore
+                        if instructor and not instructor.has_expired_qualification:  # type: ignore
                             # Find the crew member for this instructor
                             crew_member = self.env['fs.crew.member'].search([
                                 ('source_model', '=', 'fs.instructor'),
-                                ('source_id', '=', instructor.id) # type: ignore
+                                ('source_id', '=', instructor.id)  # type: ignore
                             ], limit=1)
                             if crew_member:
                                 self.pilot2_crew_id = crew_member
@@ -386,7 +387,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     def _onchange_pilot2_crew(self):
         """Smart assignment when Pilot 2 crew member is selected."""
         if self.pilot2_crew_id:
-            member_type = self.pilot2_crew_id.member_type  #type: ignore
+            member_type = self.pilot2_crew_id.member_type  # type: ignore
             if member_type == 'student':
                 self.pilot2_function = 'student'
             elif member_type == 'instructor':
@@ -418,9 +419,9 @@ class FsSchedulingWizardLine(models.TransientModel):
                 if self.pilot2_crew_id:
                     self.pilot2_function = 'supervisor'
             else:
-                if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  #type: ignore
+                if self.pilot1_crew_id and self.pilot1_crew_id.member_type == 'student':  # type: ignore
                     self.pilot1_function = 'student'
-                if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':  #type: ignore
+                if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':  # type: ignore
                     self.pilot2_function = 'instructor'
             # Clear custom activity when selecting a syllabus mission
             self.custom_activity_id = False
@@ -467,12 +468,12 @@ class FsSchedulingWizardLine(models.TransientModel):
         """Check if Pilot 2 has examinator qualification."""
         if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':  # type: ignore
             # Get the actual instructor record
-            instructor = self.pilot2_crew_id.get_source_record() # type: ignore
+            instructor = self.pilot2_crew_id.get_source_record()  # type: ignore
             if instructor:
                 has_qual = any(
-                    q.qualification_id.is_examinator # type: ignore
+                    q.qualification_id.is_examinator  # type: ignore
                     for q in instructor.qualification_ids  # type: ignore
-                    if q.qualification_id # type: ignore
+                    if q.qualification_id  # type: ignore
                 )
                 self.has_examinator_warning = not has_qual
             else:
@@ -489,7 +490,7 @@ class FsSchedulingWizardLine(models.TransientModel):
             ('has_expired_qualification', '=', False),
             ('qualification_ids.qualification_id.is_examinator', '=', True),
         ])
-        
+
         return {
             'type': 'ir.actions.act_window',
             'name': _('⚠️ Examinator Required - Select an Examinator'),
@@ -505,7 +506,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
-        
+
         for i, line in enumerate(lines):
             if line.id == self.id and i > 0:
                 prev_line = lines[i - 1]
@@ -513,7 +514,7 @@ class FsSchedulingWizardLine(models.TransientModel):
                 prev_line.sequence = self.sequence  # type: ignore
                 self.sequence = prev_seq  # type: ignore
                 break
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def action_move_down(self):
@@ -521,7 +522,7 @@ class FsSchedulingWizardLine(models.TransientModel):
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
-        
+
         for i, line in enumerate(lines):
             if line.id == self.id and i < len(lines) - 1:
                 next_line = lines[i + 1]
@@ -529,7 +530,7 @@ class FsSchedulingWizardLine(models.TransientModel):
                 next_line.sequence = self.sequence  # type: ignore
                 self.sequence = next_seq  # type: ignore
                 break
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def action_move_first(self):
@@ -537,11 +538,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
-        
+
         if lines and lines[0].id != self.id:
             min_seq = lines[0].sequence - 1
             self.sequence = min_seq  # type: ignore
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def action_move_last(self):
@@ -549,11 +550,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
-        
+
         if lines and lines[-1].id != self.id:
             max_seq = lines[-1].sequence + 1
             self.sequence = max_seq  # type: ignore
-        
+
         return wizard._reopen_wizard()  # type: ignore
 
     def toggle_lock(self):

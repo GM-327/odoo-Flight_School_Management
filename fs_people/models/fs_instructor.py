@@ -1,7 +1,9 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from datetime import timedelta
+from datetime import date, timedelta
+
+from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 
@@ -266,9 +268,6 @@ class FsInstructor(models.Model):
 
         Uses calendar months for calculation (1st to last day of month).
         """
-        from datetime import date
-        from dateutil.relativedelta import relativedelta  # type: ignore
-
         today = date.today()
         # Current month boundaries
         current_month_start = today.replace(day=1)
@@ -291,9 +290,9 @@ class FsInstructor(models.Model):
                 ('status', '=', 'done'),
                 '|',
                 '&', ('pilot1_crew_id.source_model', '=', 'fs.instructor'),
-                     ('pilot1_crew_id.source_id', '=', record.id),
+                ('pilot1_crew_id.source_id', '=', record.id),
                 '&', ('pilot2_crew_id.source_model', '=', 'fs.instructor'),
-                     ('pilot2_crew_id.source_id', '=', record.id),
+                ('pilot2_crew_id.source_id', '=', record.id),
             ]
 
             # Current month hours
@@ -322,13 +321,13 @@ class FsInstructor(models.Model):
         if (flight.pilot1_crew_id and
             flight.pilot1_crew_id.source_model == 'fs.instructor' and
             flight.pilot1_crew_id.source_id == instructor.id and
-            flight.pilot1_function == 'instructor'):
+                flight.pilot1_function == 'instructor'):
             return True
         # Check P2
         if (flight.pilot2_crew_id and
             flight.pilot2_crew_id.source_model == 'fs.instructor' and
             flight.pilot2_crew_id.source_id == instructor.id and
-            flight.pilot2_function == 'instructor'):
+                flight.pilot2_function == 'instructor'):
             return True
         return False
 

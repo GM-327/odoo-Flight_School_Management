@@ -63,12 +63,18 @@ class FsPilot(models.Model):
         """Find specific document types for quick access buttons based on display_field."""
         for record in self:
             docs = record.document_ids
-            record.medical_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'medical_expiry')])[:1]
-            record.license_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'license_number')])[:1]
-            record.english_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'english_expiry')])[:1]
-            record.security_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'security_clearance_expiry')])[:1]
-            record.insurance_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'insurance_expiry')])[:1]
-            record.id_document_id = docs.filtered_domain([('document_type_id.display_field', '=', 'identification_number')])[:1]
+            record.medical_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'medical_expiry')])[:1]
+            record.license_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'license_number')])[:1]
+            record.english_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'english_expiry')])[:1]
+            record.security_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'security_clearance_expiry')])[:1]
+            record.insurance_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'insurance_expiry')])[:1]
+            record.id_document_id = docs.filtered_domain(
+                [('document_type_id.display_field', '=', 'identification_number')])[:1]
 
     def action_view_documents(self):
         """View all documents for this pilot."""

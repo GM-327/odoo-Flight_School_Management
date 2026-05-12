@@ -144,7 +144,8 @@ class FsAddFlightWizard(models.TransientModel):
             if member_type == 'student':
                 self.pilot1_function = 'student'
                 if self.pilot1_crew_id.enrollment_id:  # type: ignore
-                    enrollment = self.env['fs.student.enrollment'].browse(self.pilot1_crew_id.enrollment_id)  # type: ignore
+                    enrollment = self.env['fs.student.enrollment'].browse(
+                        self.pilot1_crew_id.enrollment_id)  # type: ignore
                     if enrollment:
                         self.training_class_id = enrollment.training_class_id  # type: ignore
                         self.class_type_id = enrollment.training_class_id.class_type_id if enrollment.training_class_id else False  # type: ignore
@@ -223,18 +224,27 @@ class FsAddFlightWizard(models.TransientModel):
             warnings = []
             if record.pilot1_crew_id:
                 if record.pilot1_crew_id.has_expired_qualification:  # type: ignore
-                    warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot1_crew_id.name}</strong> has expired qualifications/medical.")
                 if record.flight_category == 'staff_training' and record.pilot1_crew_id.member_type == 'student':  # type: ignore
-                    warnings.append(f"<strong>{record.pilot1_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot1_crew_id.name}</strong> is a student (Staff Training selected).")
 
             if record.pilot2_crew_id:
                 if record.pilot2_crew_id.has_expired_qualification:  # type: ignore
-                    warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> has expired qualifications/medical.")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot2_crew_id.name}</strong> has expired qualifications/medical.")
                 if record.flight_category == 'staff_training' and record.pilot2_crew_id.member_type == 'student':  # type: ignore
-                    warnings.append(f"<strong>{record.pilot2_crew_id.name}</strong> is a student (Staff Training selected).")  # type: ignore
+                    # type: ignore
+                    warnings.append(
+                        f"<strong>{record.pilot2_crew_id.name}</strong> is a student (Staff Training selected).")
 
             if warnings:
-                record.crew_warning = "<div class='alert alert-warning p-2 mb-0' role='alert'><i class='fa fa-exclamation-triangle me-2'/>" + " | ".join(warnings) + "</div>"
+                record.crew_warning = "<div class='alert alert-warning p-2 mb-0' role='alert'><i class='fa fa-exclamation-triangle me-2'/>" + \
+                    " | ".join(warnings) + "</div>"
             else:
                 record.crew_warning = False
 

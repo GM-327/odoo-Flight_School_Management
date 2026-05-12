@@ -7,20 +7,7 @@
     'version': '19.0.1.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Daily flight operations monitoring and execution logging',
-    'description': """
-Flights - Daily Operations (Odoo 19)
-====================================
-
-Monitor and manage flight operations for the current day.
-
-Key Features:
-* Full-screen operations board for TV display
-* Real-time flight status tracking with live updates
-* ATD/ATA inline entry with automatic hour distribution
-* Color-coded status with cancellation reason display
-* Available aircraft footer display
-    """,
-    'author': 'Ghazi Marzouk',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'fs_scheduling',
@@ -57,9 +44,7 @@ Key Features:
             'fs_flights/static/src/xml/carousel_control.xml',
         ],
     },
-    'installable': True,
     'application': True,
-    'auto_install': False,
     'sequence': 60,
     'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

@@ -12,4 +12,3 @@ from . import fs_scheduled_flight
 from . import res_config_settings
 from . import fs_scheduling_inherits
 from . import fs_flight_route
-

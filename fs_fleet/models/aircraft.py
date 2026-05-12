@@ -2,9 +2,10 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+from datetime import date
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError
-from datetime import date
 
 
 class Aircraft(models.Model):
@@ -53,7 +54,7 @@ class Aircraft(models.Model):
         related='category_id.code',
         store=True,
     )
-    
+
     # === Identification ===
     serial_number = fields.Char(
         string='Serial Number',
@@ -64,7 +65,7 @@ class Aircraft(models.Model):
         size=4,
         help="Year the aircraft was manufactured (YYYY).",
     )
-    
+
     # === Status ===
     status = fields.Selection(
         selection=[
@@ -101,7 +102,7 @@ class Aircraft(models.Model):
         store=True,
         help="Aircraft is available or in use (can fly).",
     )
-    
+
     # === Hours Tracking ===
     total_hours = fields.Float(
         string='Total Hours',
@@ -123,7 +124,7 @@ class Aircraft(models.Model):
         string='Last Flight Date',
         help="Date of the most recent flight.",
     )
-    
+
     # === Maintenance ===
     last_maintenance_date = fields.Date(
         string='Last Maintenance',
@@ -172,7 +173,6 @@ class Aircraft(models.Model):
         store=True,
     )
 
-    
     # === Insurance & Certificates ===
     insurance_policy = fields.Char(
         string='Insurance Policy #',
@@ -191,13 +191,13 @@ class Aircraft(models.Model):
         tracking=True,
         help="Airworthiness Review Certificate expiry date.",
     )
-    
+
     # === Location ===
     home_base = fields.Char(
         string='Home Base',
         help="ICAO code of home airport (e.g., DTTI).",
     )
-    
+
     # === Images ===
     image = fields.Image(
         string='Photo',
@@ -211,7 +211,7 @@ class Aircraft(models.Model):
         max_height=128,
         store=True,
     )
-    
+
     # === Administrative ===
     notes = fields.Text(
         string='Notes',
@@ -234,7 +234,8 @@ class Aircraft(models.Model):
     @api.depends('registration', 'aircraft_type_id.full_name')
     def _compute_display_name(self):
         for record in self:
-            type_name = record.aircraft_type_id.full_name if record.aircraft_type_id else ''  # type: ignore[attr-defined]
+            # type: ignore[attr-defined]
+            type_name = record.aircraft_type_id.full_name if record.aircraft_type_id else ''
             record.display_name = f"{record.registration} ({type_name})"
 
     @api.depends('status')
@@ -265,7 +266,8 @@ class Aircraft(models.Model):
     @api.depends('remaining_maintenance_hours')
     def _compute_maintenance_hour_status(self):
         config_param = self.env['ir.config_parameter'].sudo()
-        warning_hours = float(self.env['ir.config_parameter'].sudo().get_param('flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
+        warning_hours = float(self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
         for record in self:
             status = 'ok'
             if record.remaining_maintenance_hours < 0:
@@ -278,7 +280,8 @@ class Aircraft(models.Model):
     def _compute_maintenance_date_status(self):
         today = date.today()
         config_param = self.env['ir.config_parameter'].sudo()
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param('flight_school.maintenance_warning_days', '7'))  # type: ignore
+        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.maintenance_warning_days', '7'))  # type: ignore
         for record in self:
             status = 'ok'
             if record.next_maintenance_date:
@@ -298,8 +301,6 @@ class Aircraft(models.Model):
                 record.maintenance_status = 'due_soon'
             else:
                 record.maintenance_status = 'ok'
-
-
 
     @api.onchange('registration')
     def _onchange_registration_uppercase(self):

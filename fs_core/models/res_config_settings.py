@@ -7,13 +7,12 @@ from odoo import fields, models
 
 class ResConfigSettings(models.TransientModel):
     """Configuration settings for flight school core module.
-    
+
     This is the base settings class that provides general settings.
     Other flight school modules extend this with their own settings.
     """
 
-    _name = 'res.config.settings'
-    _inherit = ['res.config.settings']
+    _inherit = 'res.config.settings'
 
     # === General Settings ===
     fs_default_home_base = fields.Char(

@@ -64,7 +64,7 @@ class FsClassType(models.Model):
         self.ensure_one()
         if not self.reference_document_id:
             return False
-        
+
         view_id = self.env.ref('fs_documents.view_fs_document_preview').id
         return {
             'name': 'IP Document Preview',

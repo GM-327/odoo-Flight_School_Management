@@ -230,7 +230,7 @@ class FsStudentEnrollment(models.Model):
                 self.status = 'active'
             elif class_status == 'draft':
                 self.status = 'enrolled'
-            
+
             # Auto-populate hour records from class type requirements
             class_type = class_rec.class_type_id  # type: ignore
             if class_type and class_type.hour_requirement_ids:  # type: ignore
@@ -261,14 +261,14 @@ class FsStudentEnrollment(models.Model):
                         if cmd[2] and cmd[2].get('activity_id'):
                             is_valid = True
                             break
-            
+
             if not is_valid and vals.get('training_class_id'):
                 training_class = self.env['fs.training.class'].browse(vals['training_class_id'])
-                class_type = training_class.class_type_id # type: ignore
+                class_type = training_class.class_type_id  # type: ignore
                 if class_type and class_type.hour_requirement_ids:
                     commands = [(5, 0, 0)]
                     for req in class_type.hour_requirement_ids:
-                        commands.append((0, 0, { # type: ignore
+                        commands.append((0, 0, {  # type: ignore
                             'activity_id': req.activity_id.id,
                             'hours_logged': 0.0,
                             'is_extra': False,
@@ -280,11 +280,11 @@ class FsStudentEnrollment(models.Model):
     def _onchange_hours_recompute_totals(self):
         """Force real-time recalculation of total hours and progress in the UI."""
         total = sum(self.required_hour_ids.mapped('hours_logged')) + \
-                sum(self.extra_hour_ids.mapped('hours_logged'))
+            sum(self.extra_hour_ids.mapped('hours_logged'))
         self.total_hours = total
-        
-        if self.training_class_id and self.training_class_id.class_type_id: # type: ignore
-            reqs = self.training_class_id.class_type_id.hour_requirement_ids # type: ignore
+
+        if self.training_class_id and self.training_class_id.class_type_id:  # type: ignore
+            reqs = self.training_class_id.class_type_id.hour_requirement_ids  # type: ignore
             total_req = sum(reqs.mapped('minimum_hours'))
             if total_req > 0:
                 total_progress = 0.0
@@ -439,7 +439,7 @@ class FsStudentEnrollment(models.Model):
             if person:
                 record.student_name = person.name or False  # type: ignore[attr-defined]
                 record.medical_status = getattr(person, 'medical_status', 'no_expiry') or 'no_expiry'
-                
+
                 # License status
                 if hasattr(person, 'license_expiry_status'):
                     record.license_expiry_status = getattr(person, 'license_expiry_status', 'no_expiry') or 'no_expiry'
@@ -456,12 +456,13 @@ class FsStudentEnrollment(models.Model):
                         record.license_expiry_status = 'no_expiry'
                 else:
                     record.license_expiry_status = 'no_expiry'
-                    
-                record.security_clearance_status = getattr(person, 'security_clearance_status', 'no_expiry') or 'no_expiry'
+
+                record.security_clearance_status = getattr(
+                    person, 'security_clearance_status', 'no_expiry') or 'no_expiry'
                 record.insurance_status = getattr(person, 'insurance_status', 'no_expiry') or 'no_expiry'
                 record.student_image = getattr(person, 'image_128', False)
                 record.student_phone = getattr(person, 'phone', False)
-                
+
                 # Overall expired status
                 if hasattr(person, 'has_expired_status'):
                     record.has_expired_status = getattr(person, 'has_expired_status', False)
@@ -511,22 +512,22 @@ class FsStudentEnrollment(models.Model):
         """Compute total hours from all hour records (required + extra)."""
         for record in self:
             record.total_hours = sum(record.required_hour_ids.mapped('hours_logged')) + \
-                                sum(record.extra_hour_ids.mapped('hours_logged'))
+                sum(record.extra_hour_ids.mapped('hours_logged'))
 
-    @api.depends('required_hour_ids.hours_logged', 'extra_hour_ids.hours_logged', 
+    @api.depends('required_hour_ids.hours_logged', 'extra_hour_ids.hours_logged',
                  'training_class_id.class_type_id.hour_requirement_ids')
     def _compute_progression(self):
         for record in self:
-            if not record.training_class_id or not record.training_class_id.class_type_id: # type: ignore
+            if not record.training_class_id or not record.training_class_id.class_type_id:  # type: ignore
                 record.progression = 0.0
                 continue
 
-            requirements = record.training_class_id.class_type_id.hour_requirement_ids # type: ignore
+            requirements = record.training_class_id.class_type_id.hour_requirement_ids  # type: ignore
             if not requirements:
                 record.progression = 100.0 if record.total_hours > 0 else 0.0
                 continue
 
-            total_required = sum(requirements.mapped('minimum_hours')) # type: ignore
+            total_required = sum(requirements.mapped('minimum_hours'))  # type: ignore
             if total_required <= 0:
                 record.progression = 100.0
                 continue
@@ -536,7 +537,7 @@ class FsStudentEnrollment(models.Model):
             for req in requirements:
                 logged = sum(record.required_hour_ids.filtered(
                     lambda h: h.activity_id == req.activity_id
-                ).mapped('hours_logged')) # type: ignore
+                ).mapped('hours_logged'))  # type: ignore
                 if req.minimum_hours > 0:
                     # Cap each mandatory activity at its required minimum for the syllabus progression
                     total_progress += min(logged, req.minimum_hours)
@@ -552,19 +553,20 @@ class FsStudentEnrollment(models.Model):
                 if req.minimum_hours > req.hours_logged:  # type: ignore
                     remaining += (req.minimum_hours - req.hours_logged)  # type: ignore
             record.remaining_hours = remaining
+
     @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours', 'required_hour_ids.activity_id')
     def _compute_remaining_breakdown_html(self):
         """Generate a pretty HTML summary of remaining hours per activity."""
         for record in self:
             # Filter for incomplete mandatory items
-            incomplete = record.required_hour_ids.filtered(lambda x: x.remaining_hours > 0) # type: ignore
+            incomplete = record.required_hour_ids.filtered(lambda x: x.remaining_hours > 0)  # type: ignore
             if not incomplete:
                 record.remaining_breakdown_html = '<span class="text-success small"><i class="fa fa-check-circle"/> Syllabus Fully Completed</span>'
                 continue
-            
+
             # Sort by most hours remaining (most critical)
-            incomplete = sorted(incomplete, key=lambda x: x.remaining_hours, reverse=True) # type: ignore
-            
+            incomplete = sorted(incomplete, key=lambda x: x.remaining_hours, reverse=True)  # type: ignore
+
             html = '<div class="d-flex flex-column gap-1">'
             # Show top 3 most critical activities
             for req in incomplete[:3]:
@@ -573,22 +575,22 @@ class FsStudentEnrollment(models.Model):
                 rem_h = req.remaining_hours  # type: ignore
                 hours, minutes = divmod(abs(rem_h) * 60, 60)
                 rem_h_fmt = f"{int(hours)}:{int(minutes):02d}"
-                
+
                 # Determine color based on completion
-                progress = req.progress_percentage # type: ignore
+                progress = req.progress_percentage  # type: ignore
                 color = "text-danger" if progress < 50 else "text-warning"
-                
+
                 html += f'''
                     <div class="d-flex justify-content-between align-items-center small" style="min-width: 220px;">
                         <span class="text-muted text-truncate me-2" style="max-width: 170px;" title="{act_name}">{act_name}</span>
                         <strong class="{color}">{rem_h_fmt} left</strong>
                     </div>
                 '''
-            
+
             # Add and more if needed
             if len(incomplete) > 3:
                 html += f'<div class="text-muted x-small italic text-center text-decoration-underline mt-1">+{len(incomplete)-3} more activities...</div>'
-            
+
             html += '</div>'
             record.remaining_breakdown_html = html
 
@@ -623,6 +625,38 @@ class FsStudentEnrollment(models.Model):
                     raise ValidationError(
                         "Please select a Student for this enrollment."
                     )
+
+    @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'training_class_id')
+    def _check_unique_person_per_class(self):
+        """Prevent duplicate enrollments for any supported person type in the same class."""
+        for record in self:
+            if not record.training_class_id:
+                continue
+            person_field = False
+            person = False
+            if record.student_id:
+                person_field = 'student_id'
+                person = record.student_id
+            elif record.pilot_id:
+                person_field = 'pilot_id'
+                person = record.pilot_id
+            elif record.enrolled_instructor_id:
+                person_field = 'enrolled_instructor_id'
+                person = record.enrolled_instructor_id
+            if not person_field or not person:
+                continue
+            duplicate = self.search([
+                ('training_class_id', '=', record.training_class_id.id),
+                (person_field, '=', person.id),
+                ('id', '!=', record.id),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(_(
+                    "%(person)s is already enrolled in class %(class_name)s."
+                ) % {
+                    'person': person.display_name,
+                    'class_name': record.training_class_id.display_name,
+                })
 
     @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'status')
     def _check_one_active_enrollment(self):
@@ -668,8 +702,9 @@ class FsStudentEnrollment(models.Model):
         today = fields.Date.context_today(self)
         for record in self:
             if record.progression < 100.0:
+                person_name = record.enrolled_person_name or record.display_name
                 raise UserError(
-                    f"Student '{record.student_id.display_name}' cannot graduate yet. "
+                    f"'{person_name}' cannot graduate yet. "
                     f"Syllabus completion is only {record.progression:.1f}%."
                 )
             if record.status in ('enrolled', 'active'):
@@ -700,16 +735,29 @@ class FsStudentEnrollment(models.Model):
                 # Clear relevant dates
                 record.drop_date = False
                 record.graduation_date = False
+
     def action_view_student(self):
-        """Open the specific student's form view."""
+        """Open the enrolled person's form view."""
         self.ensure_one()
+        if self.student_id:
+            res_model = 'fs.student'
+            res_id = self.student_id.id
+        elif self.pilot_id:
+            res_model = 'fs.pilot'
+            res_id = self.pilot_id.id
+        elif self.enrolled_instructor_id:
+            res_model = 'fs.instructor'
+            res_id = self.enrolled_instructor_id.id
+        else:
+            raise UserError(_("This enrollment is not linked to a person."))
         return {
             'type': 'ir.actions.act_window',
-            'res_model': 'fs.student',
-            'res_id': self.student_id.id,
+            'res_model': res_model,
+            'res_id': res_id,
             'view_mode': 'form',
             'target': 'current',
         }
+
     def action_open_enrollment(self):
         """Open the enrollment form in a popup window."""
         self.ensure_one()
@@ -721,6 +769,7 @@ class FsStudentEnrollment(models.Model):
             'view_mode': 'form',
             'target': 'new',
         }
+
 
 class FsEnrollmentHours(models.Model):
     """Flight hours logged per activity for an enrollment."""

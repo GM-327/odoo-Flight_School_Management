@@ -7,7 +7,7 @@ from odoo import fields, models
 
 class FsLicenseType(models.Model):
     """License types configuration (PPL, CPL, ATPL, Student Card)."""
-    
+
     _name = 'fs.license.type'
     _description = 'License Type'
     _order = 'sequence, name'

@@ -6,7 +6,7 @@ from odoo import fields, models
 
 class FsDepartment(models.Model):
     """Departments within the Flight School."""
-    
+
     _name = 'fs.department'
     _description = 'Flight School Department'
     _order = 'sequence, name'

@@ -9,7 +9,7 @@ from odoo import api, fields, models
 
 class FsFleetDashboard(models.TransientModel):
     """Dashboard for Fleet module - provides KPIs and quick actions.
-    
+
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
     """
@@ -143,7 +143,7 @@ class FsFleetDashboard(models.TransientModel):
     def _compute_fleet_graph_data(self):
         """Compute fleet distribution graph data."""
         Aircraft = self.env['fs.aircraft']
-        
+
         # Status distribution
         status_data = [
             {'label': 'Available', 'value': Aircraft.search_count([('status', '=', 'available')]), 'type': 'future'},
@@ -151,7 +151,7 @@ class FsFleetDashboard(models.TransientModel):
             {'label': 'Maintenance', 'value': Aircraft.search_count([('status', '=', 'maintenance')]), 'type': 'past'},
             {'label': 'Grounded', 'value': Aircraft.search_count([('status', '=', 'grounded')]), 'type': 'past'},
         ]
-        
+
         # Type distribution (by manufacturer)
         type_data = []
         # Group by manufacturer
@@ -163,7 +163,7 @@ class FsFleetDashboard(models.TransientModel):
                 'value': count,
                 'type': 'future'
             })
-        
+
         for record in self:
             record.status_distribution = json.dumps([{
                 'values': status_data,

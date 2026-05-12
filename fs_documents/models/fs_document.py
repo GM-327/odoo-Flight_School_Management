@@ -4,11 +4,12 @@
 
 from datetime import timedelta
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class FsDocument(models.Model):
     """Document record - one per document type per entity.
-    
+
     Each document can have multiple versions. The current version
     contains the latest file, expiry date, issue date, and reference.
     """
@@ -173,7 +174,7 @@ class FsDocument(models.Model):
         for record in self:
             name = False
             etype = False
-            
+
             if record.student_id:
                 name = record.student_id.display_name
                 etype = 'student'
@@ -192,7 +193,7 @@ class FsDocument(models.Model):
             elif record.class_type_id:
                 name = record.class_type_id.display_name
                 etype = 'class_type'
-                
+
             record.related_entity_name = name
             record.related_entity_type = etype
 
@@ -221,6 +222,23 @@ class FsDocument(models.Model):
         'UNIQUE(document_type_id, admin_task_id)',
         'A document of this type already exists for this admin task!',
     )
+
+    @api.constrains(
+        'document_type_id', 'student_id', 'instructor_id', 'pilot_id',
+        'training_class_id', 'admin_task_id', 'class_type_id'
+    )
+    def _check_single_related_entity(self):
+        """Require each document to belong to exactly one supported entity."""
+        entity_fields = (
+            'student_id', 'instructor_id', 'pilot_id',
+            'training_class_id', 'admin_task_id', 'class_type_id',
+        )
+        for record in self:
+            linked_count = sum(1 for field_name in entity_fields if record[field_name])
+            if linked_count != 1:
+                raise ValidationError(
+                    self.env._("A document must be linked to exactly one related entity.")
+                )
 
     @api.depends('document_type_id', 'document_type_id.name', 'admin_task_id', 'admin_task_id.name')
     def _compute_name(self):
@@ -278,9 +296,9 @@ class FsDocument(models.Model):
                 continue
 
             related_entity = (
-                record.student_id or 
-                record.instructor_id or 
-                record.pilot_id or 
+                record.student_id or
+                record.instructor_id or
+                record.pilot_id or
                 record.training_class_id
             )
             if related_entity and hasattr(related_entity, doc_type.expiry_field):  # type: ignore
@@ -300,7 +318,7 @@ class FsDocument(models.Model):
 
     def action_add_version(self):
         """Open the upload wizard to add a new version.
-        
+
         Prefills the wizard with current document data and skips to Step 2.
         """
         self.ensure_one()
@@ -312,19 +330,19 @@ class FsDocument(models.Model):
             'target': 'new',
             'context': {
                 'default_document_id': self.id,
-                'default_state': 'upload', # Start at Step 2
+                'default_state': 'upload',  # Start at Step 2
             }
         }
 
     @api.model
     def get_or_create_for_entity(self, document_type_id, entity_field, entity_id):
         """Find existing document or create new one for entity.
-        
+
         Args:
             document_type_id: ID of fs.document.type
             entity_field: field name like 'student_id', 'instructor_id', etc.
             entity_id: ID of the related entity
-            
+
         Returns:
             fs.document record (existing or newly created)
         """
@@ -335,7 +353,7 @@ class FsDocument(models.Model):
         existing = self.search(domain, limit=1)
         if existing:
             return existing
-        
+
         return self.create({
             'document_type_id': document_type_id,
             entity_field: entity_id,
@@ -343,29 +361,29 @@ class FsDocument(models.Model):
 
     def action_open_upload_wizard(self):
         """Open the upload wizard, using entity-specific view if context has an entity.
-        
+
         Called from the Upload Document button in list/kanban views.
         Detects if we're coming from an entity-filtered view and opens the appropriate wizard.
         """
         # Check for entity context keys
         context_keys = [
             'default_student_id',
-            'default_instructor_id', 
+            'default_instructor_id',
             'default_pilot_id',
             'default_training_class_id',
             'default_class_type_id',
             'default_admin_task_id',
         ]
-        
+
         has_entity = any(self._context.get(key) for key in context_keys)
-        
+
         if has_entity:
             # Use entity-specific wizard view
             view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id
         else:
             # Use generic wizard view
             view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_form').id
-        
+
         return {
             'name': 'Upload Document',
             'type': 'ir.actions.act_window',
@@ -389,4 +407,3 @@ class FsDocument(models.Model):
             'target': 'new',
             'context': {'dialog_size': 'extra-large'},
         }
-

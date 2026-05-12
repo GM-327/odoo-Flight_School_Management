@@ -7,24 +7,7 @@
     'version': '19.0.1.0.1',
     'category': 'Aviation/Flight School',
     'summary': 'Personnel management for flight schools',
-    'description': """
-People
-======
-
-Personnel management for Military Flight School Management System.
-
-This module provides:
----------------------
-* Military ranks configuration
-* Instructors management
-* Students management  
-* Pilots management
-* Administrative staff
-
-All personnel can optionally have Odoo user accounts for system access.
-    """,
-    'author': 'Ghazi Marzouk',
-    'website': '',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'fs_core',
@@ -66,7 +49,6 @@ All personnel can optionally have Odoo user accounts for system access.
     #     'demo/fs_admin_staff_demo.xml',
     #     'demo/fs_personal_new_demo.xml',
     # ],
-    'installable': True,
     'application': True,
     'auto_install': True,
     'sequence': 20,

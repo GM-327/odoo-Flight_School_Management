@@ -1,0 +1,13 @@
+{
+    "plugins": [
+        "@prettier/plugin-xml"
+    ],
+    "overrides": [
+        {
+            "files": "*.xml",
+            "options": {
+                "tabWidth": 4
+            }
+        }
+    ]
+}

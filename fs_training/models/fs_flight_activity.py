@@ -50,7 +50,7 @@ class FsFlightActivity(models.Model):
         'This combination of Discipline and Flight Type already exists!',
     )
 
-    @api.depends('discipline_id.name', 'discipline_id.code', 
+    @api.depends('discipline_id.name', 'discipline_id.code',
                  'flight_type_id.name', 'flight_type_id.code')
     def _compute_name_and_code(self):
         for record in self:
@@ -58,7 +58,7 @@ class FsFlightActivity(models.Model):
             flight_type_name = record.flight_type_id['name'] or ''
             discipline_code = record.discipline_id['code'] or ''
             flight_type_code = record.flight_type_id['code'] or ''
-            
+
             record.name = f"{discipline_name} ({flight_type_name})"
             record.code = f"{discipline_code}-{flight_type_code}"
 

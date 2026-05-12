@@ -7,22 +7,7 @@
     'version': '19.0.3.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Flight mission scheduling and timeline management',
-    'description': """
-Scheduling
-==========
-
-This module provides tools for scheduling flight missions for students and instructors.
-
-Key Features:
--------------
-* Timeline view for aircraft and instructor schedules.
-* Batch scheduling wizard for tomorrow's missions.
-* Instructor and aircraft availability management.
-* Automatic eligibility checks (expiries, qualifications).
-* Configurable buffer times and scheduling sequences.
-    """,
-    'author': 'Ghazi Marzouk',
-    'website': '',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'fs_core',
@@ -60,7 +45,6 @@ Key Features:
             'fs_scheduling/static/src/views/fs_timeline_renderer.xml',
         ],
     },
-    'installable': True,
     'application': True,
     'auto_install': True,
     'sequence': 50,

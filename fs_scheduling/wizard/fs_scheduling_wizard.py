@@ -49,7 +49,8 @@ class FsSchedulingWizard(models.TransientModel):
     )
     callsign_prefix = fields.Char(
         string='Callsign Prefix',
-        default=lambda self: self.env['ir.config_parameter'].sudo().get_param('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
+        default=lambda self: self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
     )
     next_callsign_number = fields.Integer(
         string='First Flight Number',
@@ -65,7 +66,7 @@ class FsSchedulingWizard(models.TransientModel):
         default=15.75,  # 15:45
         help="All missions must end before this time (e.g., 15.75 = 15:45).",
     )
-    
+
     # Many2many for step 1 selection
     selected_enrollment_ids = fields.Many2many(
         comodel_name='fs.student.enrollment',
@@ -83,7 +84,7 @@ class FsSchedulingWizard(models.TransientModel):
         string='Available Instructors',
         domain="[('active', '=', True)]",
     )
-    
+
     # === Step 2 & 3: Generated Lines ===
     line_ids = fields.One2many(
         comodel_name='fs.scheduling.wizard.line',
@@ -117,7 +118,7 @@ class FsSchedulingWizard(models.TransientModel):
         string='Flights Without Aircraft',
         compute='_compute_summary_stats',
     )
-    
+
     # === Warnings ===
     has_student_double_booking = fields.Boolean(
         string='Has Student Double Booking',
@@ -129,7 +130,7 @@ class FsSchedulingWizard(models.TransientModel):
         compute='_compute_student_double_booking_warning',
         store=True,
     )
-    
+
     # === Examinator Warning Confirmation ===
     examinator_warning_confirmed = fields.Boolean(
         string='Examinator Warning Confirmed',
@@ -161,7 +162,7 @@ class FsSchedulingWizard(models.TransientModel):
             wizard.total_flight_hours = sum(lines.mapped('duration'))
             wizard.utilized_instructors_count = len(set(lines.filtered('pilot2_crew_id').mapped('pilot2_crew_id.id')))
             wizard.utilized_aircraft_count = len(set(lines.filtered('aircraft_id').mapped('aircraft_id.id')))
-            wizard.unassigned_aircraft_count = len(lines.filtered(lambda l: not l.aircraft_id)) # type: ignore
+            wizard.unassigned_aircraft_count = len(lines.filtered(lambda l: not l.aircraft_id))  # type: ignore
 
     @api.depends('line_ids', 'line_ids.pilot1_crew_id')
     def _compute_student_double_booking_warning(self):
@@ -169,27 +170,27 @@ class FsSchedulingWizard(models.TransientModel):
         for wizard in self:
             student_flights = {}
             warning_lines = []
-            
+
             for line in wizard.line_ids:
                 if line.pilot1_crew_id and line.pilot1_crew_id.member_type == 'student':  # type: ignore
                     student_id = line.pilot1_crew_id.id  # type: ignore
                     student_name = line.pilot1_crew_id.display_name  # type: ignore
-                    
+
                     if student_id not in student_flights:
                         student_flights[student_id] = {'name': student_name, 'count': 0, 'missions': []}
-                    
+
                     student_flights[student_id]['count'] += 1
                     mission_name = line.mission_id.name if line.mission_id else (  # type: ignore
                         line.custom_activity_id.name if line.custom_activity_id else 'Unknown'  # type: ignore
                     )
                     student_flights[student_id]['missions'].append(mission_name)
-            
+
             # Find students with multiple flights
             for student_id, data in student_flights.items():
                 if data['count'] > 1:
                     missions_str = ', '.join(data['missions'])
                     warning_lines.append(f"• {data['name']}: {data['count']} flights ({missions_str})")
-            
+
             wizard.has_student_double_booking = bool(warning_lines)
             wizard.student_double_booking_details = "\n".join(warning_lines) if warning_lines else False
 
@@ -207,14 +208,15 @@ class FsSchedulingWizard(models.TransientModel):
                     instructor = line.pilot2_crew_id.get_source_record()  # type: ignore
                     if instructor:
                         has_examinator = any(
-                            q.qualification_id.is_examinator 
+                            q.qualification_id.is_examinator
                             for q in instructor.qualification_ids  # type: ignore
                             if q.qualification_id
                         )
                         if not has_examinator:
                             exam_name = line.mission_id.name if line.mission_id else line.custom_activity_id.name  # type: ignore
-                            warning_lines.append(f"• {exam_name} - Instructor: {line.pilot2_crew_id.display_name}") # type: ignore
-            
+                            warning_lines.append(
+                                f"• {exam_name} - Instructor: {line.pilot2_crew_id.display_name}")  # type: ignore
+
             wizard.has_pending_examinator_warning = bool(warning_lines)
             wizard.examinator_warning_details = "\n".join(warning_lines) if warning_lines else False
 
@@ -224,12 +226,12 @@ class FsSchedulingWizard(models.TransientModel):
         ICP = self.env['ir.config_parameter'].sudo()
         prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
         threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
-        
+
         # Get current year range
         today = fields.Date.context_today(self)
         year_start = today.replace(month=1, day=1)
         year_end = today.replace(month=12, day=31)
-        
+
         # Search in actual flights (fs.flight) instead of scheduled flights
         # Only consider flights that are 'done' or 'cancelled' as per user request
         flight_model = self.env.get('fs.flight')
@@ -239,14 +241,14 @@ class FsSchedulingWizard(models.TransientModel):
             ('date', '<=', year_end),
             ('status', 'in', ['done', 'cancelled']),
         ]) if flight_model is not None else []
-        
+
         max_num = 0
         for flight in flights:
             if flight.callsign and flight.callsign[len(prefix):].isdigit():  # type: ignore
                 num = int(flight.callsign[len(prefix):])  # type: ignore
                 if num < threshold and num > max_num:
                     max_num = num
-        
+
         return max_num + 1
 
     def _get_next_sim_callsign_number(self):
@@ -256,7 +258,7 @@ class FsSchedulingWizard(models.TransientModel):
         today = fields.Date.context_today(self)
         year_start = today.replace(month=1, day=1)
         year_end = today.replace(month=12, day=31)
-        
+
         # Search in actual flights (fs.flight) instead of scheduled flights
         flight_model = self.env.get('fs.flight')
         flights = flight_model.search([
@@ -265,14 +267,14 @@ class FsSchedulingWizard(models.TransientModel):
             ('date', '<=', year_end),
             ('status', 'in', ['done', 'cancelled']),
         ]) if flight_model is not None else []
-        
+
         max_num = 0
         for flight in flights:
             if flight.callsign and flight.callsign[3:].isdigit():  # type: ignore
                 num = int(flight.callsign[3:])  # type: ignore
                 if num > max_num:
                     max_num = num
-        
+
         return max_num + 1
 
     # === Step Navigation ===
@@ -363,10 +365,10 @@ class FsSchedulingWizard(models.TransientModel):
     def _generate_schedule_lines(self):
         """Generate scheduling lines based on selected students and instructors.
         Times and aircraft are NOT assigned here - they are assigned in Step 3."""
-        _logger.info("Generating schedule lines for date %s by user %s", self.date, self.env.user.name) # type: ignore
+        _logger.info("Generating schedule lines for date %s by user %s", self.date, self.env.user.name)  # type: ignore
         if not self.selected_enrollment_ids:
             raise UserError(_("Please select at least one student to schedule."))
-        
+
         if not self.selected_instructor_ids:
             raise UserError(_("Please select at least one available instructor."))
 
@@ -374,25 +376,25 @@ class FsSchedulingWizard(models.TransientModel):
         self.line_ids.unlink()
 
         available_instructor_ids = self.selected_instructor_ids.ids
-        
+
         # Prefetch related records for performance optimization
         self.selected_enrollment_ids.mapped('training_class_id')
         self.selected_enrollment_ids.mapped('training_class_id.class_type_id')
         self.selected_enrollment_ids.mapped('instructor_id')
         self.selected_enrollment_ids.mapped('aircraft_type_id')
-        
+
         lines = []
         for enrollment in self.selected_enrollment_ids:
             class_rec = enrollment.training_class_id  # type: ignore
             class_type = class_rec.class_type_id if class_rec else False
             default_instructor = enrollment.instructor_id  # type: ignore
-            
+
             # Find an available instructor from selected ones
             instructor = False
             if default_instructor and default_instructor.id in available_instructor_ids:
                 if not default_instructor.has_expired_qualification:  # type: ignore
                     instructor = default_instructor
-            
+
             # If default instructor not available, find another
             if not instructor:
                 for inst_id in available_instructor_ids:
@@ -400,7 +402,7 @@ class FsSchedulingWizard(models.TransientModel):
                     if not inst.has_expired_qualification:  # type: ignore
                         instructor = inst
                         break
-            
+
             # Mission suggestion
             mission = False
             duration = 1.0
@@ -415,16 +417,16 @@ class FsSchedulingWizard(models.TransientModel):
                     is_exam = mission.is_exam
                     if mission.flight_type_id and mission.flight_type_id.is_solo:
                         is_solo = True
-            
+
             # Check examinator qualification
             has_examinator_qual = False
             if instructor and is_exam:
                 has_examinator_qual = any(
-                    q.qualification_id.is_examinator 
+                    q.qualification_id.is_examinator
                     for q in instructor.qualification_ids  # type: ignore
                     if q.qualification_id
                 )
-            
+
             # Determine aircraft types: use student's assigned type (if non-simulator) or class types
             assigned_type = enrollment.aircraft_type_id  # type: ignore
             if assigned_type and not assigned_type.is_simulator:  # type: ignore
@@ -436,7 +438,7 @@ class FsSchedulingWizard(models.TransientModel):
             # Find crew member IDs for the enrollment and instructor
             # Student enrollment uses enrollment ID directly as crew member ID
             pilot1_crew_id = enrollment.id  # enrollment ID is used directly as crew member ID for students
-            
+
             # Find instructor's crew member ID (instructor ID + 1000000 offset)
             pilot2_crew_id = False
             if instructor:
@@ -445,7 +447,7 @@ class FsSchedulingWizard(models.TransientModel):
                     ('source_id', '=', instructor.id)
                 ], limit=1)
                 pilot2_crew_id = instructor_crew.id if instructor_crew else False
-            
+
             lines.append((0, 0, {
                 'sequence': len(lines) + 1,
                 'callsign_number': 0,  # Will be assigned in Step 3
@@ -464,50 +466,50 @@ class FsSchedulingWizard(models.TransientModel):
                 'start_time': 0,  # Will be assigned in Step 3
                 'has_examinator_warning': is_exam and not has_examinator_qual,
             }))
-        
+
         # Custom sort for the initial list: Simulators at the end, then by Pilot 2 callsign/name
         def line_sort_key(l_vals):
             # l_vals is (0, 0, { ... })
             vals = l_vals[2]
             is_sim = False
             if vals.get('mission_id'):
-                is_sim = self.env['fs.flight.mission'].browse(vals['mission_id']).is_sim # type: ignore
-            
+                is_sim = self.env['fs.flight.mission'].browse(vals['mission_id']).is_sim  # type: ignore
+
             pilot2_name = ''
             if vals.get('pilot2_crew_id'):
                 crew = self.env['fs.crew.member'].browse(vals['pilot2_crew_id'])
-                pilot2_name = crew.name or '' # type: ignore
-            
+                pilot2_name = crew.name or ''  # type: ignore
+
             return (is_sim, pilot2_name, vals.get('sequence', 0))
 
         lines.sort(key=line_sort_key)
-        
+
         # Update sequences after sorting
         for i, l_vals in enumerate(lines):
             l_vals[2]['sequence'] = i + 1
-            
+
         self.line_ids = lines
 
     def _find_available_slot(self, resource_id, busy_map, min_start, duration):
         """Find the earliest available time slot for a resource."""
         if not resource_id or resource_id not in busy_map:
             return min_start
-        
+
         busy_slots = sorted(busy_map[resource_id], key=lambda x: x[0])
         current_time = min_start
-        
+
         for slot_start, slot_end in busy_slots:
             if current_time + duration <= slot_start:
                 return current_time
             current_time = max(current_time, slot_end)
-        
+
         return current_time
 
     def _is_slot_available(self, resource_id, busy_map, start_time, duration):
         """Check if a time slot is available for a resource."""
         if not resource_id or resource_id not in busy_map:
             return True
-        
+
         end_time = start_time + duration
         for slot_start, slot_end in busy_map[resource_id]:
             if start_time < slot_end and end_time > slot_start:
@@ -519,7 +521,7 @@ class FsSchedulingWizard(models.TransientModel):
         """Validate lines before assigning schedule details."""
         if not self.line_ids:
             raise UserError(_("No flights to schedule. Please go back and add students."))
-        
+
         # Check for missing required fields and examinator qualification
         for line in self.line_ids:
             # Route is required for ALL flight types EXCEPT simulators
@@ -536,27 +538,35 @@ class FsSchedulingWizard(models.TransientModel):
                     "Please select a Route or Area for: %s\n\n"
                     "Go to the 'Route / Area' column in Step 2 and select an option for this flight."
                 ) % flight_desc)
-            
+
             # For student training, mission is required
             if line.flight_category == 'student_training':  # type: ignore
                 if not line.pilot1_crew_id or line.pilot1_crew_id.member_type != 'student':  # type: ignore
-                    raise UserError(_("Student crew member is required for student training flights (line %d).") % line.sequence)  # type: ignore
+                    raise UserError(_("Student crew member is required for student training flights (line %d).") %
+                                    line.sequence)  # type: ignore
                 if not line.mission_id:  # type: ignore
-                    raise UserError(_("Mission is required for student: %s") % line.pilot1_crew_id.display_name)  # type: ignore
+                    raise UserError(_("Mission is required for student: %s") %
+                                    line.pilot1_crew_id.display_name)  # type: ignore
                 # Only require instructor for non-solo flights
                 is_solo_flight = line.pilot1_function in ('solo',)  # type: ignore
                 if not line.pilot2_crew_id and not is_solo_flight:  # type: ignore
-                    raise UserError(_("Instructor is required for dual flight: %s") % line.pilot1_crew_id.display_name)  # type: ignore
-            
+                    raise UserError(_("Instructor is required for dual flight: %s") %
+                                    line.pilot1_crew_id.display_name)  # type: ignore
+
             # For staff training, require instructor/pilot and activity or custom activity
             elif line.flight_category == 'staff_training':  # type: ignore
                 if not line.pilot1_crew_id:  # type: ignore
-                    raise UserError(_("Pilot 1 (instructor or pilot) is required for staff training flight (line %d).") % line.sequence)  # type: ignore
+                    # type: ignore
+                    raise UserError(
+                        _("Pilot 1 (instructor or pilot) is required for staff training flight (line %d).") % line.sequence)
                 if not line.activity_id and not line.custom_activity_id:  # type: ignore
-                    raise UserError(_("Flight Activity or Custom Activity is required for staff training (line %d).") % line.sequence)  # type: ignore
+                    # type: ignore
+                    raise UserError(
+                        _("Flight Activity or Custom Activity is required for staff training (line %d).") % line.sequence)
                 if not line.aircraft_type_ids:  # type: ignore
-                    raise UserError(_("Aircraft Type(s) must be selected for staff training (line %d).") % line.sequence)  # type: ignore
-            
+                    raise UserError(_("Aircraft Type(s) must be selected for staff training (line %d).") %
+                                    line.sequence)  # type: ignore
+
             # Check examinator qualification for exam missions or exam custom activities
             # Note: This is now a non-blocking warning - user can confirm to proceed
             # The actual check is done via has_pending_examinator_warning computed field
@@ -564,7 +574,7 @@ class FsSchedulingWizard(models.TransientModel):
     # === Step 2 -> Step 3: Assign Times, Aircraft, and Callsigns ===
     def _assign_schedule_details(self):
         """Assign start times, aircraft, and callsign numbers based on current line order.
-        
+
         Aircraft flights are scheduled first, then simulator flights.
         Each group has its own callsign sequence:
         - Aircraft: Uses main callsign prefix (e.g., ABS0001)
@@ -573,75 +583,75 @@ class FsSchedulingWizard(models.TransientModel):
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators
         # Within each group, order by instructor callsign/name then sequence
         sorted_lines = self.line_ids.sorted(key=lambda l: (
-            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
-            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
-            l.sequence # type: ignore
+            2 if l.is_sim else (1 if l.is_added_mission else 0),  # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '',  # type: ignore
+            l.sequence  # type: ignore
         ))  # type: ignore
-        
+
         # Update sequence numbers to reflect the new order
         for i, line in enumerate(sorted_lines):
             line.sequence = i + 1  # type: ignore
-        
+
         # Get existing flights for this date
         existing_flights = self.env['fs.scheduled.flight'].search([
             ('date', '=', self.date),
         ])
-        
+
         # Get buffer time from config
         buffer_minutes = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.scheduling_buffer_minutes', '15'
         ))  # type: ignore
         buffer_hours = buffer_minutes / 60.0
-        
+
         # Build occupancy maps
         crew_busy = {}
         aircraft_busy = {}
-        
+
         for flight in existing_flights:
-            end_time = flight.start_time + flight.duration + buffer_hours # type: ignore
-            if flight.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            end_time = flight.start_time + flight.duration + buffer_hours  # type: ignore
+            if flight.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-            if flight.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            if flight.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-            if flight.aircraft_id: # type: ignore
-                aircraft_busy.setdefault(flight.aircraft_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            if flight.aircraft_id:  # type: ignore
+                aircraft_busy.setdefault(flight.aircraft_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-        
+
         base_start_time = self.first_start_time or 8.0
-        
+
         # Separate callsign sequences for aircraft and simulators
         next_aircraft_callsign = self.next_callsign_number
         next_sim_callsign = self._get_next_sim_callsign_number()
-        
+
         for line in sorted_lines:
-            duration = line.duration or 1.0 # type: ignore
-            is_sim = line.is_sim or False # type: ignore
-            
+            duration = line.duration or 1.0  # type: ignore
+            is_sim = line.is_sim or False  # type: ignore
+
             # Find time slot based on crew member (instructor/pilot) availability
             # Check availability for BOTH Pilot 1 and Pilot 2
             start_time = base_start_time
-            
-            if line.pilot1_crew_id: # type: ignore
+
+            if line.pilot1_crew_id:  # type: ignore
                 start_time = max(start_time, self._find_available_slot(
-                    line.pilot1_crew_id.id, # type: ignore
+                    line.pilot1_crew_id.id,  # type: ignore
                     crew_busy,
                     base_start_time,
                     duration
                 ))
-                
-            if line.pilot2_crew_id: # type: ignore
+
+            if line.pilot2_crew_id:  # type: ignore
                 start_time = max(start_time, self._find_available_slot(
-                    line.pilot2_crew_id.id, # type: ignore
+                    line.pilot2_crew_id.id,  # type: ignore
                     crew_busy,
-                    base_start_time, # Should ideally be the potentially updated start_time, but _find_available_slot searches from min_start anyway
+                    base_start_time,  # Should ideally be the potentially updated start_time, but _find_available_slot searches from min_start anyway
                     duration
                 ))
-            
+
             # Re-verify the found start_time works for both (because pushing it for one might conflict with the other)
             # This is a simple iterative convergence
             valid_time_found = False
@@ -651,18 +661,22 @@ class FsSchedulingWizard(models.TransientModel):
                 convergence_attempts += 1
                 valid_p1 = True
                 valid_p2 = True
-                
-                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration): # type: ignore
-                    start_time = self._find_available_slot(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+
+                # type: ignore
+                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration):
+                    start_time = self._find_available_slot(
+                        line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     valid_p1 = False
-                
-                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration): # type: ignore
-                    start_time = self._find_available_slot(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+
+                # type: ignore
+                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration):
+                    start_time = self._find_available_slot(
+                        line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     valid_p2 = False
-                    
+
                 if valid_p1 and valid_p2:
                     valid_time_found = True
-            
+
             # Find available aircraft (filtered by simulator type)
             aircraft_id = False
             if is_sim:
@@ -678,9 +692,9 @@ class FsSchedulingWizard(models.TransientModel):
                     ('aircraft_type_id', 'in', line.aircraft_type_ids.ids if line.aircraft_type_ids else []),  # type: ignore
                     ('aircraft_type_id.is_simulator', '=', False),
                 ]
-            
+
             available_aircraft = self.env['fs.aircraft'].search(domain)  # type: ignore
-            
+
             # Find a time slot where BOTH instructor AND aircraft are available
             # Keep incrementing time until we find a slot where both are free
             last_end = self.last_end_time or 15.75  # Default 15:45
@@ -692,32 +706,34 @@ class FsSchedulingWizard(models.TransientModel):
                 if start_time + duration > last_end:
                     aircraft_assignment_failed = True
                     break
-                
+
                 # Check if any aircraft is available at current start_time
                 # Check if any aircraft is available at current start_time
                 for aircraft in available_aircraft:
                     if self._is_slot_available(aircraft.id, aircraft_busy, start_time, duration):
                         # Check crew member (instructor/pilot) is also available at this time
-                        # MUST check both Pilot 1 and Pilot 2 again to be safe (though we found a slot earlier, 
+                        # MUST check both Pilot 1 and Pilot 2 again to be safe (though we found a slot earlier,
                         # incrementing start_time in this loop might have pushed us into a busy slot)
-                        
-                        p1_avail = not line.pilot1_crew_id or self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
-                        p2_avail = not line.pilot2_crew_id or self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
-                        
+
+                        p1_avail = not line.pilot1_crew_id or self._is_slot_available(
+                            line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
+                        p2_avail = not line.pilot2_crew_id or self._is_slot_available(
+                            line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
+
                         if p1_avail and p2_avail:
                             aircraft_id = aircraft.id
                             aircraft_busy.setdefault(aircraft.id, []).append(
                                 (start_time, start_time + duration + buffer_hours)
                             )
                             break
-                
+
                 if aircraft_id:
                     break  # Found both aircraft and instructor slot
-                
+
                 # No aircraft available at this time, try next slot
                 start_time += 0.25  # Try 15 minutes later
                 attempt += 1
-            
+
             # Log warning if aircraft assignment failed
             if not aircraft_id:
                 pilot_name = line.pilot1_crew_id.display_name if line.pilot1_crew_id else 'Unknown'  # type: ignore
@@ -735,17 +751,17 @@ class FsSchedulingWizard(models.TransientModel):
                 line.aircraft_assignment_warning = True  # type: ignore
             else:
                 line.aircraft_assignment_warning = False  # type: ignore
-            
+
             # Mark crew members busy
-            if line.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
+            if line.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append(  # type: ignore
                     (start_time, start_time + duration + buffer_hours)
                 )
-            if line.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
+            if line.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append(  # type: ignore
                     (start_time, start_time + duration + buffer_hours)
                 )
-            
+
             # Assign callsign number based on type
             callsign_number = 0
             if not line.is_added_mission:  # type: ignore
@@ -755,7 +771,7 @@ class FsSchedulingWizard(models.TransientModel):
                 else:
                     callsign_number = next_aircraft_callsign
                     next_aircraft_callsign += 1
-            
+
             # Update line with assigned values
             line.write({  # type: ignore
                 'start_time': start_time,
@@ -770,9 +786,9 @@ class FsSchedulingWizard(models.TransientModel):
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
         sorted_lines = self.line_ids.sorted(key=lambda l: (
-            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
-            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
-            l.sequence # type: ignore
+            2 if l.is_sim else (1 if l.is_added_mission else 0),  # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '',  # type: ignore
+            l.sequence  # type: ignore
         ))  # type: ignore
 
         # Update sequence numbers to reflect the new order
@@ -795,63 +811,63 @@ class FsSchedulingWizard(models.TransientModel):
         aircraft_busy = {}
 
         for flight in existing_flights:
-            end_time = flight.start_time + flight.duration + buffer_hours # type: ignore
-            if flight.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            end_time = flight.start_time + flight.duration + buffer_hours  # type: ignore
+            if flight.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-            if flight.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            if flight.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-            if flight.aircraft_id: # type: ignore
-                aircraft_busy.setdefault(flight.aircraft_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            if flight.aircraft_id:  # type: ignore
+                aircraft_busy.setdefault(flight.aircraft_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
 
         # Add locked lines to both occupancy maps as hard constraints
-        locked_lines = sorted_lines.filtered(lambda l: l.is_locked) # type: ignore
+        locked_lines = sorted_lines.filtered(lambda l: l.is_locked)  # type: ignore
         for line in locked_lines:
-            duration = line.duration or 1.0 # type: ignore
-            end_time = line.start_time + duration + buffer_hours # type: ignore
+            duration = line.duration or 1.0  # type: ignore
+            end_time = line.start_time + duration + buffer_hours  # type: ignore
 
-            if line.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
-                    (line.start_time, end_time) # type: ignore
+            if line.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append(  # type: ignore
+                    (line.start_time, end_time)  # type: ignore
                 )
-            if line.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
-                    (line.start_time, end_time) # type: ignore
+            if line.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append(  # type: ignore
+                    (line.start_time, end_time)  # type: ignore
                 )
-            if line.aircraft_id: # type: ignore
-                aircraft_busy.setdefault(line.aircraft_id.id, []).append( # type: ignore
-                    (line.start_time, end_time) # type: ignore
+            if line.aircraft_id:  # type: ignore
+                aircraft_busy.setdefault(line.aircraft_id.id, []).append(  # type: ignore
+                    (line.start_time, end_time)  # type: ignore
                 )
 
         base_start_time = self.first_start_time or 8.0
         last_end = self.last_end_time or 15.75
 
         # Reschedule only unlocked lines
-        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked) # type: ignore
+        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked)  # type: ignore
 
         for line in unlocked_lines:
-            duration = line.duration or 1.0 # type: ignore
+            duration = line.duration or 1.0  # type: ignore
             current_aircraft_id = line.aircraft_id.id if line.aircraft_id else False  # type: ignore
 
             # Find time slot based on crew availability first
             start_time = base_start_time
 
-            if line.pilot1_crew_id: # type: ignore
+            if line.pilot1_crew_id:  # type: ignore
                 start_time = max(start_time, self._find_available_slot(
-                    line.pilot1_crew_id.id, # type: ignore
+                    line.pilot1_crew_id.id,  # type: ignore
                     crew_busy,
                     base_start_time,
                     duration
                 ))
 
-            if line.pilot2_crew_id: # type: ignore
+            if line.pilot2_crew_id:  # type: ignore
                 start_time = max(start_time, self._find_available_slot(
-                    line.pilot2_crew_id.id, # type: ignore
+                    line.pilot2_crew_id.id,  # type: ignore
                     crew_busy,
                     base_start_time,
                     duration
@@ -866,12 +882,16 @@ class FsSchedulingWizard(models.TransientModel):
                 valid_p1 = True
                 valid_p2 = True
 
-                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration): # type: ignore
-                    start_time = self._find_available_slot(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                # type: ignore
+                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration):
+                    start_time = self._find_available_slot(
+                        line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     valid_p1 = False
 
-                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration): # type: ignore
-                    start_time = self._find_available_slot(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                # type: ignore
+                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration):
+                    start_time = self._find_available_slot(
+                        line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     valid_p2 = False
 
                 if valid_p1 and valid_p2:
@@ -887,8 +907,10 @@ class FsSchedulingWizard(models.TransientModel):
                         break
 
                     aircraft_ok = self._is_slot_available(current_aircraft_id, aircraft_busy, start_time, duration)
-                    p1_ok = not line.pilot1_crew_id or self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
-                    p2_ok = not line.pilot2_crew_id or self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                    p1_ok = not line.pilot1_crew_id or self._is_slot_available(
+                        line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
+                    p2_ok = not line.pilot2_crew_id or self._is_slot_available(
+                        line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
 
                     if aircraft_ok and p1_ok and p2_ok:
                         break  # Found a valid slot
@@ -897,9 +919,11 @@ class FsSchedulingWizard(models.TransientModel):
                     if not aircraft_ok:
                         start_time = self._find_available_slot(current_aircraft_id, aircraft_busy, start_time, duration)
                     elif not p1_ok:
-                        start_time = self._find_available_slot(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                        start_time = self._find_available_slot(
+                            line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     elif not p2_ok:
-                        start_time = self._find_available_slot(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+                        start_time = self._find_available_slot(
+                            line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
 
                     attempt += 1
 
@@ -909,12 +933,12 @@ class FsSchedulingWizard(models.TransientModel):
                 )
 
             # Mark crew members busy for subsequent lines
-            if line.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
+            if line.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append(  # type: ignore
                     (start_time, start_time + duration + buffer_hours)
                 )
-            if line.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
+            if line.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append(  # type: ignore
                     (start_time, start_time + duration + buffer_hours)
                 )
 
@@ -925,116 +949,114 @@ class FsSchedulingWizard(models.TransientModel):
 
         return self._reopen_wizard()
 
-
-
     def action_reschedule(self):
         """Reschedule unlocked lines while preserving locked line assignments.
-        
+
         Locked lines keep their assigned time, aircraft, and callsign.
         Unlocked lines are rescheduled around the locked constraints.
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
         sorted_lines = self.line_ids.sorted(key=lambda l: (
-            2 if l.is_sim else (1 if l.is_added_mission else 0), # type: ignore
-            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '', # type: ignore
-            l.sequence # type: ignore
+            2 if l.is_sim else (1 if l.is_added_mission else 0),  # type: ignore
+            (l.pilot2_crew_id.name or '') if l.pilot2_crew_id else '',  # type: ignore
+            l.sequence  # type: ignore
         ))  # type: ignore
-        
+
         # Update sequence numbers to reflect the new order
         for i, line in enumerate(sorted_lines):
             line.sequence = i + 1  # type: ignore
-        
+
         # Get existing flights for this date
         existing_flights = self.env['fs.scheduled.flight'].search([
             ('date', '=', self.date),
         ])
-        
+
         # Get buffer time from config
         buffer_minutes = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.scheduling_buffer_minutes', '15'
         ))
         buffer_hours = buffer_minutes / 60.0
-        
+
         # Build occupancy maps from existing flights
         crew_busy = {}
         aircraft_busy = {}
-        
+
         for flight in existing_flights:
-            end_time = flight.start_time + flight.duration + buffer_hours # type: ignore
-            if flight.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            end_time = flight.start_time + flight.duration + buffer_hours  # type: ignore
+            if flight.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(flight.pilot1_crew_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-            if flight.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            if flight.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(flight.pilot2_crew_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-            if flight.aircraft_id: # type: ignore
-                aircraft_busy.setdefault(flight.aircraft_id.id, []).append( # type: ignore
-                    (flight.start_time, end_time) # type: ignore
+            if flight.aircraft_id:  # type: ignore
+                aircraft_busy.setdefault(flight.aircraft_id.id, []).append(  # type: ignore
+                    (flight.start_time, end_time)  # type: ignore
                 )
-        
+
         # Add locked lines to occupancy maps first (as constraints)
-        locked_lines = sorted_lines.filtered(lambda l: l.is_locked) # type: ignore
+        locked_lines = sorted_lines.filtered(lambda l: l.is_locked)  # type: ignore
         for line in locked_lines:
-            duration = line.duration or 1.0 # type: ignore
-            end_time = line.start_time + duration + buffer_hours # type: ignore
-            
-            if line.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
-                    (line.start_time, end_time) # type: ignore
+            duration = line.duration or 1.0  # type: ignore
+            end_time = line.start_time + duration + buffer_hours  # type: ignore
+
+            if line.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append(  # type: ignore
+                    (line.start_time, end_time)  # type: ignore
                 )
-            if line.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
-                    (line.start_time, end_time) # type: ignore
+            if line.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append(  # type: ignore
+                    (line.start_time, end_time)  # type: ignore
                 )
-            if line.aircraft_id: # type: ignore
-                aircraft_busy.setdefault(line.aircraft_id.id, []).append( # type: ignore
-                    (line.start_time, end_time) # type: ignore
+            if line.aircraft_id:  # type: ignore
+                aircraft_busy.setdefault(line.aircraft_id.id, []).append(  # type: ignore
+                    (line.start_time, end_time)  # type: ignore
                 )
-        
+
         # Get used callsign numbers from locked lines
         locked_aircraft_callsigns = set()
         locked_sim_callsigns = set()
         for line in locked_lines:
-            if line.is_sim: # type: ignore
-                locked_sim_callsigns.add(line.callsign_number) # type: ignore
+            if line.is_sim:  # type: ignore
+                locked_sim_callsigns.add(line.callsign_number)  # type: ignore
             else:
-                locked_aircraft_callsigns.add(line.callsign_number) # type: ignore
-        
+                locked_aircraft_callsigns.add(line.callsign_number)  # type: ignore
+
         base_start_time = self.first_start_time or 8.0
         last_end = self.last_end_time or 15.75
-        
+
         # Separate callsign sequences for aircraft and simulators
         next_aircraft_callsign = self.next_callsign_number
         next_sim_callsign = self._get_next_sim_callsign_number()
-        
+
         # Reschedule only unlocked lines
-        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked) # type: ignore
-        
+        unlocked_lines = sorted_lines.filtered(lambda l: not l.is_locked)  # type: ignore
+
         for line in unlocked_lines:
-            duration = line.duration or 1.0 # type: ignore
-            is_sim = line.is_sim or False # type: ignore
-            
+            duration = line.duration or 1.0  # type: ignore
+            is_sim = line.is_sim or False  # type: ignore
+
             # Find time slot based on crew member availability
             start_time = base_start_time
-            
-            if line.pilot1_crew_id: # type: ignore
+
+            if line.pilot1_crew_id:  # type: ignore
                 start_time = max(start_time, self._find_available_slot(
-                    line.pilot1_crew_id.id, # type: ignore
+                    line.pilot1_crew_id.id,  # type: ignore
                     crew_busy,
                     base_start_time,
                     duration
                 ))
-                
-            if line.pilot2_crew_id: # type: ignore
+
+            if line.pilot2_crew_id:  # type: ignore
                 start_time = max(start_time, self._find_available_slot(
-                    line.pilot2_crew_id.id, # type: ignore
+                    line.pilot2_crew_id.id,  # type: ignore
                     crew_busy,
                     base_start_time,
                     duration
                 ))
-            
+
             # Re-verify intersection availability
             valid_time_found = False
             convergence_attempts = 0
@@ -1043,18 +1065,22 @@ class FsSchedulingWizard(models.TransientModel):
                 convergence_attempts += 1
                 valid_p1 = True
                 valid_p2 = True
-                
-                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration): # type: ignore
-                    start_time = self._find_available_slot(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
+
+                # type: ignore
+                if line.pilot1_crew_id and not self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration):
+                    start_time = self._find_available_slot(
+                        line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     valid_p1 = False
-                
-                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration): # type: ignore
-                    start_time = self._find_available_slot(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
+
+                # type: ignore
+                if line.pilot2_crew_id and not self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration):
+                    start_time = self._find_available_slot(
+                        line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
                     valid_p2 = False
-                    
+
                 if valid_p1 and valid_p2:
                     valid_time_found = True
-            
+
             # Find available aircraft
             aircraft_id = False
             if is_sim:
@@ -1068,45 +1094,47 @@ class FsSchedulingWizard(models.TransientModel):
                     ('aircraft_type_id', 'in', line.aircraft_type_ids.ids if line.aircraft_type_ids else []),  # type: ignore
                     ('aircraft_type_id.is_simulator', '=', False),
                 ]
-            
+
             available_aircraft = self.env['fs.aircraft'].search(domain)  # type: ignore
-            
+
             # Find a time slot where BOTH instructor AND aircraft are available
             max_attempts = 100
             attempt = 0
             while attempt < max_attempts:
                 if start_time + duration > last_end:
                     break
-                
+
                 for aircraft in available_aircraft:
                     if self._is_slot_available(aircraft.id, aircraft_busy, start_time, duration):
                         # Check crew member (instructor/pilot) availability
-                        p1_avail = not line.pilot1_crew_id or self._is_slot_available(line.pilot1_crew_id.id, crew_busy, start_time, duration) # type: ignore
-                        p2_avail = not line.pilot2_crew_id or self._is_slot_available(line.pilot2_crew_id.id, crew_busy, start_time, duration) # type: ignore
-                        
+                        p1_avail = not line.pilot1_crew_id or self._is_slot_available(
+                            line.pilot1_crew_id.id, crew_busy, start_time, duration)  # type: ignore
+                        p2_avail = not line.pilot2_crew_id or self._is_slot_available(
+                            line.pilot2_crew_id.id, crew_busy, start_time, duration)  # type: ignore
+
                         if p1_avail and p2_avail:
                             aircraft_id = aircraft.id
                             aircraft_busy.setdefault(aircraft.id, []).append(
                                 (start_time, start_time + duration + buffer_hours)
                             )
                             break
-                
+
                 if aircraft_id:
                     break
-                
+
                 start_time += 0.25
                 attempt += 1
-            
+
             # Mark crew members busy
-            if line.pilot1_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot1_crew_id.id, []).append( # type: ignore
+            if line.pilot1_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot1_crew_id.id, []).append(  # type: ignore
                     (start_time, start_time + duration + buffer_hours)
                 )
-            if line.pilot2_crew_id: # type: ignore
-                crew_busy.setdefault(line.pilot2_crew_id.id, []).append( # type: ignore
+            if line.pilot2_crew_id:  # type: ignore
+                crew_busy.setdefault(line.pilot2_crew_id.id, []).append(  # type: ignore
                     (start_time, start_time + duration + buffer_hours)
                 )
-            
+
             # Assign callsign number (skip numbers used by locked lines)
             callsign_number = 0
             if not line.is_added_mission:  # type: ignore
@@ -1120,14 +1148,14 @@ class FsSchedulingWizard(models.TransientModel):
                         next_aircraft_callsign += 1
                     callsign_number = next_aircraft_callsign
                     next_aircraft_callsign += 1
-            
+
             # Update line with assigned values
             line.write({  # type: ignore
                 'start_time': start_time,
                 'aircraft_id': aircraft_id,
                 'callsign_number': callsign_number,
             })
-        
+
         return self._reopen_wizard()
 
     # === Step 3: Final Scheduling ===
@@ -1139,7 +1167,7 @@ class FsSchedulingWizard(models.TransientModel):
 
         _logger.info(
             "Creating %d scheduled flights for date %s by user %s",
-            len(self.line_ids), self.date, self.env.user.name # type: ignore
+            len(self.line_ids), self.date, self.env.user.name  # type: ignore
         )
 
         scheduled_flights = self.env['fs.scheduled.flight']
@@ -1148,7 +1176,7 @@ class FsSchedulingWizard(models.TransientModel):
         # Sort lines by sequence for consistent ordering
         for line in self.line_ids.sorted(key=lambda l: l.sequence):  # type: ignore
             callsign = line.callsign_display  # type: ignore
-            
+
             scheduled_flights.create({
                 'callsign': callsign,
                 'date': self.date,
@@ -1193,7 +1221,7 @@ class FsSchedulingWizard(models.TransientModel):
     def action_reset(self):
         """Reset wizard to step 1 with cleared lines."""
         self.ensure_one()
-        _logger.info("Wizard reset by user %s", self.env.user.name) # type: ignore
+        _logger.info("Wizard reset by user %s", self.env.user.name)  # type: ignore
         self.line_ids.unlink()
         self.state = 'step1'
         self.examinator_warning_confirmed = False
@@ -1203,10 +1231,10 @@ class FsSchedulingWizard(models.TransientModel):
     def action_bulk_assign_route(self):
         """Open wizard to bulk assign route to lines without route."""
         self.ensure_one()
-        lines_without_route = self.line_ids.filtered(lambda l: not l.route_id and not l.is_sim) # type: ignore
+        lines_without_route = self.line_ids.filtered(lambda l: not l.route_id and not l.is_sim)  # type: ignore
         if not lines_without_route:
             raise UserError(_("All non-simulator flights already have a route assigned."))
-        
+
         return {
             'type': 'ir.actions.act_window',
             'name': _('Bulk Assign Route'),
@@ -1224,10 +1252,10 @@ class FsSchedulingWizard(models.TransientModel):
         """Mark all selected lines as ADD (added mission)."""
         self.ensure_one()
         # Get lines that are not already marked as ADD
-        lines_to_mark = self.line_ids.filtered(lambda l: not l.is_added_mission) # type: ignore
+        lines_to_mark = self.line_ids.filtered(lambda l: not l.is_added_mission)  # type: ignore
         if not lines_to_mark:
             raise UserError(_("All flights are already marked as ADD."))
-        
+
         return {
             'type': 'ir.actions.act_window',
             'name': _('Bulk Mark as ADD'),

@@ -7,7 +7,7 @@ from odoo import fields, models
 
 class FsMedicalClass(models.Model):
     """Medical class types configuration (Class 1, Class 2, etc.)."""
-    
+
     _name = 'fs.medical.class'
     _description = 'Medical Class'
     _order = 'sequence, name'

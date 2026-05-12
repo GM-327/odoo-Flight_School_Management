@@ -19,9 +19,9 @@ def migrate(cr, version):
     """Migrate flight_category values and crew field data."""
     if not version:
         return
-    
+
     _logger.info("Starting flight crew refactoring migration...")
-    
+
     # Step 1: Update flight_category in fs_scheduled_flight table
     cr.execute("""
         UPDATE fs_scheduled_flight 
@@ -34,7 +34,7 @@ def migrate(cr, version):
     """)
     updated_flights = cr.rowcount
     _logger.info(f"Updated flight_category for {updated_flights} scheduled flights")
-    
+
     # Step 2: Migrate crew fields for student training flights
     # Map enrollment_id → pilot1_enrollment_id
     # Map instructor_id → pilot2_instructor_id and pilot2_function = 'instructor'
@@ -60,7 +60,7 @@ def migrate(cr, version):
     """)
     migrated_student = cr.rowcount
     _logger.info(f"Migrated crew data for {migrated_student} student training flights")
-    
+
     # Step 3: Migrate crew fields for staff training flights
     # Map pilot_id or instructor_id → pilot1_instructor_id
     # Map instructor2_id or pilot2_id → pilot2_instructor_id or pilot2_pilot_id
@@ -82,5 +82,5 @@ def migrate(cr, version):
     """)
     migrated_staff = cr.rowcount
     _logger.info(f"Migrated crew data for {migrated_staff} staff training flights")
-    
+
     _logger.info("Flight crew refactoring migration completed successfully!")

@@ -2,3 +2,4 @@
 # Part of Flight School Management System
 
 from . import models
+from . import wizard

@@ -7,4 +7,5 @@ def migrate(cr, version):
         res = cr.fetchone()
         if res and res[0] == 'jsonb':
             # Convert JSONB to VARCHAR, extracting the english value or casting to text
-            cr.execute("ALTER TABLE fs_flight_route ALTER COLUMN name TYPE VARCHAR USING COALESCE(name->>'en_US', name->>'en_GB', name::text)")
+            cr.execute(
+                "ALTER TABLE fs_flight_route ALTER COLUMN name TYPE VARCHAR USING COALESCE(name->>'en_US', name->>'en_GB', name::text)")

@@ -9,7 +9,7 @@ from odoo.exceptions import UserError
 
 class FsDocumentUploadWizard(models.TransientModel):
     """Multi-step wizard for uploading documents.
-    
+
     Flow:
     Step 1: Select entity type, then specific entity, then document type
     Step 2: Upload the file
@@ -28,7 +28,7 @@ class FsDocumentUploadWizard(models.TransientModel):
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
-        
+
         # Mapping from context keys to (entity_code, actual_field, xml_id)
         context_keys = [
             ('default_student_id', 'student', 'student_id', 'fs_documents.entity_type_student'),
@@ -48,15 +48,15 @@ class FsDocumentUploadWizard(models.TransientModel):
                     entity_type = self.env.ref(xml_id, raise_if_not_found=False)
                 except Exception:
                     pass
-                
+
                 if not entity_type:
                     entity_type = self.env['fs.document.entity.type'].search([('code', '=', code)], limit=1)
-                
+
                 if entity_type:
                     res['entity_type_id'] = entity_type.id
                 res[actual_field] = entity_id
                 break
-                    
+
         return res
 
     # === State Management ===
@@ -72,7 +72,7 @@ class FsDocumentUploadWizard(models.TransientModel):
     )
 
     # === Step 1: Entity Type → Entity → Document Type ===
-    
+
     # 1. Entity Type Selection (first)
     entity_type_id = fields.Many2one(
         comodel_name='fs.document.entity.type',
@@ -82,7 +82,7 @@ class FsDocumentUploadWizard(models.TransientModel):
         related='entity_type_id.code',
         readonly=True,
     )
-    
+
     # 2. Entity Selection (depends on entity type)
     student_id = fields.Many2one(
         comodel_name='fs.student',
@@ -112,7 +112,7 @@ class FsDocumentUploadWizard(models.TransientModel):
     admin_task_domain = fields.Binary(
         compute='_compute_admin_task_domain',
     )
-    
+
     # 3. Document Type Selection (filtered by entity type)
     document_type_id = fields.Many2one(
         comodel_name='fs.document.type',
@@ -127,7 +127,7 @@ class FsDocumentUploadWizard(models.TransientModel):
         compute='_compute_document_type_domain',
         help="Dynamic domain to filter document types by entity type.",
     )
-    
+
     @api.depends('entity_type_id')
     def _compute_document_type_domain(self):
         """Compute domain to filter document types that apply to the selected entity type."""
@@ -159,7 +159,7 @@ class FsDocumentUploadWizard(models.TransientModel):
             self.admin_task_id = False
             self.document_type_id = False
             return
-            
+
         code = self.entity_type_id.code  # type: ignore
         # Only clear entity fields that don't match the selected entity type
         if code != 'student':
@@ -236,12 +236,12 @@ class FsDocumentUploadWizard(models.TransientModel):
                 record.existing_document_id = record.document_id
                 record.is_new_document = False
                 continue
-                
+
             if not record.document_type_id:
                 record.existing_document_id = False
                 record.is_new_document = True
                 continue
-                
+
             domain: list[Any] = [('document_type_id', '=', record.document_type_id.id)]
             if record.student_id:
                 domain.append(('student_id', '=', record.student_id.id))
@@ -294,8 +294,8 @@ class FsDocumentUploadWizard(models.TransientModel):
         # Use entity-specific view if we have an entity or document_id context
         view_id = False
         if any(self._context.get(k) for k in ['default_student_id', 'default_instructor_id', 'default_pilot_id', 'default_training_class_id', 'default_class_type_id', 'default_document_id']):
-             view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id
-             
+            view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id
+
         return {
             'type': 'ir.actions.act_window',
             'res_model': self._name,
@@ -316,7 +316,7 @@ class FsDocumentUploadWizard(models.TransientModel):
         if self.state == 'type':
             if not self.entity_type_id:
                 raise UserError("Please select an entity type.")
-            
+
             code = self.entity_type_code
             if code == 'student' and not self.student_id:
                 raise UserError("Please select a student.")
@@ -328,7 +328,7 @@ class FsDocumentUploadWizard(models.TransientModel):
                 raise UserError("Please select a training class.")
             if code == 'class_type' and not self.class_type_id:
                 raise UserError("Please select a class type.")
-            
+
             if not self.document_type_id:
                 raise UserError("Please select a document type.")
 
@@ -361,7 +361,7 @@ class FsDocumentUploadWizard(models.TransientModel):
 
         # Find or create document
         Document = self.env['fs.document']
-        
+
         # Prioritize explicit document_id from context/Update File button
         if self.document_id:
             document = self.document_id
@@ -371,7 +371,7 @@ class FsDocumentUploadWizard(models.TransientModel):
             entity_field, entity_id = self._get_selected_entity_info()
             if not entity_field:
                 raise UserError("Please select a related entity.")
-                
+
             vals: dict[str, Any] = {
                 'document_type_id': self.document_type_id.id,
                 entity_field: entity_id,

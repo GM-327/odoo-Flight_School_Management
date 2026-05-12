@@ -7,24 +7,7 @@
     'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Central settings and configuration for Flight School modules',
-    'description': """
-Flight School Settings
-======================
-
-Central configuration module for the Military Flight School Management System 
-following EU JAR-FCL (EASA) regulations.
-
-This module provides:
----------------------
-* Security groups (User, Instructor, Manager, Admin)
-* Central configuration settings
-* Module category definition
-
-Other Flight School modules depend on this for security and settings.
-Available modules: Fleet, People, Training, etc.
-    """,
-    'author': 'Ghazi Marzouk',
-    'website': '',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'base',
@@ -45,10 +28,7 @@ Available modules: Fleet, People, Training, etc.
         'views/res_groups_privilege_views.xml',
         'views/menu_views.xml',
     ],
-    'demo': [],
-    'installable': True,
     'application': True,
-    'auto_install': False,
     'sequence': 1,
     'images': ['static/description/icon.svg', 'static/description/icon.png'],
 }

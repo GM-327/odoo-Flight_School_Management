@@ -77,7 +77,7 @@ class FsAdminTask(models.Model):
         doc = self.document_ids[:1]
         if not doc:
             return False
-        
+
         view_id = self.env.ref('fs_documents.view_fs_document_preview').id
         return {
             'name': 'Document Preview',

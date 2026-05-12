@@ -13,7 +13,7 @@ def migrate(cr, version):
             ALTER TABLE fs_admin_staff 
             RENAME COLUMN employee_number TO service_number
         """)
-        
+
         # Rename the constraint if it exists
         cr.execute("""
             SELECT constraint_name 

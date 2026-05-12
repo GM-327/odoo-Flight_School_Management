@@ -7,7 +7,7 @@ from odoo import api, fields, models
 
 class FsInitialExperience(models.Model):
     """Record initial/previous flight experience for people.
-    
+
     This allows recording hours that were accumulated before the system
     was implemented, or hours from other flight schools/organizations.
     These hours are added to the running totals.
@@ -22,7 +22,7 @@ class FsInitialExperience(models.Model):
         ('pilot', 'Pilot'),
         ('student', 'Student'),
     ], string='Person Type', required=True, index=True)
-    
+
     instructor_id = fields.Many2one(
         'fs.instructor',
         string='Instructor',
@@ -41,7 +41,7 @@ class FsInitialExperience(models.Model):
         ondelete='cascade',
         index=True,
     )
-    
+
     # Hour fields
     initial_flight_hours = fields.Float(
         string='Flight Hours',
@@ -59,7 +59,7 @@ class FsInitialExperience(models.Model):
         string='Instruction Hours',
         help="Initial instruction hours (for instructors only).",
     )
-    
+
     entry_date = fields.Date(
         string='Entry Date',
         default=fields.Date.context_today,
@@ -72,7 +72,7 @@ class FsInitialExperience(models.Model):
     notes = fields.Text(
         string='Notes',
     )
-    
+
     is_applied = fields.Boolean(
         string='Applied',
         default=False,
@@ -85,7 +85,7 @@ class FsInitialExperience(models.Model):
         'res.users',
         string='Applied By',
     )
-    
+
     display_name = fields.Char(
         compute='_compute_display_name',
         store=True,
@@ -103,7 +103,7 @@ class FsInitialExperience(models.Model):
                 person_name = record.student_id.name
             else:
                 person_name = 'Unknown'
-            
+
             date_str = record.entry_date.strftime('%Y-%m-%d') if record.entry_date else ''
             record.display_name = f"{person_name} - {date_str}"
 
@@ -134,11 +134,11 @@ class FsInitialExperience(models.Model):
         for record in self:
             if record.is_applied:
                 continue
-            
+
             person = record._get_person()
             if not person:
                 continue
-            
+
             vals = {}
             if record.initial_flight_hours:
                 vals['total_flight_hours'] = person.total_flight_hours + record.initial_flight_hours
@@ -148,10 +148,10 @@ class FsInitialExperience(models.Model):
                 vals['solo_hours'] = person.solo_hours + record.initial_solo_hours
             if record.initial_instruction_hours and hasattr(person, 'total_instruction_hours'):
                 vals['total_instruction_hours'] = person.total_instruction_hours + record.initial_instruction_hours
-            
+
             if vals:
                 person.sudo().write(vals)
-            
+
             record.write({
                 'is_applied': True,
                 'applied_date': fields.Datetime.now(),
@@ -163,11 +163,11 @@ class FsInitialExperience(models.Model):
         for record in self:
             if not record.is_applied:
                 continue
-            
+
             person = record._get_person()
             if not person:
                 continue
-            
+
             vals = {}
             if record.initial_flight_hours:
                 vals['total_flight_hours'] = max(0, person.total_flight_hours - record.initial_flight_hours)
@@ -176,11 +176,12 @@ class FsInitialExperience(models.Model):
             if record.initial_solo_hours and hasattr(person, 'solo_hours'):
                 vals['solo_hours'] = max(0, person.solo_hours - record.initial_solo_hours)
             if record.initial_instruction_hours and hasattr(person, 'total_instruction_hours'):
-                vals['total_instruction_hours'] = max(0, person.total_instruction_hours - record.initial_instruction_hours)
-            
+                vals['total_instruction_hours'] = max(
+                    0, person.total_instruction_hours - record.initial_instruction_hours)
+
             if vals:
                 person.sudo().write(vals)
-            
+
             record.write({
                 'is_applied': False,
                 'applied_date': False,

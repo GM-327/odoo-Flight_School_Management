@@ -5,6 +5,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
+
 class FsImportScheduleWizard(models.TransientModel):
     """Wizard to import/publish scheduled flights to operations board."""
 
@@ -40,19 +41,19 @@ class FsImportScheduleWizard(models.TransientModel):
                 record.already_published_count = 0
                 record.to_publish_count = 0
                 continue
-                
+
             # Count scheduled
             schedules = ScheduledFlight.search([
                 ('date', '=', record.date),
             ])
             record.scheduled_count = len(schedules)
-            
+
             # Count already published (linked)
             existing = Flight.search([
                 ('scheduled_flight_id', 'in', schedules.ids)
             ])
             record.already_published_count = len(existing)
-            
+
             # Remaining
             record.to_publish_count = record.scheduled_count - record.already_published_count
 
@@ -61,9 +62,9 @@ class FsImportScheduleWizard(models.TransientModel):
         self.ensure_one()
         if self.to_publish_count == 0:
             raise UserError(_("No new flights to publish for this date."))
-            
-        count = self.env['fs.scheduled.flight'].action_publish_day(self.date) # type: ignore
-        
+
+        count = self.env['fs.scheduled.flight'].action_publish_day(self.date)  # type: ignore
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',

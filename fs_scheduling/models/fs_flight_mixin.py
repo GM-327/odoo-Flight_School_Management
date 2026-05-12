@@ -48,7 +48,8 @@ class FsFlightMixin(models.AbstractModel):
         ICP = self.env['ir.config_parameter'].sudo()
         return {
             'prefix': ICP.get_param('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
-            'threshold': int(ICP.get_param('flight_school.first_added_mission_number', str(DEFAULT_ADD_THRESHOLD))),  # type: ignore
+            # type: ignore
+            'threshold': int(ICP.get_param('flight_school.first_added_mission_number', str(DEFAULT_ADD_THRESHOLD))),
         }
 
     @api.model

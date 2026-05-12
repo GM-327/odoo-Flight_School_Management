@@ -50,9 +50,10 @@ class FsPilotFunction(models.Model):
         default=True,
     )
 
-    _sql_constraints = [
-        ('code_unique', 'UNIQUE(code)', 'Pilot function code must be unique!'),
-    ]
+    _code_unique = models.Constraint(
+        'UNIQUE(code)',
+        'Pilot function code must be unique!',
+    )
 
     @api.model
     def get_function_by_code(self, code):

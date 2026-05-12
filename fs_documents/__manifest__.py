@@ -7,23 +7,7 @@
     'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Document management with versioning and expiry tracking',
-    'description': """
-Flight School Documents
-=======================
-
-Document management for Military Flight School Management System.
-
-This module provides:
----------------------
-* Document types configuration (flexible, user-defined)
-* Document management with file uploads (images, PDFs)
-* Version control for documents
-* Expiry tracking with status indicators
-* Links to students, instructors, pilots, and training classes
-* Sync document expiry to related model fields
-    """,
-    'author': 'Ghazi Marzouk',
-    'website': '',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'web',
@@ -60,7 +44,6 @@ This module provides:
     # 'demo': [
     #     'demo/fs_documents_demo.xml',
     # ],
-    'installable': True,
     'application': True,
     'auto_install': True,
     'sequence': 40,

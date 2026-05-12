@@ -28,11 +28,14 @@ patch(TimelineRenderer.prototype, {
     setup() {
         super.setup();
         this.hasScrolledToFirst = false;
-        onMounted(this.scrollToFirstFlight);
-        onPatched(this.scrollToFirstFlight);
+        onMounted(() => this.scrollToFirstFlight());
+        onPatched(() => this.scrollToFirstFlight());
     },
 
     async scrollToFirstFlight(retryCount = 0) {
+        if (this.model?.model_name !== "fs.scheduled.flight") {
+            return;
+        }
         // Stop if we've already succeeded
         if (this.hasScrolledToFirst) return;
 
@@ -102,6 +105,9 @@ patch(TimelineRenderer.prototype, {
      * Pass current domain to backend so filters (like "Hide Simulators") also affect groups.
      */
     async split_groups(records) {
+        if (this.model.model_name !== "fs.scheduled.flight") {
+            return super.split_groups(records);
+        }
         if (this.model.last_group_bys.length === 0) {
             return records;
         }

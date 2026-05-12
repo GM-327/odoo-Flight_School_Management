@@ -7,25 +7,7 @@
     'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Aircraft fleet management for flight schools',
-    'description': """
-Flight School Fleet
-===================
-
-Aircraft fleet management for Military Flight School Management System.
-
-This module provides:
----------------------
-* Aircraft categories (single-engine, multi-engine, complex, simulator)
-* Aircraft types (Cessna 172, Diamond DA40, etc.)
-* Individual aircraft tracking with registration
-* Status management (available, maintenance, grounded)
-* Hobbs/airframe hours tracking
-* Maintenance scheduling awareness
-
-Depends on Flight School Core for security groups.
-    """,
-    'author': 'Ghazi Marzouk',
-    'website': '',
+    'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
     'license': 'LGPL-3',
     'depends': [
         'fs_core',
@@ -49,7 +31,6 @@ Depends on Flight School Core for security groups.
     # 'demo': [
     #     'demo/aircraft_demo.xml',
     # ],
-    'installable': True,
     'application': True,
     'auto_install': True,
     'sequence': 10,
