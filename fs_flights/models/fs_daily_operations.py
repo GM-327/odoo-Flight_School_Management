@@ -1,7 +1,6 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
-from calendar import day_name, month_name
 from datetime import timedelta
 
 from odoo import _, api, fields, models
@@ -62,11 +61,12 @@ class FsDailyOperations(models.Model):
 
     @api.depends('date')
     def _compute_date_display(self):
+        import calendar
         for record in self:
             if record.date:
                 record.date_display = (
-                    f"{day_name[record.date.weekday()]}, "
-                    f"{record.date.day} {month_name[record.date.month]}"
+                    f"{calendar.day_name[record.date.weekday()]}, "
+                    f"{record.date.day} {calendar.month_name[record.date.month]}"
                 )
             else:
                 record.date_display = ''
