@@ -375,7 +375,7 @@ class FsDocument(models.Model):
             'default_admin_task_id',
         ]
 
-        has_entity = any(self._context.get(key) for key in context_keys)
+        has_entity = any(self.env.context.get(key) for key in context_keys)
 
         if has_entity:
             # Use entity-specific wizard view
@@ -391,7 +391,7 @@ class FsDocument(models.Model):
             'view_mode': 'form',
             'view_id': view_id,
             'target': 'new',
-            'context': dict(self._context),
+            'context': dict(self.env.context),
         }
 
     def action_open_preview(self):

@@ -4,9 +4,9 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-# Import shared constants from the sibling addon package.
-# This path is resolvable by both Odoo and static analyzers in this workspace.
-from fs_scheduling.models.fs_flight_mixin import (
+# Import shared constants through the Odoo addon namespace so module loading
+# works reliably during registry initialization.
+from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
     FLIGHT_CATEGORY_SELECTION,
     PILOT_FUNCTION_SELECTION,
 )

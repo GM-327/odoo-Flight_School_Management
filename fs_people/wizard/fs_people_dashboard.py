@@ -163,16 +163,14 @@ class FsPeopleDashboard(models.TransientModel):
         # Distribution by license type using a grouped query to avoid loading
         # all license types and issuing one count query per type.
         data = []
-        grouped_students = Student.read_group(
-            [], ['license_id'], ['license_id'], lazy=False)
-        for group in grouped_students:
-            count = group.get('license_id_count') or group.get('__count', 0)
+        grouped_students = Student._read_group(
+            [], groupby=['license_id'], aggregates=['__count'])
+        for license_record, count in grouped_students:
             if count <= 0:
                 continue
 
-            license_info = group.get('license_id')
-            if license_info:
-                label = license_info[1]
+            if license_record:
+                label = license_record.display_name
                 bar_type = 'future'
             else:
                 label = 'None'

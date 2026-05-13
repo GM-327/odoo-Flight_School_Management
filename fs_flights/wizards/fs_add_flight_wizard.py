@@ -3,8 +3,9 @@
 
 from odoo import api, fields, models
 
-# Import shared constants from mixin
-from fs_scheduling.models.fs_flight_mixin import (
+# Import shared constants through the Odoo addon namespace so module loading
+# works reliably during registry initialization.
+from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
     PILOT_FUNCTION_SELECTION,
     FLIGHT_CATEGORY_SELECTION,
 )

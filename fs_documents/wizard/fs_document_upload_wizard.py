@@ -40,7 +40,7 @@ class FsDocumentUploadWizard(models.TransientModel):
 
         # Check for each context key - pre-fill entity type and entity from context
         for ctx_key, code, actual_field, xml_id in context_keys:
-            entity_id = self._context.get(ctx_key)
+            entity_id = self.env.context.get(ctx_key)
             if entity_id:
                 # Get entity type by XML ID first, fallback to search by code
                 entity_type = None
@@ -293,7 +293,7 @@ class FsDocumentUploadWizard(models.TransientModel):
         """Reopen wizard with current state."""
         # Use entity-specific view if we have an entity or document_id context
         view_id = False
-        if any(self._context.get(k) for k in ['default_student_id', 'default_instructor_id', 'default_pilot_id', 'default_training_class_id', 'default_class_type_id', 'default_document_id']):
+        if any(self.env.context.get(k) for k in ['default_student_id', 'default_instructor_id', 'default_pilot_id', 'default_training_class_id', 'default_class_type_id', 'default_document_id']):
             view_id = self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id
 
         return {
@@ -303,7 +303,7 @@ class FsDocumentUploadWizard(models.TransientModel):
             'view_mode': 'form',
             'view_id': view_id,
             'target': 'new',
-            'context': dict(self._context),
+            'context': dict(self.env.context),
         }
 
     def action_next(self):

@@ -402,7 +402,7 @@ class FsDailyOperations(models.Model):
             'res_id': record.id,
             'view_mode': 'form',
             'target': 'main',  # Keep existing target
-            'flags': {'mode': 'edit'},  # Keep edit mode
+            'context': {'form_view_initial_mode': 'edit'},  # Keep edit mode
         }
 
     def action_add_flight(self):

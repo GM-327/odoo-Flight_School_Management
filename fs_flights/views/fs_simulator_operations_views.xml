@@ -231,7 +231,7 @@ action = {
     'view_mode': 'form',
     'view_id': env.ref('fs_flights.view_fs_simulator_operations_form').id,
     'target': 'main',
-    'flags': {'mode': 'edit'},
+    'context': {'form_view_initial_mode': 'edit'},
 }
         </field>
     </record>

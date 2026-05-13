@@ -309,7 +309,7 @@ class FsSimulatorOperations(models.Model):
             'res_id': record.id,
             'view_mode': 'form',
             'target': 'main',
-            'flags': {'mode': 'edit'},
+            'context': {'form_view_initial_mode': 'edit'},
         }
 
     def action_add_session(self):
