@@ -8,7 +8,6 @@ from markupsafe import Markup
 from psycopg2 import sql
 
 from odoo import api, fields, models, tools
-from odoo.osv import expression
 
 STATUS_SELECTION = [
     ('valid', 'Valid'),
@@ -180,9 +179,9 @@ class FsCrewMember(models.Model):
         if not name:
             return self._search(domain, limit=limit, order=order)
 
-        search_domain = expression.AND([
+        search_domain = fields.Domain.AND([
             domain,
-            expression.OR([
+            fields.Domain.OR([
                 [('name', operator, name)],
                 [('full_name', operator, name)],
             ]),

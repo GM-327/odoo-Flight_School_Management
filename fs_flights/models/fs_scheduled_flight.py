@@ -104,12 +104,15 @@ class FsScheduledFlight(models.Model):
                 continue
 
             # Active Active Flights Search
-            relevant_flights = Flight.search([
+            domain = [
                 ('date', '=', record.date),  # type: ignore
                 ('pilot2_crew_id', '=', record.pilot2_crew_id.id),  # type: ignore
                 ('status', '!=', 'cancelled'),
-                ('scheduled_flight_id', '!=', record.id)  # type: ignore
-            ])
+            ]
+            if record._origin.id:
+                domain.append(('scheduled_flight_id', '!=', record._origin.id))  # type: ignore
+
+            relevant_flights = Flight.search(domain)
 
             for f in relevant_flights:
                 # Convert float to datetime for comparison
@@ -145,12 +148,15 @@ class FsScheduledFlight(models.Model):
             if not record.start_datetime or not record.end_datetime:  # type: ignore
                 continue
 
-            relevant_flights = Flight.search([
+            domain = [
                 ('date', '=', record.date),  # type: ignore
                 ('aircraft_id', '=', record.aircraft_id.id),  # type: ignore
                 ('status', '!=', 'cancelled'),
-                ('scheduled_flight_id', '!=', record.id)  # type: ignore
-            ])
+            ]
+            if record._origin.id:
+                domain.append(('scheduled_flight_id', '!=', record._origin.id))  # type: ignore
+
+            relevant_flights = Flight.search(domain)
 
             for f in relevant_flights:
                 f_start = datetime.combine(f.date, datetime.min.time()) + \

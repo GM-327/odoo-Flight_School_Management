@@ -907,14 +907,19 @@ class FsScheduledFlight(models.Model):
 
         conflicts = []
 
+        current_id = self._origin.id
+
         # Crew member conflict (instructor/pilot)
         if self.pilot2_crew_id:
-            i_conflict = self.search([
-                ('id', '!=', self.id),
+            domain = [
                 ('pilot2_crew_id', '=', self.pilot2_crew_id.id),
                 ('start_datetime', '<', end_with_buffer),
                 ('end_datetime', '>', start_with_buffer),
-            ])
+            ]
+            if current_id:
+                domain.append(('id', '!=', current_id))
+
+            i_conflict = self.search(domain)
             if i_conflict:
                 conflicts.append(self.env._(
                     "Crew member %(crew_member)s has another flight overlap "
@@ -925,12 +930,15 @@ class FsScheduledFlight(models.Model):
 
         # Aircraft conflict
         if self.aircraft_id:
-            a_conflict = self.search([
-                ('id', '!=', self.id),
+            domain = [
                 ('aircraft_id', '=', self.aircraft_id.id),
                 ('start_datetime', '<', end_with_buffer),
                 ('end_datetime', '>', start_with_buffer),
-            ])
+            ]
+            if current_id:
+                domain.append(('id', '!=', current_id))
+
+            a_conflict = self.search(domain)
             if a_conflict:
                 conflicts.append(self.env._(
                     "Aircraft %(aircraft)s has another flight overlap "
