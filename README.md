@@ -1,397 +1,427 @@
-# ✈️ Flight School Management System
+# Flight School Management for Odoo 19
 
 <p align="center">
   <img src="https://img.shields.io/badge/Odoo-19.0-875A7B?style=for-the-badge&logo=odoo&logoColor=white" alt="Odoo 19.0"/>
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+"/>
-  <img src="https://img.shields.io/badge/License-LGPL--3.0-blue?style=for-the-badge" alt="License LGPL-3.0"/>
-  <img src="https://img.shields.io/badge/PostgreSQL-13+-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/>
+  <img src="https://img.shields.io/badge/PostgreSQL-13+-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL 13+"/>
+  <img src="https://img.shields.io/badge/License-LGPL--3.0-blue?style=for-the-badge" alt="LGPL-3.0"/>
 </p>
 
-<p align="center">
-  <b>A comprehensive Military Flight School Management System built on Odoo 19, following EU JAR-FCL (EASA) regulations.</b>
-</p>
+Flight School Management is a modular Odoo 19 addon suite for managing flight
+school operations. It covers fleet readiness, personnel records, training
+programs, document compliance, mission scheduling, and daily flight execution in
+one integrated workflow.
+
+The suite is designed for aviation training organizations that need auditable
+records, structured training workflows, and operational visibility across
+students, instructors, aircraft, schedules, and completed flights.
 
 ---
 
-## 📋 Table of Contents
+## Table of contents
 
-- [Overview](#-overview)
-- [Features](#-features)
-- [Module Architecture](#-module-architecture)
-- [Requirements](#-requirements)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Usage](#-usage)
-- [Development](#-development)
-- [Contributing](#-contributing)
-- [Security](#-security)
-- [License](#-license)
-- [Support](#-support)
-
----
-
-## 🎯 Overview
-
-The **Flight School Management System** is a comprehensive ERP solution designed specifically for military and civilian flight training organizations. Built on the powerful Odoo 19 framework, it provides end-to-end management of:
-
-- 🛩️ **Aircraft Fleet** - Complete fleet management with maintenance tracking
-- 👨‍✈️ **Personnel Management** - Students, instructors, and staff administration
-- 📚 **Training Programs** - Curriculum management following EASA regulations
-- 📊 **Scheduling & Operations** - Flight scheduling and resource allocation
-- 📝 **Compliance & Documentation** - Regulatory compliance and record-keeping
-
-### Why Choose This System?
-
-| Feature | Benefit |
-|---------|---------|
-| **EASA Compliant** | Built following EU JAR-FCL regulations out of the box |
-| **Modular Design** | Install only the modules you need |
-| **Full Integration** | Seamlessly integrates with other Odoo apps |
-| **Open Source** | Transparent, customizable, and community-driven |
-| **Modern Stack** | Built on Odoo 19 with the latest technologies |
+- [Key features](#key-features)
+- [Addon modules](#addon-modules)
+- [Requirements and dependencies](#requirements-and-dependencies)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage examples](#usage-examples)
+- [Project structure](#project-structure)
+- [Development and validation](#development-and-validation)
+- [Documentation standards](#documentation-standards)
+- [Contributing](#contributing)
+- [Security](#security)
+- [License](#license)
 
 ---
 
-## ✨ Features
+## Key features
 
-### Core Module (`fs_core`)
-- 🔐 **Role-Based Security** - Four-tier access control (User, Instructor, Manager, Admin)
-- ⚙️ **Centralized Configuration** - System-wide settings management
-- 📁 **Module Framework** - Foundation for all Flight School modules
-
-### Fleet Module (`fs_fleet`)
-- ✈️ **Aircraft Registry** - Complete aircraft information management
-- 🔧 **Maintenance Tracking** - Schedule and track maintenance activities
-- 📈 **Flight Hours Logging** - Accurate flight time tracking
-- 📋 **Airworthiness Management** - Certificate and compliance tracking
-
-### People Module (`fs_people`)
-- 👨‍🎓 **Student Management** - Enrollment, progress tracking, certifications
-- 👨‍✈️ **Instructor Profiles** - Qualifications, ratings, and assignments
-- 📜 **License Management** - Track all pilot certifications and renewals
-- 🏥 **Medical Certificate Tracking** - Class 1/2 medical compliance
-
-### Documents Module (`fs_documents`)
-- 📄 **Document Management** - Centralized storage and management of documents
-- 📑 **Version Control** - Document versioning and tracking
-- 📁 **Folder Organization** - Structured document storage
-
-### Flights Module (`fs_flights`)
-- 🛫 **Flight Operations** - Daily operations and flight execution tracking
-- 🛬 **Flight Logging** - Detailed flight records and statistics
-- 🗺️ **Route Management** - Flight route and waypoint management
-
-### Scheduling Module (`fs_scheduling`)
-- 🗓️ **Resource Scheduling** - Flight scheduling and resource allocation
-- 👥 **Crew Scheduling** - Instructor and student assignments
-- 📅 **Availability Tracking** - Pilot and aircraft availability management
-
-### Training Module (`fs_training`)
-- 📅 **Training Programs** - Syllabus management and progress tracking
-- 🎯 **Milestones** - Tracking training objectives and achievements
-- 📝 **Assessments** - Student performance evaluation
-
-### Coming Soon
-- 📊 **Reports Module** - Advanced analytics and reporting
+- **Central settings and security**: shared Flight School menus, departments,
+  access groups, and system-wide configuration.
+- **Fleet management**: aircraft categories, aircraft types, aircraft records,
+  airworthiness state, maintenance thresholds, and certificate expiry tracking.
+- **People management**: students, instructors, pilots, administrative staff,
+  licenses, ranks, qualifications, English levels, medical classes, and linked
+  Odoo user accounts.
+- **Training management**: class types, training classes, enrollments, flight
+  disciplines, flight activities, missions, hour requirements, completion
+  tracking, and training dashboards.
+- **Document management**: document types, entity links, upload workflows,
+  version history, current-version previews, and expiry status synchronization.
+- **Scheduling**: planned flights, routes, cancellation reasons, pilot
+  functions, custom activities, crew-member search, conflict detection, batch
+  scheduling, and timeline views.
+- **Flight operations**: daily and simulator operations boards, scheduled-flight
+  publishing, actual time tracking, cancellation workflows, ADD flights,
+  schedule import, deletion confirmation, and hour recalculation.
 
 ---
 
-## 🏗️ Module Architecture
+## Addon modules
 
-```
-Flight_School_Management/
-├── fs_core/                 # Core settings and security
-│   ├── security/           # Access rights and groups
-│   ├── views/              # Configuration views
-│   └── models/             # Core models
-│
-├── fs_documents/            # Document management
-│   ├── models/             # Document models
-│   ├── views/              # Document views
-│   ├── security/           # Access rights
-│   └── static/             # Static web assets
-│
-├── fs_fleet/               # Fleet management
-│   ├── models/             # Aircraft models
-│   ├── views/              # Fleet views
-│   ├── security/           # Fleet-specific access
-│   └── data/               # Default data
-│
-├── fs_flights/              # Flight operations
-│   ├── models/             # Flight models
-│   ├── views/              # Flight views
-│   ├── wizards/            # Action wizards
-│   └── security/           # Access rights
-│
-├── fs_people/              # Personnel management
-│   ├── models/             # People models
-│   ├── views/              # Personnel views
-│   ├── migrations/         # Database migrations
-│   └── security/           # Access rights
-│
-├── fs_scheduling/           # Resource scheduling
-│   ├── models/             # Scheduling models
-│   ├── views/              # Scheduling views
-│   ├── wizard/             # Action wizards
-│   └── security/           # Access rights
-│
-└── fs_training/             # Training programs
-    ├── models/             # Training models
-    ├── views/              # Training views
-    ├── security/           # Access rights
-    └── data/               # Default data
-```
+| Addon | Purpose | Key dependencies | Module docs |
+|-------|---------|------------------|-------------|
+| `fs_core` | Shared settings, departments, security groups, menus, and base configuration. | `base`, `base_setup`, `auth_signup` | [README](fs_core/README.rst) |
+| `fs_fleet` | Aircraft categories, aircraft types, aircraft records, fleet dashboard, maintenance and certificate awareness. | `fs_core`, `mail` | [README](fs_fleet/README.rst) |
+| `fs_people` | Students, instructors, pilots, staff, qualifications, licenses, medical and English-level tracking. | `fs_core`, `mail` | [README](fs_people/README.rst) |
+| `fs_training` | Training classes, class types, enrollments, missions, activities, requirements, and progress tracking. | `fs_core`, `fs_people`, `fs_fleet`, `mail` | [README](fs_training/README.rst) |
+| `fs_documents` | Document types, uploads, versions, previews, expiry tracking, and related-record shortcuts. | `web`, `fs_core`, `fs_people`, `fs_training` | [README](fs_documents/README.rst) |
+| `fs_scheduling` | Scheduled flights, crew-member view, routes, pilot functions, conflict checks, timeline views, and scheduling wizards. | `fs_core`, `fs_training`, `fs_fleet`, `fs_people`, `mail`, `web_timeline` | [README](fs_scheduling/README.rst) |
+| `fs_flights` | Daily operations, simulator operations, flight logs, schedule publishing, cancellations, and hour distribution. | `fs_scheduling`, `fs_fleet`, `fs_training`, `fs_people`, `mail`, `bus` | [README](fs_flights/README.rst) |
+
+Install the modules you need, or install the full suite for the complete
+end-to-end workflow.
 
 ---
 
-## 📦 Requirements
+## Requirements and dependencies
 
-### System Requirements
+### Runtime requirements
 
-| Component | Minimum Version | Recommended |
-|-----------|----------------|-------------|
-| **Operating System** | Ubuntu 22.04 / Windows 10 | Ubuntu 24.04 / Windows 11 |
-| **Python** | 3.10 | 3.12+ |
-| **PostgreSQL** | 13 | 15+ |
-| **RAM** | 4 GB | 8 GB+ |
-| **Disk Space** | 10 GB | 50 GB+ |
+| Component | Minimum | Notes |
+|-----------|---------|-------|
+| Odoo | 19.0 | The manifests and assets target Odoo 19. |
+| Python | 3.10+ | Use the Python version supported by your Odoo 19 deployment. |
+| PostgreSQL | 13+ | PostgreSQL 15+ is recommended for production. |
+| Operating system | Linux or Windows | Linux is recommended for production Odoo hosting. |
 
-### Python Dependencies
+### Odoo addon dependencies
 
-All dependencies are listed in `requirements.txt`. Key packages include:
+The Flight School addons use standard Odoo modules (`base`, `base_setup`,
+`auth_signup`, `mail`, `web`, and `bus`) plus the external `web_timeline` addon
+for scheduling timeline views.
 
-- `psycopg2` - PostgreSQL adapter
-- `lxml` - XML processing
-- `Pillow` - Image handling
-- `reportlab` - PDF generation
-- `Werkzeug` - WSGI toolkit
-- `Jinja2` - Templating engine
+> **Important:** Install or make `web_timeline` available in `addons_path` before
+> installing `fs_scheduling` or the full suite.
 
----
+### Python dependencies
 
-## 🚀 Installation
+This repository contains Odoo addons and does not vendor a separate Python
+requirements file. Install the Python packages required by your Odoo 19 server
+from the Odoo distribution you use, then add this repository to the server's
+`addons_path`.
 
-### Option 1: Quick Start (Development)
+### Development tooling
+
+The repository includes Node-based formatting tools for frontend/XML assets:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/GM-327/odoo-Flight_School_Management.git
-cd flight-school-management
-
-# 2. Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# OR
-.venv\Scripts\activate     # Windows
-
-# 3. Install dependencies
-pip install -r requirements.txt
-
-# 4. Configure database connection
-cp odoo.conf.example odoo.conf
-# Edit odoo.conf with your database settings
-
-# 5. Initialize database and install modules
-./odoo-bin -c odoo.conf -d your_database -i fs_core,fs_documents,fs_fleet,fs_flights,fs_people,fs_scheduling,fs_training --stop-after-init
-
-# 6. Start the server
-./odoo-bin -c odoo.conf
-```
-
-### Option 2: Production Deployment
-
-See the [Deployment Guide](https://github.com/GM-327/odoo-Flight_School_Management/wiki/Deployment-Guide) in our wiki for detailed production setup instructions.
-
-### Option 3: Docker (Coming Soon)
-
-```bash
-docker-compose up -d
+npm install
+npx prettier --check "**/*.{js,xml,css,md}"
 ```
 
 ---
 
-## ⚙️ Configuration
+## Installation
 
-### Basic Configuration (`odoo.conf`)
+The commands below assume that `odoo-bin` is available from your Odoo 19 server
+installation and that this repository is cloned as a custom addons directory.
+Adjust paths for your deployment.
+
+### 1. Clone or copy the addons
+
+```bash
+# Example custom addons location
+mkdir -p /opt/odoo/custom/addons
+cd /opt/odoo/custom/addons
+git clone https://github.com/GM-327/odoo-Flight_School_Management.git Flight_School_Management
+```
+
+On Windows, place the repository in an Odoo addons path, for example:
+
+```powershell
+git clone https://github.com/GM-327/odoo-Flight_School_Management.git D:\Odoo19\server\addons\Flight_School_Management
+```
+
+### 2. Add the repository to `addons_path`
+
+Example `odoo.conf` excerpt:
 
 ```ini
 [options]
-; Database settings
 db_host = localhost
 db_port = 5432
 db_user = odoo
-db_password = your_password
-db_name = flight_school
-
-; Server settings
-http_port = 8069
-longpolling_port = 8072
-workers = 4
-
-; Addons path
-addons_path = addons,odoo/addons
-
-; Logging
-log_level = info
-logfile = /var/log/odoo/odoo.log
+db_password = <set-a-secure-password>
+addons_path = /opt/odoo/odoo/addons,/opt/odoo/custom/addons/Flight_School_Management,/opt/odoo/custom/addons
 ```
 
-### Module Configuration
+Use environment-specific secrets or protected configuration management for
+production credentials. Do not commit real database passwords.
 
-After installation, navigate to:
-**Settings → Flight School → Configuration**
+### 3. Install external addon dependencies
 
-Here you can configure:
-- Default flight school information
-- Regulatory authority settings
-- Notification preferences
-- Integration options
+Make sure `web_timeline` is present in one of the configured addons paths. It is
+required by `fs_scheduling`.
 
----
-
-## 📖 Usage
-
-### Getting Started
-
-1. **Login** to Odoo with admin credentials
-2. Navigate to the **Flight School** menu
-3. Configure your **organization settings**
-4. Add your **aircraft fleet**
-5. Register **instructors** and **students**
-6. Start managing your flight school!
-
-### Quick Actions
-
-| Action | Navigation |
-|--------|------------|
-| Add Aircraft | Flight School → Fleet → Create |
-| Register Student | Flight School → People → Students → Create |
-| Add Instructor | Flight School → People → Instructors → Create |
-| View Dashboard | Flight School → Dashboard |
-
-For detailed documentation, see our [User Guide](https://github.com/GM-327/odoo-Flight_School_Management/wiki/User-Guide).
-
----
-
-## 🔧 Development
-
-### Setting Up Development Environment
+### 4. Create or select a database
 
 ```bash
-# Clone with development tools
-git clone --recurse-submodules https://github.com/GM-327/odoo-Flight_School_Management.git
-
-# Install development dependencies
-pip install -r requirements.txt
-pip install ruff pytest
-
-# Run linting
-ruff check .
-
-# Run tests
-./odoo-bin -c odoo.conf -d test_db --test-enable -i fs_core,fs_documents,fs_fleet,fs_flights,fs_people,fs_scheduling,fs_training --stop-after-init
+createdb flight_school
 ```
 
-### Project Structure
+Alternatively, create the database from the Odoo database manager if it is
+enabled in your environment.
 
+### 5. Install the modules
+
+Install the complete suite from the command line:
+
+```bash
+odoo-bin -c /path/to/odoo.conf -d flight_school \
+  -i fs_core,fs_fleet,fs_people,fs_training,fs_documents,fs_scheduling,fs_flights \
+  --stop-after-init
 ```
-.
-├── addons/                     # Custom addons
-│   └── Flight_School_Management/  # Main module suite
-├── odoo/                       # Odoo core
-├── doc/                        # Documentation
-├── .github/                    # GitHub templates
-├── requirements.txt            # Python dependencies
-├── odoo.conf                   # Configuration file
-└── README.md                   # This file
-```
 
-### Documentation and Automation Notes
+Or install the modules from **Apps** in Odoo after updating the apps list. Odoo
+will resolve manifest dependencies, but the recommended installation order is:
 
-Each Flight School addon includes a `README.rst` with purpose, dependencies, public API notes, usage examples, and validation guidance. When using automation or AI tools:
+1. `fs_core`
+2. `fs_fleet` and `fs_people`
+3. `fs_training`
+4. `fs_documents`
+5. `fs_scheduling`
+6. `fs_flights`
 
-1. Refer to the relevant module `README.rst` and source docstrings first
-2. Follow existing Odoo 19 and Flight School code patterns
-3. Run syntax, documentation, and module validation checks before submitting changes
+### 6. Start Odoo
 
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
-
-### How to Contribute
-
-1. **Fork** the repository
-2. Create a **feature branch** (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. Open a **Pull Request**
-
-### Development Guidelines
-
-- Follow [Odoo coding standards](https://www.odoo.com/documentation/19.0/contributing/development/coding_guidelines.html)
-- Write tests for new features
-- Update documentation as needed
-- Follow any Contributor License Agreement process communicated by the maintainers
-
----
-
-## 🔒 Security
-
-Security is a top priority. If you discover a security vulnerability:
-
-1. **DO NOT** open a public issue
-2. Review our [Security Policy](SECURITY.md)
-3. Report via our [Responsible Disclosure](https://www.odoo.com/security-report) process
-
-### Supported Versions
-
-| Version | Supported |
-|---------|-----------|
-| 19.0 | ✅ Active Development |
-| 18.0 | ✅ Security fixes |
-| < 18.0 | ❌ Not supported |
-
----
-
-## 📄 License
-
-This project is licensed under the **LGPL-3.0 License** - see the [LICENSE](LICENSE) file for details.
-
-```
-Flight School Management System
-Copyright (C) 2024 Ghazi Marzouk
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+```bash
+odoo-bin -c /path/to/odoo.conf -d flight_school
 ```
 
 ---
 
-## 💬 Support
+## Configuration
 
-### Community Support
+After installation, open the **Flight School** menus in Odoo and configure the
+suite in this order:
 
-- 📋 [GitHub Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues) - Bug reports and feature requests
-- Use GitHub Issues for questions and community help until Discussions are enabled
-- 📖 [Wiki](https://github.com/GM-327/odoo-Flight_School_Management/wiki) - Documentation and guides
-
-
-## 🙏 Acknowledgments
-
-- [Odoo S.A.](https://www.odoo.com/) - For the amazing ERP framework
-- [EASA](https://www.easa.europa.eu/) - For aviation safety standards
-- All [contributors](https://github.com/GM-327/odoo-Flight_School_Management/graphs/contributors) who help improve this project
+1. **Core settings and security**
+   - Assign users to the appropriate Flight School security groups.
+   - Configure shared settings and departments.
+2. **Fleet**
+   - Configure aircraft categories and aircraft types.
+   - Register aircraft with current hours, status, maintenance dates, and
+     certificate expiry dates.
+3. **People**
+   - Configure ranks, license types, qualification types, English levels, and
+     medical classes.
+   - Create students, instructors, pilots, and administrative staff.
+   - Add qualifications and expiry dates.
+4. **Training**
+   - Configure disciplines, flight types, activities, class requirements, class
+     types, and missions.
+   - Create training classes and enroll students.
+5. **Documents**
+   - Configure document entity types and document types.
+   - Upload required files and monitor expiry status from dashboards.
+6. **Scheduling**
+   - Configure pilot functions, routes, cancellation reasons, callsign settings,
+     and buffer times.
+   - Use the scheduling wizard to generate planned flights.
+7. **Flights**
+   - Configure operations board behavior.
+   - Publish scheduled flights and manage daily operations.
 
 ---
 
-<p align="center">
-  Made with ❤️ for the aviation training community
-</p>
+## Usage examples
 
-<p align="center">
-  <a href="#-flight-school-management-system">⬆️ Back to Top</a>
-</p>
+### Workflow: create the training foundation
+
+1. Register aircraft categories, aircraft types, and aircraft.
+2. Create instructor and student records.
+3. Define class types, hour requirements, flight activities, and missions.
+4. Create a training class and enroll students.
+
+Example from an Odoo shell:
+
+```python
+student = env['fs.student'].create({
+    'name': 'Student Pilot',
+    'callsign': 'SP01',
+    'email': 'student@example.invalid',
+})
+
+training_class = env['fs.training.class'].create({
+    'name': 'Initial Flight Training 2026-A',
+    'class_type_id': class_type.id,
+    'start_date': fields.Date.today(),
+})
+
+enrollment = env['fs.student.enrollment'].create({
+    'student_id': student.id,
+    'training_class_id': training_class.id,
+    'instructor_id': instructor.id,
+    'status': 'active',
+})
+```
+
+### Workflow: generate and publish a schedule
+
+1. Open the scheduling wizard.
+2. Select active enrollments and available instructors.
+3. Review generated lines, routes, aircraft types, and ADD missions.
+4. Assign times, aircraft, and callsigns.
+5. Confirm the schedule.
+6. Publish the day to flight operations.
+
+Example from an Odoo shell:
+
+```python
+wizard = env['fs.scheduling.wizard'].create({
+    'date': fields.Date.today(),
+    'selected_enrollment_ids': [(6, 0, enrollment_ids)],
+    'selected_instructor_ids': [(6, 0, instructor_ids)],
+})
+wizard.action_next_step()
+wizard.action_schedule()
+
+scheduled_flights = env['fs.scheduled.flight'].search([
+    ('date', '=', fields.Date.today()),
+])
+scheduled_flights.action_publish_day()
+```
+
+### Workflow: complete a flight and distribute hours
+
+```python
+flight = env['fs.flight'].search([('status', '=', 'scheduled')], limit=1)
+flight.action_start_flight()
+flight.write({
+    'actual_departure': 8.0,
+    'actual_arrival': 9.2,
+})
+flight.action_complete_flight()
+```
+
+Completing a flight updates applicable aircraft totals, personnel totals, and
+enrollment hour ledgers. If a completed flight is corrected, signed hour deltas
+are used so previous totals can be subtracted before corrected totals are
+applied.
+
+---
+
+## Project structure
+
+```text
+Flight_School_Management/
+|-- fs_core/                  # Shared settings, security, departments, menus
+|-- fs_fleet/                 # Aircraft categories, types, records, dashboard
+|-- fs_people/                # Personnel, qualifications, user links, dashboard
+|-- fs_training/              # Training classes, enrollments, missions, hours
+|-- fs_documents/             # Document types, uploads, versions, expiry status
+|-- fs_scheduling/            # Planned flights, crew view, wizard, timeline
+|-- fs_flights/               # Operations boards, flight logs, hour updates
+|-- .github/                  # Pull request templates and repository metadata
+|-- .kilo/                    # Local automation commands and agent configs
+|-- CONTRIBUTING.md           # Contribution guidelines
+|-- SECURITY.md               # Security policy
+|-- LICENSE                   # LGPL-3.0 license text
+`-- README.md                 # Project overview and setup guide
+```
+
+Each addon contains its own manifest, security rules, data files, views, and
+module-specific `README.rst`.
+
+---
+
+## Development and validation
+
+### Update or install modules during development
+
+```bash
+# Upgrade the full suite after code changes
+odoo-bin -c /path/to/odoo.conf -d flight_school \
+  -u fs_core,fs_fleet,fs_people,fs_training,fs_documents,fs_scheduling,fs_flights \
+  --stop-after-init
+```
+
+### Run Odoo tests
+
+```bash
+odoo-bin -c /path/to/odoo.conf -d test_db --test-enable \
+  -i fs_core,fs_fleet,fs_people,fs_training,fs_documents,fs_scheduling,fs_flights \
+  --stop-after-init
+```
+
+### Run syntax and documentation checks
+
+```bash
+python -m compileall -q fs_core fs_fleet fs_people fs_training fs_documents fs_scheduling fs_flights
+```
+
+If Node dependencies are installed, validate frontend/XML formatting:
+
+```bash
+npm install
+npx prettier --check "**/*.{js,xml,css,md}"
+```
+
+Recommended checks before submitting a change:
+
+- Start Odoo and upgrade affected modules.
+- Exercise the changed workflow in the Odoo UI.
+- Run Python syntax checks.
+- Run relevant Odoo tests.
+- Update module `README.rst` files and docstrings when behavior changes.
+
+---
+
+## Documentation standards
+
+- Root-level documentation belongs in this `README.md`.
+- Module-specific documentation belongs in each addon's `README.rst`.
+- Python modules, models, public methods, wizards, and migrations use
+  Google-style docstrings.
+- Complex or non-obvious business logic should include concise inline comments.
+- Links should be checked when documentation is updated.
+
+---
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full
+process.
+
+Basic contribution workflow:
+
+1. Fork the repository.
+2. Create a focused feature or fix branch.
+3. Follow existing Odoo and Flight School coding patterns.
+4. Add or update tests and documentation where appropriate.
+5. Run validation checks locally.
+6. Open a pull request with a clear summary and testing notes.
+
+---
+
+## Security
+
+Do not open public issues for security vulnerabilities. Follow the reporting
+process in [SECURITY.md](SECURITY.md).
+
+Production recommendations:
+
+- Use HTTPS.
+- Keep Odoo and addon dependencies updated.
+- Restrict PostgreSQL and Odoo administration access.
+- Set `list_db = False` for public deployments.
+- Use strong passwords and, where possible, two-factor authentication.
+- Maintain tested backups.
+
+---
+
+## License
+
+This project is licensed under the GNU Lesser General Public License v3.0 or
+later (LGPL-3.0-or-later). See [LICENSE](LICENSE) for details.
+
+---
+
+## Acknowledgments
+
+- [Odoo S.A.](https://www.odoo.com/) for the Odoo ERP framework.
+- [European Union Aviation Safety Agency (EASA)](https://www.easa.europa.eu/)
+  for aviation safety references.
+- Flight School Management contributors and maintainers.
