@@ -283,8 +283,8 @@ Use the bug report template and include:
 
 For general questions:
 - Check the [Wiki](https://github.com/GM-327/odoo-Flight_School_Management/wiki) first
-- Search existing issues and discussions
-- Use [GitHub Discussions](https://github.com/GM-327/odoo-Flight_School_Management/discussions) for Q&A
+- Search existing issues before opening a new request
+- Use GitHub Issues for Q&A until Discussions are enabled
 
 ---
 
@@ -299,7 +299,7 @@ By contributing to this project, you agree that:
 3. Your contribution is licensed under LGPL-3.0
 4. You grant the project maintainers rights to use your contribution
 
-For significant contributions, you may be asked to sign a formal CLA. See [doc/cla/sign-cla.md](doc/cla/sign-cla.md) for details.
+For significant contributions, you may be asked to follow a maintainer-provided Contributor License Agreement process.
 
 ---
 
@@ -318,7 +318,7 @@ For significant contributions, you may be asked to sign a formal CLA. See [doc/c
 ## Questions?
 
 If you have questions about contributing:
-- Open a [Discussion](https://github.com/GM-327/odoo-Flight_School_Management/discussions)
+- Open a GitHub Issue with the `question` label when Discussions are unavailable
 - Review existing documentation
 - Contact the maintainers
 

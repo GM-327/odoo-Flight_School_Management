@@ -1,13 +1,38 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs simulator operations module.
+
+Purpose:
+    Defines classes FsSimulatorOperations for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from datetime import timedelta
 
 from odoo import _, api, fields, models
 
 
 class FsSimulatorOperations(models.Model):
-    """Dashboard for daily simulator operations monitoring."""
+    """Dashboard for daily simulator operations monitoring.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.simulator.operations``.
+        _description (str): Human-readable model label, ``Simulator Operations Dashboard``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
+    """
 
     _name = 'fs.simulator.operations'
     _description = 'Simulator Operations Dashboard'
@@ -21,6 +46,14 @@ class FsSimulatorOperations(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create records while applying module-specific defaults and side effects.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         records = super().create(vals_list)
         for record in records:
             if record.date:
@@ -43,6 +76,11 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('date')
     def _compute_name(self):
+        """Compute name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.name = (
                 _("Simulator Board - %s") % record.date
@@ -52,6 +90,11 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('date')
     def _compute_date_display(self):
+        """Compute date display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         import calendar
         for record in self:
             if record.date:
@@ -125,11 +168,21 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('session_ids')
     def _compute_session_count(self):
+        """Compute session count values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.session_count = len(record.session_ids)
 
     # === Pagination for Carousel ===
     def _default_page_size(self):
+        """Return the default page size value.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         value = self.env['ir.config_parameter'].sudo().get_param(
             'flight_school.operations_page_size', '10',
         )
@@ -163,7 +216,11 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('session_ids', 'session_ids.status', 'session_ids.actual_duration', 'session_ids.aircraft_id')
     def _compute_kpis(self):
-        """Compute summary KPIs for today's simulator sessions."""
+        """Compute summary KPIs for today's simulator sessions.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             # Filter simulators only
             logs = record.session_ids.filtered(lambda l: l.aircraft_id.category_id.is_simulator)  # type: ignore
@@ -189,6 +246,9 @@ class FsSimulatorOperations(models.Model):
 
         Simulator callsigns follow the format SIM0001, SIM0002, etc.
         They increment normally (no threshold like ADD missions for flights).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
             if not record.date:
@@ -225,7 +285,11 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('session_count', 'page_size')
     def _compute_pagination(self):
-        """Compute pagination info."""
+        """Compute pagination info.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             page_size = record.page_size or 10
             total_count = record.session_count
@@ -236,7 +300,11 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('session_ids', 'current_page', 'page_size')
     def _compute_paginated_sessions(self):
-        """Get the sessions for the current page."""
+        """Get the sessions for the current page.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             page_size = record.page_size or 10
             current_page = record.current_page or 0
@@ -253,7 +321,11 @@ class FsSimulatorOperations(models.Model):
 
     @api.depends('date')
     def _compute_available_simulators(self):
-        """Compute available simulators (not in use)."""
+        """Compute available simulators (not in use).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             today = record.date or fields.Date.context_today(self)
 
@@ -284,21 +356,36 @@ class FsSimulatorOperations(models.Model):
     # === Actions ===
 
     def action_previous_day(self):
-        """Go to previous day."""
+        """Go to previous day.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         today = self.date or fields.Date.context_today(self)
         target_date = today - timedelta(days=1)
         return self._open_date(target_date)
 
     def action_next_day(self):
-        """Go to next day."""
+        """Go to next day.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         today = self.date or fields.Date.context_today(self)
         target_date = today + timedelta(days=1)
         return self._open_date(target_date)
 
     def _open_date(self, target_date):
-        """Find or create record for target date and open it."""
+        """Find or create record for target date and open it.
+
+        Args:
+            target_date: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         record = self.search([('date', '=', target_date)], limit=1)
         if not record:
             record = self.create({'date': target_date})
@@ -313,7 +400,11 @@ class FsSimulatorOperations(models.Model):
         }
 
     def action_add_session(self):
-        """Open add simulator session wizard."""
+        """Open add simulator session wizard.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': _('Add Simulator Session'),
             'type': 'ir.actions.act_window',
@@ -327,7 +418,11 @@ class FsSimulatorOperations(models.Model):
         }
 
     def action_refresh(self):
-        """Refresh the simulator board."""
+        """Refresh the simulator board.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
@@ -336,7 +431,11 @@ class FsSimulatorOperations(models.Model):
     # === Pagination Navigation ===
 
     def action_next_page(self):
-        """Go to next page of sessions (infinite loop)."""
+        """Go to next page of sessions (infinite loop).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.total_pages > 1:
             if self.current_page >= self.total_pages - 1:
@@ -346,7 +445,11 @@ class FsSimulatorOperations(models.Model):
         return self._reload_view()
 
     def action_prev_page(self):
-        """Go to previous page of sessions (infinite loop)."""
+        """Go to previous page of sessions (infinite loop).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.total_pages > 1:
             if self.current_page <= 0:
@@ -356,17 +459,29 @@ class FsSimulatorOperations(models.Model):
         return self._reload_view()
 
     def action_first_page(self):
-        """Go to first page of sessions."""
+        """Go to first page of sessions.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         self.current_page = 0
         return self._reload_view()
 
     def action_last_page(self):
-        """Go to last page of sessions."""
+        """Go to last page of sessions.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         self.current_page = self.total_pages - 1
         return self._reload_view()
 
     def _reload_view(self):
-        """Helper to reload the current view without closing it."""
+        """Helper to reload the current view without closing it.
+
+        Returns:
+            bool: True or False according to the validation or lookup result.
+        """
         return True

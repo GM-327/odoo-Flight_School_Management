@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-"""Post-migration script for flight crew refactoring.
+"""Post-migration script for the scheduled-flight crew refactor.
 
-This script migrates the flight_category from 4 values to 2:
-- student_dual, student_solo → student_training
-- pilot_training, staff → staff_training
+Purpose:
+    Migrates legacy flight categories and crew columns to the current
+    ``student_training`` / ``staff_training`` category model and Pilot 1 / Pilot
+    2 field structure after Odoo creates the new columns.
 
-It also preserves crew data by mapping old fields to new Pilot 1/Pilot 2 structure.
-Runs AFTER ORM has created new columns.
+Related Modules:
+    Depends on ``fs_scheduling`` models and preserves data consumed by
+    ``fs_flights`` when planned flights are published to operations.
 
-IMPORTANT: Remove this migration script after all databases have been migrated.
+Notes:
+    Keep this script until every deployed database has been migrated past
+    version 19.0.2.0.0.
 """
 import logging
 
@@ -16,7 +20,15 @@ _logger = logging.getLogger(__name__)
 
 
 def migrate(cr, version):
-    """Migrate flight_category values and crew field data."""
+    """Migrate flight_category values and crew field data.
+
+    Args:
+        cr: Database cursor provided by Odoo during module migration.
+        version: Installed module version provided by Odoo during migration.
+
+    Returns:
+        None: Updates Odoo records, computed fields, or wizard state in place.
+    """
     if not version:
         return
 
@@ -24,8 +36,8 @@ def migrate(cr, version):
 
     # Step 1: Update flight_category in fs_scheduled_flight table
     cr.execute("""
-        UPDATE fs_scheduled_flight 
-        SET flight_category = CASE 
+        UPDATE fs_scheduled_flight
+        SET flight_category = CASE
             WHEN flight_category IN ('student_dual', 'student_solo') THEN 'student_training'
             WHEN flight_category IN ('pilot_training', 'staff') THEN 'staff_training'
             ELSE flight_category
@@ -40,15 +52,15 @@ def migrate(cr, version):
     # Map instructor_id → pilot2_instructor_id and pilot2_function = 'instructor'
     # Map supervisor_id → pilot2_instructor_id and pilot2_function = 'supervisor'
     cr.execute("""
-        UPDATE fs_scheduled_flight 
-        SET 
+        UPDATE fs_scheduled_flight
+        SET
             pilot1_enrollment_id = enrollment_id,
-            pilot1_function = CASE 
+            pilot1_function = CASE
                 WHEN is_solo = true THEN 'solo'
                 ELSE 'student'
             END,
             pilot2_instructor_id = COALESCE(instructor_id, supervisor_id),
-            pilot2_function = CASE 
+            pilot2_function = CASE
                 WHEN is_solo = true THEN 'supervisor'
                 WHEN instructor_id IS NOT NULL THEN 'instructor'
                 WHEN supervisor_id IS NOT NULL THEN 'supervisor'
@@ -65,13 +77,13 @@ def migrate(cr, version):
     # Map pilot_id or instructor_id → pilot1_instructor_id
     # Map instructor2_id or pilot2_id → pilot2_instructor_id or pilot2_pilot_id
     cr.execute("""
-        UPDATE fs_scheduled_flight 
-        SET 
+        UPDATE fs_scheduled_flight
+        SET
             pilot1_instructor_id = COALESCE(pilot_id, instructor_id),
             pilot1_function = 'pilot',
             pilot2_instructor_id = instructor2_id,
             pilot2_pilot_id = pilot2_id,
-            pilot2_function = CASE 
+            pilot2_function = CASE
                 WHEN instructor2_id IS NOT NULL THEN 'instructor'
                 WHEN pilot2_id IS NOT NULL THEN 'pilot'
                 ELSE NULL

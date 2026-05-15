@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs training dashboard module.
+
+Purpose:
+    Defines classes FsTrainingDashboard for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from datetime import date
 import json
 from odoo import api, fields, models
@@ -12,6 +25,17 @@ class FsTrainingDashboard(models.TransientModel):
 
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.training.dashboard``.
+        _description (str): Human-readable model label, ``Training Dashboard``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
     """
 
     _name = 'fs.training.dashboard'
@@ -74,7 +98,11 @@ class FsTrainingDashboard(models.TransientModel):
     )
 
     def _compute_class_kpis(self):
-        """Compute training class statistics."""
+        """Compute training class statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         TrainingClass = self.env['fs.training.class']
         today = date.today()
         for record in self:
@@ -94,7 +122,11 @@ class FsTrainingDashboard(models.TransientModel):
             ])
 
     def _compute_enrollment_kpis(self):
-        """Compute student enrollment statistics."""
+        """Compute student enrollment statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Enrollment = self.env['fs.student.enrollment']
         for record in self:
             record.enrollment_active = Enrollment.search_count([
@@ -105,7 +137,11 @@ class FsTrainingDashboard(models.TransientModel):
             ])
 
     def _compute_summary_kpis(self):
-        """Compute top-level summary statistics."""
+        """Compute top-level summary statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Enrollment = self.env['fs.student.enrollment']
         Class = self.env['fs.training.class']
         for record in self:
@@ -117,7 +153,11 @@ class FsTrainingDashboard(models.TransientModel):
                 record.class_progression = 0.0
 
     def _compute_admin_task_kpis(self):
-        """Compute admin task statistics."""
+        """Compute admin task statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         AdminTask = self.env['fs.admin.task']
         for record in self:
             record.admin_tasks_pending = AdminTask.search_count([
@@ -128,7 +168,11 @@ class FsTrainingDashboard(models.TransientModel):
             record.admin_tasks_overdue = 0
 
     def _compute_class_graph_data(self):
-        """Compute training class distribution graph data."""
+        """Compute training class distribution graph data.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Class = self.env['fs.training.class']
         data = [
             {'label': 'Draft', 'value': Class.search_count([('status', '=', 'draft')]), 'type': 'future'},
@@ -144,7 +188,11 @@ class FsTrainingDashboard(models.TransientModel):
 
     # === Action Methods ===
     def action_view_classes(self):
-        """Open training classes list."""
+        """Open training classes list.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Training Classes',
             'type': 'ir.actions.act_window',
@@ -153,7 +201,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_classes_draft(self):
-        """Open draft training classes."""
+        """Open draft training classes.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Draft Classes',
             'type': 'ir.actions.act_window',
@@ -163,7 +215,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_classes_in_progress(self):
-        """Open in-progress training classes."""
+        """Open in-progress training classes.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'In Progress Classes',
             'type': 'ir.actions.act_window',
@@ -173,7 +229,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_classes_overdue(self):
-        """Open overdue training classes."""
+        """Open overdue training classes.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         today = date.today()
         return {
             'name': 'Overdue Classes',
@@ -187,7 +247,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_enrollments_active(self):
-        """Open active enrollments."""
+        """Open active enrollments.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Active Students',
             'type': 'ir.actions.act_window',
@@ -197,7 +261,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_enrollments_enrolled(self):
-        """Open pending enrollments."""
+        """Open pending enrollments.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Enrolled (Pending Start)',
             'type': 'ir.actions.act_window',
@@ -207,7 +275,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_admin_tasks_pending(self):
-        """Open pending admin tasks."""
+        """Open pending admin tasks.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Pending Admin Tasks',
             'type': 'ir.actions.act_window',
@@ -217,7 +289,11 @@ class FsTrainingDashboard(models.TransientModel):
         }
 
     def action_view_admin_tasks_overdue(self):
-        """Open pending admin tasks (no due_date field available)."""
+        """Open pending admin tasks (no due_date field available).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Pending Admin Tasks',
             'type': 'ir.actions.act_window',

@@ -1,6 +1,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs scheduled flight module.
+
+Purpose:
+    Defines classes FsScheduledFlight; functions _default_scheduled_flight_date for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 import json
 from datetime import datetime, timedelta
 
@@ -15,7 +28,14 @@ from .fs_flight_mixin import (
 
 
 def _default_scheduled_flight_date(record):
-    """Default scheduled flights to the next working day."""
+    """Default scheduled flights to the next working day.
+
+    Args:
+        record: Value supplied by Odoo or the calling workflow.
+
+    Returns:
+        Any: Value required by the Odoo ORM, action system, or calling workflow.
+    """
     today = fields.Date.context_today(record)
     next_day = today + timedelta(days=1)
     while next_day.weekday() >= 5:
@@ -24,7 +44,20 @@ def _default_scheduled_flight_date(record):
 
 
 class FsScheduledFlight(models.Model):
-    """Instances of flight missions scheduled for specific resources and times."""
+    """Instances of flight missions scheduled for specific resources and times.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.scheduled.flight``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin', 'fs.flight.mixin']``.
+        _description (str): Human-readable model label, ``Scheduled Flight``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
+    """
     # Odoo models naturally expose many field descriptors as class attributes.
     # pylint: disable=too-many-instance-attributes
 
@@ -248,6 +281,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('mission_id.activity_id.code', 'activity_id.code', 'custom_activity_id.code')
     def _compute_flight_code(self):
+        """Compute flight code values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.mission_id and record.mission_id.activity_id:  # type: ignore
                 record.flight_code = record.mission_id.activity_id.code  # type: ignore
@@ -268,7 +306,16 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _read_group_crew_ids(self, _crew_members, _domain, _order):
-        """Show available crew members for timeline/kanban grouping."""
+        """Show available crew members for timeline/kanban grouping.
+
+        Args:
+            _crew_members: Value supplied by Odoo or the calling workflow.
+            _domain: Value supplied by Odoo or the calling workflow.
+            _order: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         return self.env['fs.crew.member'].search([
             ('member_type', 'in', ['instructor', 'pilot']),
             ('has_expired_qualification', '=', False)
@@ -278,6 +325,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('pilot1_crew_id', 'pilot1_function', 'flight_category')
     def _compute_pilot1_display(self):
+        """Compute pilot1 display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.pilot1_crew_id:
                 record.pilot1_display = record.pilot1_crew_id.name or ''  # type: ignore
@@ -287,7 +339,11 @@ class FsScheduledFlight(models.Model):
     # type: ignore
     @api.depends('pilot1_crew_id', 'pilot1_crew_id.member_type', 'pilot1_crew_id.enrollment_id')
     def _compute_student_fields(self):
-        """Compute student_id and training_class_id from crew member enrollment."""
+        """Compute student_id and training_class_id from crew member enrollment.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if (
                 record.pilot1_crew_id
@@ -304,7 +360,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('flight_category', 'pilot1_crew_id', 'pilot1_crew_id.enrollment_id')
     def _compute_aircraft_domain(self):
-        """Compute dynamic domain for aircraft based on enrollment's allowed aircraft types."""
+        """Compute dynamic domain for aircraft based on enrollment's allowed aircraft types.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if (
                 record.flight_category == 'student_training'
@@ -328,7 +388,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('flight_category', 'pilot1_crew_id', 'pilot1_crew_id.enrollment_id')
     def _compute_mission_domain(self):
-        """Compute dynamic domain for mission based on enrollment's class type."""
+        """Compute dynamic domain for mission based on enrollment's class type.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if (
                 record.flight_category == 'student_training'
@@ -352,6 +416,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('pilot2_crew_id', 'pilot2_function')
     def _compute_pilot2_display(self):
+        """Compute pilot2 display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.pilot2_crew_id:
                 record.pilot2_display = record.pilot2_crew_id.name or ''  # type: ignore
@@ -360,7 +429,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('pilot1_function', 'pilot2_function', 'is_sim')
     def _compute_flight_type_id(self):
-        """Auto-determine flight type from crew configuration."""
+        """Auto-determine flight type from crew configuration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         FlightType = self.env['fs.flight.type']
         dual_type = FlightType.search([('code', '=', 'DUAL')], limit=1)
         solo_type = FlightType.search([('code', '=', 'SOLO')], limit=1)
@@ -415,7 +488,11 @@ class FsScheduledFlight(models.Model):
     # === Constraints & Validation ===
 
     def _get_buffer_timedelta(self):
-        """Get the configured buffer time as a timedelta."""
+        """Get the configured buffer time as a timedelta.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         buffer_min = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.scheduling_buffer_minutes', '15'
         ))
@@ -423,7 +500,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('pilot2_crew_id', 'start_datetime', 'end_datetime')
     def _compute_instructor_conflict(self):
-        """Compute instructor conflict (checking Schedule Only)."""
+        """Compute instructor conflict (checking Schedule Only).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         buffer = self._get_buffer_timedelta()
 
         for record in self:
@@ -459,7 +540,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('aircraft_id', 'start_datetime', 'end_datetime')
     def _compute_aircraft_conflict(self):
-        """Compute aircraft conflict (checking Schedule Only)."""
+        """Compute aircraft conflict (checking Schedule Only).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         buffer = self._get_buffer_timedelta()
 
         for record in self:
@@ -493,7 +578,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('has_instructor_conflict', 'has_aircraft_conflict')
     def _compute_has_any_conflict(self):
-        """Compute if there is any conflict."""
+        """Compute if there is any conflict.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.has_any_conflict = record.has_instructor_conflict or record.has_aircraft_conflict
 
@@ -501,7 +590,14 @@ class FsScheduledFlight(models.Model):
 
     @api.constrains('route_id', 'is_sim')
     def _check_route_required(self):
-        """Route/Area is required for all non-simulator flights."""
+        """Route/Area is required for all non-simulator flights.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if not record.is_sim and not record.route_id:
                 raise ValidationError(record.env._(
@@ -513,7 +609,11 @@ class FsScheduledFlight(models.Model):
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
-        """Smart assignment when Pilot 1 crew member is selected."""
+        """Smart assignment when Pilot 1 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         pilot1_crew = self.pilot1_crew_id
         if not pilot1_crew:
             return
@@ -550,7 +650,11 @@ class FsScheduledFlight(models.Model):
 
     @api.onchange('pilot2_crew_id')
     def _onchange_pilot2_crew(self):
-        """Smart assignment when Pilot 2 crew member is selected."""
+        """Smart assignment when Pilot 2 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot2_crew_id:
             member_type = self.pilot2_crew_id.member_type  # type: ignore
             if member_type == 'student':
@@ -562,7 +666,11 @@ class FsScheduledFlight(models.Model):
 
     @api.onchange('flight_category')
     def _onchange_flight_category(self):
-        """Handle category change: clear and reset crew fields."""
+        """Handle category change: clear and reset crew fields.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.flight_category == 'student_training':
             self.activity_id = False
             self.custom_activity_id = False
@@ -586,7 +694,11 @@ class FsScheduledFlight(models.Model):
 
     @api.onchange('pilot1_function')
     def _onchange_pilot1_function(self):
-        """Handle function changes - update Pilot 2 accordingly."""
+        """Handle function changes - update Pilot 2 accordingly.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot1_function == 'solo':
             if self.pilot2_crew_id:
                 self.pilot2_function = 'supervisor'
@@ -595,6 +707,11 @@ class FsScheduledFlight(models.Model):
 
     @api.onchange('mission_id')
     def _onchange_mission_id(self):
+        """Update form values when mission id changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.mission_id:
             self.duration = self.mission_id.duration_hours  # type: ignore
             self.custom_activity_id = False
@@ -607,11 +724,21 @@ class FsScheduledFlight(models.Model):
 
     @api.onchange('activity_id')
     def _onchange_activity_id(self):
+        """Update form values when activity id changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.activity_id:
             self.custom_activity_id = False
 
     @api.onchange('custom_activity_id')
     def _onchange_custom_activity(self):
+        """Update form values when custom activity changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.custom_activity_id:
             self.duration = self.custom_activity_id.default_duration  # type: ignore
             self.mission_id = False
@@ -621,6 +748,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('start_time', 'duration')
     def _compute_end_time(self):
+        """Compute end time values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.end_time = record.start_time + record.duration
 
@@ -630,6 +762,9 @@ class FsScheduledFlight(models.Model):
 
         Using timedeltas keeps the computation safe when rounded minutes reach the
         next hour or when the flight duration crosses midnight.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
             if record.date:
@@ -645,6 +780,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('mission_id', 'mission_id.is_sim', 'activity_id', 'activity_id.is_sim')
     def _compute_is_sim_flag(self):
+        """Compute is sim flag values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.mission_id:
                 record.is_sim = record.mission_id.is_sim  # type: ignore
@@ -655,6 +795,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('mission_id', 'activity_id', 'custom_activity_id')
     def _compute_discipline(self):
+        """Compute discipline values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.mission_id:
                 record.discipline_id = record.mission_id.discipline_id  # type: ignore
@@ -665,6 +810,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('date')
     def _compute_date_parts(self):
+        """Compute date parts values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.date:
                 record.date_year = record.date.strftime('%Y')
@@ -679,21 +829,45 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _read_group_instructor_ids(self, _instructors, _domain):
-        """Expand all eligible instructors in timeline grouping."""
+        """Expand all eligible instructors in timeline grouping.
+
+        Args:
+            _instructors: Value supplied by Odoo or the calling workflow.
+            _domain: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         return self.env['fs.instructor'].search([
             ('has_expired_qualification', '=', False),
         ])
 
     @api.model
     def _read_group_aircraft_ids(self, _aircraft, _domain):
-        """Expand all airworthy aircraft in timeline grouping."""
+        """Expand all airworthy aircraft in timeline grouping.
+
+        Args:
+            _aircraft: Value supplied by Odoo or the calling workflow.
+            _domain: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         return self.env['fs.aircraft'].search([
             ('is_airworthy', '=', True),
         ])
 
     @api.model
     def get_timeline_groups(self, grouped_field, domain=None):
-        """Return all resources for timeline grouping with rich display names."""
+        """Return all resources for timeline grouping with rich display names.
+
+        Args:
+            grouped_field: Value supplied by Odoo or the calling workflow.
+            domain: Odoo domain limiting the records considered by the operation.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         if grouped_field == 'aircraft_id':
             return self._get_aircraft_timeline_groups(domain)
         if grouped_field == 'pilot2_crew_id':
@@ -702,7 +876,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _get_aircraft_timeline_groups(self, domain=None):
-        """Return aircraft groups for the timeline view."""
+        """Return aircraft groups for the timeline view.
+
+        Args:
+            domain: Odoo domain limiting the records considered by the operation.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+        """
         records = self.env['fs.aircraft'].search(
             self._get_timeline_aircraft_domain(domain)
         )
@@ -716,7 +897,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _get_timeline_aircraft_domain(self, domain=None):
-        """Build the aircraft domain based on active simulator filters."""
+        """Build the aircraft domain based on active simulator filters.
+
+        Args:
+            domain: Odoo domain limiting the records considered by the operation.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         hide_sim = False
         sim_only = False
 
@@ -738,7 +926,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _format_aircraft_timeline_name(self, aircraft):
-        """Return rich HTML for an aircraft timeline group."""
+        """Return rich HTML for an aircraft timeline group.
+
+        Args:
+            aircraft: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            str: Formatted display value.
+        """
         maintenance_status = aircraft.maintenance_status or 'ok'  # type: ignore
         color_class = 'bg-success'
         if maintenance_status == 'overdue':
@@ -771,7 +966,11 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _get_crew_timeline_groups(self):
-        """Return instructor and pilot groups for the timeline view."""
+        """Return instructor and pilot groups for the timeline view.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+        """
         records = self.env['fs.crew.member'].search([
             ('member_type', 'in', ['instructor', 'pilot']),
         ])
@@ -785,7 +984,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _format_crew_timeline_name(self, crew_member):
-        """Return rich HTML for a crew member timeline group."""
+        """Return rich HTML for a crew member timeline group.
+
+        Args:
+            crew_member: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            str: Formatted display value.
+        """
         ident = crew_member.name or "Unknown"  # type: ignore
         role_label = "Instructor" if crew_member.member_type == 'instructor' else "Pilot"  # type: ignore
         image_url = "/web/static/img/placeholder.png"
@@ -816,7 +1022,14 @@ class FsScheduledFlight(models.Model):
 
     @staticmethod
     def _format_timeline_hours(hours_float):
-        """Format a float hour value as HH:MM for timeline badges."""
+        """Format a float hour value as HH:MM for timeline badges.
+
+        Args:
+            hours_float: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            str: Formatted display value.
+        """
         if not hours_float:
             return "00:00"
         hours = int(hours_float)
@@ -826,7 +1039,11 @@ class FsScheduledFlight(models.Model):
     # === Helpers ===
 
     def _default_date(self):
-        """Default to next working day (Mon-Fri)."""
+        """Default to next working day (Mon-Fri).
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         today = fields.Date.context_today(self)
         next_day = today + timedelta(days=1)
         while next_day.weekday() >= 5:
@@ -834,7 +1051,14 @@ class FsScheduledFlight(models.Model):
         return next_day
 
     def write(self, vals):
-        """Handle timeline drag/drop by converting datetime fields to date + start_time."""
+        """Handle timeline drag/drop by converting datetime fields to date + start_time.
+
+        Args:
+            vals: Field values to write or create, following Odoo ORM conventions.
+
+        Returns:
+            bool: True when Odoo successfully writes the requested values.
+        """
         if 'start_datetime' in vals and vals['start_datetime']:
             start_dt = vals['start_datetime']
             if isinstance(start_dt, str):
@@ -863,6 +1087,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create records while applying module-specific defaults and side effects.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         for vals in vals_list:
             if not vals.get('callsign') or vals.get('callsign') == '/':
                 vals['callsign'] = self._generate_next_callsign(
@@ -873,7 +1105,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def _is_sim_callsign_context(self, vals):
-        """Infer whether a new scheduled flight needs a simulator callsign."""
+        """Infer whether a new scheduled flight needs a simulator callsign.
+
+        Args:
+            vals: Field values to write or create, following Odoo ORM conventions.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         mission_id = vals.get('mission_id')
         if mission_id:
             mission = self.env['fs.flight.mission'].browse(mission_id)
@@ -887,13 +1126,25 @@ class FsScheduledFlight(models.Model):
         return False
 
     def _generate_next_callsign(self, date=False, is_sim=False):
-        """Generate the next callsign using the shared mixin rules."""
+        """Generate the next callsign using the shared mixin rules.
+
+        Args:
+            date: Value supplied by Odoo or the calling workflow.
+            is_sim: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         reference_date = fields.Date.to_date(date) if date else None
         get_next_callsign = getattr(self, '_get_next_callsign')
         return get_next_callsign(is_sim=is_sim, date=reference_date)
 
     def check_conflicts(self):
-        """Check for resource conflicts with 15-min buffer (Schedule Only)."""
+        """Check for resource conflicts with 15-min buffer (Schedule Only).
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         self.ensure_one()
         if not self.start_datetime or not self.end_datetime:
             return []

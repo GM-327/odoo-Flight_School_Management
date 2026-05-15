@@ -1,11 +1,35 @@
 # -*- coding: utf-8 -*-
 # Part of Flight School Management System
 
+"""Flight School Settings fs department module.
+
+Purpose:
+    Defines classes FsDepartment for central settings, shared security groups, departments, and base configuration records.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: base, base_setup, auth_signup.
+    All Flight School addons consume the groups, menu roots, and shared settings defined here.
+"""
 from odoo import fields, models
 
 
 class FsDepartment(models.Model):
-    """Departments within the Flight School."""
+    """Departments within the Flight School.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.department``.
+        _description (str): Human-readable model label, ``Flight School Department``.
+
+    Related:
+        All Flight School addons consume the groups, menu roots, and shared settings defined here.
+    """
 
     _name = 'fs.department'
     _description = 'Flight School Department'

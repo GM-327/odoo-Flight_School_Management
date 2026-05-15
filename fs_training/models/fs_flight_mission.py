@@ -2,12 +2,37 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs flight mission module.
+
+Purpose:
+    Defines classes FsFlightMission for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 import re
 from odoo import api, fields, models
 
 
 class FsFlightMission(models.Model):
-    """Syllabus flight missions for class types."""
+    """Syllabus flight missions for class types.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.flight.mission``.
+        _description (str): Human-readable model label, ``Flight Mission``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.flight.mission'
     _description = 'Flight Mission'
@@ -90,7 +115,11 @@ class FsFlightMission(models.Model):
 
     @api.depends('activity_id', 'discipline_id')
     def _compute_duration_hours(self):
-        """Default duration from discipline."""
+        """Default duration from discipline.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.discipline_id and not record.duration_hours:
                 record.duration_hours = record.discipline_id.default_flight_duration  # type: ignore
@@ -99,12 +128,20 @@ class FsFlightMission(models.Model):
 
     @api.onchange('activity_id')
     def _onchange_activity_id(self):
-        """Update duration from discipline when activity is changed."""
+        """Update duration from discipline when activity is changed.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.activity_id and self.activity_id.discipline_id:  # type: ignore
             self.duration_hours = self.activity_id.discipline_id.default_flight_duration  # type: ignore
 
     def action_duplicate_mission(self):
-        """Duplicate mission with incremented name and sequence."""
+        """Duplicate mission with incremented name and sequence.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         current_name = self.name or ""
         match = re.search(r'(\d+)$', current_name)

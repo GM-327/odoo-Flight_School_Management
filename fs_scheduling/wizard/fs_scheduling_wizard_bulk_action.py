@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs scheduling wizard bulk action module.
+
+Purpose:
+    Defines classes FsSchedulingWizardBulkAction for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -10,7 +23,19 @@ _logger = logging.getLogger(__name__)
 
 
 class FsSchedulingWizardBulkAction(models.TransientModel):
-    """Wizard for bulk actions on scheduling wizard lines."""
+    """Wizard for bulk actions on scheduling wizard lines.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.scheduling.wizard.bulk.action``.
+        _description (str): Human-readable model label, ``Scheduling Wizard Bulk Action``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
+    """
 
     _name = 'fs.scheduling.wizard.bulk.action'
     _description = 'Scheduling Wizard Bulk Action'
@@ -66,6 +91,11 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
 
     @api.depends('action_type')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         action_labels = {
             'route': 'Bulk Assign Route',
             'aircraft_type': 'Bulk Assign Aircraft Type',
@@ -76,7 +106,14 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
             rec.display_name = action_labels.get(action_key, 'Bulk Action')
 
     def action_apply(self):
-        """Apply the bulk action to the wizard lines."""
+        """Apply the bulk action to the wizard lines.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
 
         if self.action_type == 'route':
@@ -89,7 +126,14 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         raise UserError(_("Unknown action type."))
 
     def _apply_route_assignment(self):
-        """Assign route to wizard lines."""
+        """Assign route to wizard lines.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         if not self.route_id:
             raise UserError(_("Please select a route to assign."))
 
@@ -115,7 +159,14 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def _apply_aircraft_type_assignment(self):
-        """Assign aircraft type to wizard lines."""
+        """Assign aircraft type to wizard lines.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         if not self.aircraft_type_id:
             raise UserError(_("Please select an aircraft type to assign."))
 
@@ -145,7 +196,14 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def _apply_add_mission(self):
-        """Mark lines as ADD missions (excludes SIM sessions)."""
+        """Mark lines as ADD missions (excludes SIM sessions).
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         wizard = self.wizard_id
         # Exclude SIM sessions - they don't use ADD concept
         lines = wizard.line_ids.filtered(lambda l: not l.is_added_mission and not l.is_sim)  # type: ignore
@@ -166,5 +224,9 @@ class FsSchedulingWizardBulkAction(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def action_cancel(self):
-        """Cancel and return to the wizard."""
+        """Cancel and return to the wizard.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return self.wizard_id._reopen_wizard()  # type: ignore

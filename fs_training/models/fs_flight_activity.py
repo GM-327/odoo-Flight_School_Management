@@ -2,11 +2,36 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs flight activity module.
+
+Purpose:
+    Defines classes FsFlightActivity for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from odoo import api, fields, models
 
 
 class FsFlightActivity(models.Model):
-    """Pair of Flight Discipline and Flight Type (e.g., MAN-SOLO, NAV-DUAL)."""
+    """Pair of Flight Discipline and Flight Type (e.g., MAN-SOLO, NAV-DUAL).
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.flight.activity``.
+        _description (str): Human-readable model label, ``Flight Activity``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.flight.activity'
     _description = 'Flight Activity'
@@ -53,6 +78,11 @@ class FsFlightActivity(models.Model):
     @api.depends('discipline_id.name', 'discipline_id.code',
                  'flight_type_id.name', 'flight_type_id.code')
     def _compute_name_and_code(self):
+        """Compute name and code values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             discipline_name = record.discipline_id['name'] or ''
             flight_type_name = record.flight_type_id['name'] or ''
@@ -63,5 +93,10 @@ class FsFlightActivity(models.Model):
             record.code = f"{discipline_code}-{flight_type_code}"
 
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.display_name = record.code or record.name

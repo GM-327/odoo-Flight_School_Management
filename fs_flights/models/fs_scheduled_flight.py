@@ -2,12 +2,38 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs scheduled flight module.
+
+Purpose:
+    Defines classes FsScheduledFlight for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from datetime import datetime, timedelta
 
 from odoo import _, api, fields, models
 
 
 class FsScheduledFlight(models.Model):
+    """Odoo model for fs scheduled flight.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.scheduled.flight``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.scheduled.flight']``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
+    """
     _name = 'fs.scheduled.flight'
     _inherit = ['fs.scheduled.flight']
 
@@ -15,7 +41,14 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def action_publish_day(self, date=None):
-        """Publish scheduled flights for the date to fs.flight (Batch)."""
+        """Publish scheduled flights for the date to fs.flight (Batch).
+
+        Args:
+            date: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         if not date:
             date = fields.Date.context_today(self)
 
@@ -62,7 +95,11 @@ class FsScheduledFlight(models.Model):
 
     @api.model
     def cron_publish_today(self):
-        """Daily cron job to publish today's flights."""
+        """Daily cron job to publish today's flights.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.action_publish_day()
 
     linked_flight_id = fields.Many2one(
@@ -75,7 +112,11 @@ class FsScheduledFlight(models.Model):
     # === Conflict Warning Overrides ===
 
     def _get_active_flight_buffer(self):
-        """Helper to get buffer."""
+        """Helper to get buffer.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         buffer_min = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.scheduling_buffer_minutes', '15'
         ))
@@ -83,7 +124,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('pilot2_crew_id', 'start_datetime', 'end_datetime')
     def _compute_instructor_conflict(self):
-        """Extend to check Active Flight Conflicts."""
+        """Extend to check Active Flight Conflicts.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # 1. Run super to check Schedule vs Schedule conflicts
         super()._compute_instructor_conflict()  # type: ignore
 
@@ -131,7 +176,11 @@ class FsScheduledFlight(models.Model):
 
     @api.depends('aircraft_id', 'start_datetime', 'end_datetime')
     def _compute_aircraft_conflict(self):
-        """Extend to check Active Flight Conflicts."""
+        """Extend to check Active Flight Conflicts.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # 1. Run super
         super()._compute_aircraft_conflict()  # type: ignore
 

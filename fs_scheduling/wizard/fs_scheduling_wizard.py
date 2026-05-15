@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs scheduling wizard module.
+
+Purpose:
+    Defines classes FsSchedulingWizard for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 import logging
 from datetime import timedelta, datetime
 from odoo import api, fields, models, _
@@ -11,7 +24,19 @@ _logger = logging.getLogger(__name__)
 
 
 class FsSchedulingWizard(models.TransientModel):
-    """Multi-step wizard for batch scheduling of flight missions."""
+    """Multi-step wizard for batch scheduling of flight missions.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.scheduling.wizard``.
+        _description (str): Human-readable model label, ``Scheduling Wizard``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
+    """
 
     _name = 'fs.scheduling.wizard'
     _description = 'Scheduling Wizard'
@@ -21,6 +46,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     @api.depends('date', 'state')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         state_labels = {'step1': 'Selection', 'step2': 'Review & Reorder', 'step3': 'Confirm'}
         for wizard in self:
             date_str = wizard.date.strftime('%d/%m/%Y') if wizard.date else 'New'
@@ -36,6 +66,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     # === Step 1: Basic Parameters ===
     def _default_date(self):
+        """Return the default date value.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         today = fields.Date.context_today(self)
         next_day = today + timedelta(days=1)
         while next_day.weekday() >= 5:
@@ -150,13 +185,22 @@ class FsSchedulingWizard(models.TransientModel):
 
     @api.depends('line_ids')
     def _compute_counts(self):
+        """Compute counts values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for wizard in self:
             wizard.total_count = len(wizard.line_ids)
             wizard.selected_count = len(wizard.line_ids)  # All lines are selected (delete to remove)
 
     @api.depends('line_ids', 'line_ids.duration', 'line_ids.pilot2_crew_id', 'line_ids.aircraft_id')
     def _compute_summary_stats(self):
-        """Compute summary statistics for the schedule."""
+        """Compute summary statistics for the schedule.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for wizard in self:
             lines = wizard.line_ids
             wizard.total_flight_hours = sum(lines.mapped('duration'))
@@ -166,7 +210,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     @api.depends('line_ids', 'line_ids.pilot1_crew_id')
     def _compute_student_double_booking_warning(self):
-        """Check if any student is scheduled more than once (warning only)."""
+        """Check if any student is scheduled more than once (warning only).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for wizard in self:
             student_flights = {}
             warning_lines = []
@@ -196,7 +244,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     @api.depends('line_ids', 'line_ids.is_exam', 'line_ids.pilot2_crew_id', 'line_ids.mission_id', 'line_ids.custom_activity_id')
     def _compute_has_pending_examinator_warning(self):
-        """Check if any exam flight is missing an examinator qualification."""
+        """Check if any exam flight is missing an examinator qualification.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for wizard in self:
             warning_lines = []
             for line in wizard.line_ids:
@@ -222,7 +274,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     def _default_next_callsign_number(self):
         """Get next aircraft callsign number based on actual flights for the current year.
-        Seeks for the last used number (done or cancelled) below the add-mission threshold."""
+        Seeks for the last used number (done or cancelled) below the add-mission threshold.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         ICP = self.env['ir.config_parameter'].sudo()
         prefix = ICP.get_param('flight_school.mission_callsign_prefix', 'ABS')  # type: ignore
         threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
@@ -253,7 +309,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     def _get_next_sim_callsign_number(self):
         """Get next simulator callsign number based on actual flights for the current year.
-        Seeks for the last used SIM number (done or cancelled)."""
+        Seeks for the last used SIM number (done or cancelled).
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         # Get current year for filtering
         today = fields.Date.context_today(self)
         year_start = today.replace(month=1, day=1)
@@ -279,7 +339,11 @@ class FsSchedulingWizard(models.TransientModel):
 
     # === Step Navigation ===
     def action_next_step(self):
-        """Move to next step."""
+        """Move to next step.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.state == 'step1':
             self._generate_schedule_lines()
@@ -294,7 +358,11 @@ class FsSchedulingWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def _show_examinator_warning_dialog(self):
-        """Show a confirmation dialog for examinator warnings."""
+        """Show a confirmation dialog for examinator warnings.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         return {
             'type': 'ir.actions.act_window',
             'name': _('⚠️ Examinator Qualification Warning'),
@@ -307,7 +375,11 @@ class FsSchedulingWizard(models.TransientModel):
         }
 
     def action_confirm_examinator_warning(self):
-        """User confirmed to proceed despite examinator warnings."""
+        """User confirmed to proceed despite examinator warnings.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         self.examinator_warning_confirmed = True
         self._assign_schedule_details()
@@ -315,12 +387,20 @@ class FsSchedulingWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def action_cancel_examinator_warning(self):
-        """User chose to go back and fix the examinator issues."""
+        """User chose to go back and fix the examinator issues.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return self._reopen_wizard()
 
     def action_previous_step(self):
-        """Move to previous step."""
+        """Move to previous step.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.state == 'step2':
             self.state = 'step1'
@@ -331,7 +411,11 @@ class FsSchedulingWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def action_add_mission(self):
-        """Open a form view to add a new mission (wizard line) for scheduling."""
+        """Open a form view to add a new mission (wizard line) for scheduling.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         # Get max sequence for new line
         max_seq = max(self.line_ids.mapped('sequence'), default=0) + 1
@@ -351,7 +435,11 @@ class FsSchedulingWizard(models.TransientModel):
         }
 
     def _reopen_wizard(self):
-        """Reopen the wizard to refresh the view."""
+        """Reopen the wizard to refresh the view.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         return {
             'type': 'ir.actions.act_window',
             'res_model': self._name,
@@ -364,7 +452,14 @@ class FsSchedulingWizard(models.TransientModel):
     # === Step 1 -> Step 2: Generate Lines ===
     def _generate_schedule_lines(self):
         """Generate scheduling lines based on selected students and instructors.
-        Times and aircraft are NOT assigned here - they are assigned in Step 3."""
+        Times and aircraft are NOT assigned here - they are assigned in Step 3.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         _logger.info("Generating schedule lines for date %s by user %s", self.date, self.env.user.name)  # type: ignore
         if not self.selected_enrollment_ids:
             raise UserError(_("Please select at least one student to schedule."))
@@ -491,7 +586,17 @@ class FsSchedulingWizard(models.TransientModel):
         self.line_ids = lines
 
     def _find_available_slot(self, resource_id, busy_map, min_start, duration):
-        """Find the earliest available time slot for a resource."""
+        """Find the earliest available time slot for a resource.
+
+        Args:
+            resource_id: Identifier of the crew member or aircraft resource to check.
+            busy_map: Mapping of resource identifiers to occupied time intervals.
+            min_start: Earliest candidate start time, expressed as float hours.
+            duration: Flight or session duration, expressed as float hours.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         if not resource_id or resource_id not in busy_map:
             return min_start
 
@@ -506,7 +611,17 @@ class FsSchedulingWizard(models.TransientModel):
         return current_time
 
     def _is_slot_available(self, resource_id, busy_map, start_time, duration):
-        """Check if a time slot is available for a resource."""
+        """Check if a time slot is available for a resource.
+
+        Args:
+            resource_id: Identifier of the crew member or aircraft resource to check.
+            busy_map: Mapping of resource identifiers to occupied time intervals.
+            start_time: Candidate start time, expressed as float hours.
+            duration: Flight or session duration, expressed as float hours.
+
+        Returns:
+            bool: True or False according to the validation or lookup result.
+        """
         if not resource_id or resource_id not in busy_map:
             return True
 
@@ -518,7 +633,14 @@ class FsSchedulingWizard(models.TransientModel):
 
     # === Step 2 -> Step 3: Validation ===
     def _validate_before_confirm(self):
-        """Validate lines before assigning schedule details."""
+        """Validate lines before assigning schedule details.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         if not self.line_ids:
             raise UserError(_("No flights to schedule. Please go back and add students."))
 
@@ -579,6 +701,9 @@ class FsSchedulingWizard(models.TransientModel):
         Each group has its own callsign sequence:
         - Aircraft: Uses main callsign prefix (e.g., ABS0001)
         - Simulators: Uses SIM prefix (e.g., SIM0001)
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators
         # Within each group, order by instructor callsign/name then sequence
@@ -603,7 +728,9 @@ class FsSchedulingWizard(models.TransientModel):
         ))  # type: ignore
         buffer_hours = buffer_minutes / 60.0
 
-        # Build occupancy maps
+        # Busy maps are keyed by resource ID and store occupied float-hour
+        # intervals with the configured buffer already included. This avoids
+        # repeated database searches while assigning a whole batch.
         crew_busy = {}
         aircraft_busy = {}
 
@@ -652,8 +779,10 @@ class FsSchedulingWizard(models.TransientModel):
                     duration
                 ))
 
-            # Re-verify the found start_time works for both (because pushing it for one might conflict with the other)
-            # This is a simple iterative convergence
+            # Re-run crew checks until both Pilot 1 and Pilot 2 are free at
+            # the same candidate time. Moving the slot to satisfy one crew
+            # member can collide with the other, so the loop converges on the
+            # earliest mutually available interval and is capped defensively.
             valid_time_found = False
             convergence_attempts = 0
             max_convergence_attempts = 50  # Prevent infinite loop
@@ -695,8 +824,9 @@ class FsSchedulingWizard(models.TransientModel):
 
             available_aircraft = self.env['fs.aircraft'].search(domain)  # type: ignore
 
-            # Find a time slot where BOTH instructor AND aircraft are available
-            # Keep incrementing time until we find a slot where both are free
+            # Find a time slot where crew and aircraft are available. Aircraft
+            # assignment is checked after crew convergence because moving to the
+            # next aircraft slot may reintroduce a crew conflict.
             last_end = self.last_end_time or 15.75  # Default 15:45
             max_attempts = 100  # Prevent infinite loop
             attempt = 0
@@ -707,8 +837,7 @@ class FsSchedulingWizard(models.TransientModel):
                     aircraft_assignment_failed = True
                     break
 
-                # Check if any aircraft is available at current start_time
-                # Check if any aircraft is available at current start_time
+                # Check each candidate aircraft at the current start time.
                 for aircraft in available_aircraft:
                     if self._is_slot_available(aircraft.id, aircraft_busy, start_time, duration):
                         # Check crew member (instructor/pilot) is also available at this time
@@ -783,6 +912,9 @@ class FsSchedulingWizard(models.TransientModel):
         """Reschedule unlocked lines (time only): preserves aircraft assignments,
         but respects them as scheduling constraints so overlapping aircraft slots
         are correctly staggered.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
         sorted_lines = self.line_ids.sorted(key=lambda l: (
@@ -954,6 +1086,9 @@ class FsSchedulingWizard(models.TransientModel):
 
         Locked lines keep their assigned time, aircraft, and callsign.
         Unlocked lines are rescheduled around the locked constraints.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
         """
         # Sort lines: Normal Aircraft -> ADD Missions -> Simulators, order by instructor then sequence
         sorted_lines = self.line_ids.sorted(key=lambda l: (
@@ -1160,7 +1295,14 @@ class FsSchedulingWizard(models.TransientModel):
 
     # === Step 3: Final Scheduling ===
     def action_schedule(self):
-        """Create the scheduled flights."""
+        """Create the scheduled flights.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         if not self.line_ids:
             raise UserError(_("No flights to schedule."))
@@ -1212,14 +1354,25 @@ class FsSchedulingWizard(models.TransientModel):
 
     # === Helper Methods ===
     def _format_time(self, time_float):
-        """Convert float time to HH:MM string."""
+        """Convert float time to HH:MM string.
+
+        Args:
+            time_float: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            str: Formatted display value.
+        """
         hours = int(time_float)
         minutes = int((time_float - hours) * 60)
         return f"{hours:02d}:{minutes:02d}"
 
     # === Reset / Undo Actions ===
     def action_reset(self):
-        """Reset wizard to step 1 with cleared lines."""
+        """Reset wizard to step 1 with cleared lines.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         _logger.info("Wizard reset by user %s", self.env.user.name)  # type: ignore
         self.line_ids.unlink()
@@ -1229,7 +1382,14 @@ class FsSchedulingWizard(models.TransientModel):
 
     # === Bulk Actions ===
     def action_bulk_assign_route(self):
-        """Open wizard to bulk assign route to lines without route."""
+        """Open wizard to bulk assign route to lines without route.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         lines_without_route = self.line_ids.filtered(lambda l: not l.route_id and not l.is_sim)  # type: ignore
         if not lines_without_route:
@@ -1249,7 +1409,14 @@ class FsSchedulingWizard(models.TransientModel):
         }
 
     def action_bulk_mark_add(self):
-        """Mark all selected lines as ADD (added mission)."""
+        """Mark all selected lines as ADD (added mission).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         # Get lines that are not already marked as ADD
         lines_to_mark = self.line_ids.filtered(lambda l: not l.is_added_mission)  # type: ignore
@@ -1270,7 +1437,11 @@ class FsSchedulingWizard(models.TransientModel):
         }
 
     def action_bulk_assign_aircraft_type(self):
-        """Open wizard to bulk assign aircraft type to lines."""
+        """Open wizard to bulk assign aircraft type to lines.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',

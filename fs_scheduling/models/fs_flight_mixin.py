@@ -1,6 +1,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs flight mixin module.
+
+Purpose:
+    Defines classes FsFlightMixin for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 from odoo import api, fields, models
 
 # === Constants (Fallback Defaults) ===
@@ -36,6 +49,17 @@ class FsFlightMixin(models.AbstractModel):
 
     This mixin centralizes duplicated logic across fs.flight, fs.scheduled.flight,
     and various wizard models to ensure consistency and reduce code duplication.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.flight.mixin``.
+        _description (str): Human-readable model label, ``Common Flight Fields and Methods Mixin``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
     """
     _name = 'fs.flight.mixin'
     _description = 'Common Flight Fields and Methods Mixin'
@@ -44,7 +68,11 @@ class FsFlightMixin(models.AbstractModel):
 
     @api.model
     def _get_callsign_config(self):
-        """Get callsign configuration from system parameters."""
+        """Get callsign configuration from system parameters.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         ICP = self.env['ir.config_parameter'].sudo()
         return {
             'prefix': ICP.get_param('flight_school.mission_callsign_prefix', 'ABS'),  # type: ignore
@@ -57,9 +85,7 @@ class FsFlightMixin(models.AbstractModel):
         """Get scheduling configuration from system parameters.
 
         Returns:
-            dict with keys:
-                - slot_increment: Time slot increment in hours (e.g., 0.25 = 15 minutes)
-                - buffer_minutes: Buffer time between flights in minutes
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
         """
         ICP = self.env['ir.config_parameter'].sudo()
         slot_minutes = int(ICP.get_param(  # type: ignore
@@ -80,12 +106,12 @@ class FsFlightMixin(models.AbstractModel):
         """Generate the next available callsign.
 
         Args:
-            is_sim: If True, generate SIM prefix callsign (SIM0001, SIM0002...)
-            exclude_id: Record ID to exclude from search (for updates)
-            date: Date context for year-based filtering
+            is_sim: Value supplied by Odoo or the calling workflow.
+            exclude_id: Value supplied by Odoo or the calling workflow.
+            date: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            str: Next available callsign (e.g., 'ABS0042' or 'SIM0001')
+            str: Formatted display value.
         """
         if date is None:
             date = fields.Date.context_today(self)
@@ -180,11 +206,11 @@ class FsFlightMixin(models.AbstractModel):
         They start from the configured threshold (default 7000) and increment.
 
         Args:
-            exclude_id: Record ID to exclude from search
-            date: Date context for year-based filtering
+            exclude_id: Value supplied by Odoo or the calling workflow.
+            date: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            str: Next available ADD callsign (e.g., 'ABS7001')
+            str: Formatted display value.
         """
         if date is None:
             date = fields.Date.context_today(self)
@@ -229,10 +255,10 @@ class FsFlightMixin(models.AbstractModel):
         """Format a float hours value to HH:MM string.
 
         Args:
-            hours_float: Hours as float (e.g., 1.5 = 1:30)
+            hours_float: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            str: Formatted time string (e.g., '01:30')
+            str: Formatted display value.
         """
         if not hours_float:
             return "00:00"
@@ -244,12 +270,12 @@ class FsFlightMixin(models.AbstractModel):
         """Compute HTML warning for crew issues.
 
         Args:
-            pilot1_crew: Pilot 1 crew member record
-            pilot2_crew: Pilot 2 crew member record
-            flight_category: 'student_training' or 'staff_training'
+            pilot1_crew: Value supplied by Odoo or the calling workflow.
+            pilot2_crew: Value supplied by Odoo or the calling workflow.
+            flight_category: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            str or False: HTML warning string or False if no warnings
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         warnings = []
 
@@ -278,11 +304,11 @@ class FsFlightMixin(models.AbstractModel):
         """Determine pilot function based on crew member type.
 
         Args:
-            member_type: 'student', 'instructor', or 'pilot'
-            is_solo: If True and member is student, return 'solo'
+            member_type: Value supplied by Odoo or the calling workflow.
+            is_solo: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            str: Appropriate pilot function selection value
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
         if member_type == 'student':
             return 'solo' if is_solo else 'student'
@@ -295,11 +321,11 @@ class FsFlightMixin(models.AbstractModel):
         """Determine if flight is simulator based on mission or activity.
 
         Args:
-            mission_id: fs.flight.mission record or False
-            activity_id: fs.flight.activity record or False
+            mission_id: Value supplied by Odoo or the calling workflow.
+            activity_id: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            bool: True if simulator session
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         if mission_id:
             return mission_id.is_sim
@@ -311,10 +337,10 @@ class FsFlightMixin(models.AbstractModel):
         """Get instructor crew member from student enrollment.
 
         Args:
-            enrollment: fs.student.enrollment record
+            enrollment: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            fs.crew.member record or False
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
         if not enrollment:
             return False

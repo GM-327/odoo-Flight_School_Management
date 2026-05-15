@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs initial experience module.
+
+Purpose:
+    Defines classes FsInitialExperience for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from odoo import api, fields, models
 
 
@@ -11,6 +24,17 @@ class FsInitialExperience(models.Model):
     This allows recording hours that were accumulated before the system
     was implemented, or hours from other flight schools/organizations.
     These hours are added to the running totals.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.initial.experience``.
+        _description (str): Human-readable model label, ``Initial Experience``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
     """
     _name = 'fs.initial.experience'
     _description = 'Initial Experience'
@@ -93,6 +117,11 @@ class FsInitialExperience(models.Model):
 
     @api.depends('person_type', 'instructor_id', 'pilot_id', 'student_id', 'entry_date')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             person_name = ''
             if record.person_type == 'instructor' and record.instructor_id:
@@ -109,7 +138,11 @@ class FsInitialExperience(models.Model):
 
     @api.onchange('person_type')
     def _onchange_person_type(self):
-        """Clear irrelevant person fields when type changes."""
+        """Clear irrelevant person fields when type changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.person_type != 'instructor':
             self.instructor_id = False
             self.initial_instruction_hours = 0.0
@@ -119,7 +152,11 @@ class FsInitialExperience(models.Model):
             self.student_id = False
 
     def _get_person(self):
-        """Get the linked person record."""
+        """Get the linked person record.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         self.ensure_one()
         if self.person_type == 'instructor':
             return self.instructor_id
@@ -130,7 +167,11 @@ class FsInitialExperience(models.Model):
         return False
 
     def action_apply_hours(self):
-        """Apply the initial hours to the person's totals."""
+        """Apply the initial hours to the person's totals.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         for record in self:
             if record.is_applied:
                 continue
@@ -159,7 +200,11 @@ class FsInitialExperience(models.Model):
             })
 
     def action_revert_hours(self):
-        """Revert the initial hours from the person's totals."""
+        """Revert the initial hours from the person's totals.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         for record in self:
             if not record.is_applied:
                 continue

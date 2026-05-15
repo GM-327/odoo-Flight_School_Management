@@ -1,6 +1,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People fs instructor module.
+
+Purpose:
+    Defines classes FsInstructor for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
@@ -9,7 +22,20 @@ from odoo import api, fields, models
 
 
 class FsInstructor(models.Model):
-    """Flight instructor in the flight school system."""
+    """Flight instructor in the flight school system.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.instructor``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.person']``.
+        _description (str): Human-readable model label, ``Flight Instructor``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
+    """
 
     _name = 'fs.instructor'
     _description = 'Flight Instructor'
@@ -34,6 +60,11 @@ class FsInstructor(models.Model):
 
     @api.depends('name', 'callsign')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         show_name = self.env.context.get('show_name_only', False)
         for record in self:
             if show_name:
@@ -73,7 +104,11 @@ class FsInstructor(models.Model):
 
     @api.depends('qualification_ids', 'qualification_ids.qualification_code', 'qualification_ids.expiry_status')
     def _compute_qualification_badges(self):
-        """Compute HTML badges for qualifications with status-based colors."""
+        """Compute HTML badges for qualifications with status-based colors.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         status_colors = {
             'valid': '#28a745',      # Green
             'expiring': '#ffc107',   # Yellow
@@ -95,7 +130,11 @@ class FsInstructor(models.Model):
             record.qualification_badges = ''.join(badges) if badges else ''
 
     def action_view_qualifications(self):
-        """Navigate to the detailed qualifications list in a popup."""
+        """Navigate to the detailed qualifications list in a popup.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Qualifications & Ratings',
@@ -132,7 +171,11 @@ class FsInstructor(models.Model):
     @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date',
                  'medical_expiry', 'english_expiry')
     def _compute_has_expired_qualification(self):
-        """Check if any qualification or status is expired and find the earliest expiry date."""
+        """Check if any qualification or status is expired and find the earliest expiry date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             # Check for expiration
             has_expired = (
@@ -182,7 +225,11 @@ class FsInstructor(models.Model):
 
     @api.depends('english_expiry')
     def _compute_english_status(self):
-        """Compute English proficiency status based on expiry date and warning period from settings."""
+        """Compute English proficiency status based on expiry date and warning period from settings.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -267,6 +314,9 @@ class FsInstructor(models.Model):
         """Compute monthly and 3-month rolling instruction hours.
 
         Uses calendar months for calculation (1st to last day of month).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         today = date.today()
         # Current month boundaries
@@ -316,7 +366,15 @@ class FsInstructor(models.Model):
             )
 
     def _is_instructor_on_flight(self, instructor, flight):
-        """Check if instructor was assigned with instructor function on flight."""
+        """Check if instructor was assigned with instructor function on flight.
+
+        Args:
+            instructor: Value supplied by Odoo or the calling workflow.
+            flight: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            bool: True or False according to the validation or lookup result.
+        """
         # Check P1
         if (flight.pilot1_crew_id and
             flight.pilot1_crew_id.source_model == 'fs.instructor' and
@@ -333,7 +391,11 @@ class FsInstructor(models.Model):
 
     @api.depends('hours_current_month', 'max_hours_per_month', 'hours_3months', 'max_hours_per_3months')
     def _compute_rolling_hours_status(self):
-        """Compute status based on percentage of max hours."""
+        """Compute status based on percentage of max hours.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             # Current Month Status
             if record.max_hours_per_month > 0:

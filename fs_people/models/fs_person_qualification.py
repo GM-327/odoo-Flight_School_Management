@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People fs person qualification module.
+
+Purpose:
+    Defines classes FsPersonQualification for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 from datetime import date, timedelta
 
 from odoo import api, fields, models
@@ -13,6 +26,17 @@ class FsPersonQualification(models.Model):
 
     This model links a person (instructor/pilot) to their qualifications
     with individual issue and expiry dates.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.person.qualification``.
+        _description (str): Human-readable model label, ``Person Qualification``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
     """
 
     _name = 'fs.person.qualification'
@@ -71,7 +95,14 @@ class FsPersonQualification(models.Model):
 
     @api.constrains('instructor_id', 'pilot_id', 'qualification_id')
     def _check_single_owner(self):
-        """Require each qualification to belong to exactly one person."""
+        """Require each qualification to belong to exactly one person.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             owner_count = int(bool(record.instructor_id)) + int(bool(record.pilot_id))
             if owner_count != 1:
@@ -81,7 +112,11 @@ class FsPersonQualification(models.Model):
 
     @api.depends('expiry_date')
     def _compute_expiry_status(self):
-        """Compute expiry status based on expiry date and warning period from settings."""
+        """Compute expiry status based on expiry date and warning period from settings.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.license_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -103,6 +138,9 @@ class FsPersonQualification(models.Model):
 
         The expiry date is set to the last day of the month after adding
         the validity period.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
             validity_months = record.qualification_id.validity_months

@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Initialize the Flight School Training models package.
+
+Purpose:
+    Imports models modules so Odoo can register their models, wizards, and extensions.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from . import fs_flight_discipline
 from . import fs_flight_type
 from . import fs_flight_activity

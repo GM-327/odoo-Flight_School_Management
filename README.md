@@ -306,13 +306,13 @@ ruff check .
 └── README.md                   # This file
 ```
 
-### AI Agent Development Support
+### Documentation and Automation Notes
 
-This project includes `AGENTS.md` with guidelines for AI coding assistants. When using AI tools:
+Each Flight School addon includes a `README.rst` with purpose, dependencies, public API notes, usage examples, and validation guidance. When using automation or AI tools:
 
-1. Refer to local Odoo 19 documentation first
-2. Follow existing code patterns
-3. Use the validation commands provided in AGENTS.md
+1. Refer to the relevant module `README.rst` and source docstrings first
+2. Follow existing Odoo 19 and Flight School code patterns
+3. Run syntax, documentation, and module validation checks before submitting changes
 
 ---
 
@@ -333,7 +333,7 @@ We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.
 - Follow [Odoo coding standards](https://www.odoo.com/documentation/19.0/contributing/development/coding_guidelines.html)
 - Write tests for new features
 - Update documentation as needed
-- Sign the [Contributor License Agreement](doc/cla/sign-cla.md)
+- Follow any Contributor License Agreement process communicated by the maintainers
 
 ---
 
@@ -376,7 +376,7 @@ the Free Software Foundation, either version 3 of the License, or
 ### Community Support
 
 - 📋 [GitHub Issues](https://github.com/GM-327/odoo-Flight_School_Management/issues) - Bug reports and feature requests
-- 💬 [GitHub Discussions](https://github.com/GM-327/odoo-Flight_School_Management/discussions) - Questions and community help
+- Use GitHub Issues for questions and community help until Discussions are enabled
 - 📖 [Wiki](https://github.com/GM-327/odoo-Flight_School_Management/wiki) - Documentation and guides
 
 

@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs document module.
+
+Purpose:
+    Defines classes FsDocument for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
@@ -12,6 +25,17 @@ class FsDocument(models.Model):
 
     Each document can have multiple versions. The current version
     contains the latest file, expiry date, issue date, and reference.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.document``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin']``.
+        _description (str): Human-readable model label, ``Document``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
     """
 
     _name = 'fs.document'
@@ -170,7 +194,11 @@ class FsDocument(models.Model):
 
     @api.depends('student_id', 'instructor_id', 'pilot_id', 'training_class_id', 'admin_task_id', 'class_type_id')
     def _compute_related_entity_info(self):
-        """Compute the name and type of the related entity for unified display."""
+        """Compute the name and type of the related entity for unified display.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             name = False
             etype = False
@@ -228,7 +256,17 @@ class FsDocument(models.Model):
         'training_class_id', 'admin_task_id', 'class_type_id'
     )
     def _check_single_related_entity(self):
-        """Require each document to belong to exactly one supported entity."""
+        """Require each document to belong to exactly one supported entity.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
+        # The document model uses explicit nullable Many2one fields instead
+        # of a generic reference so each target can have its own access rules
+        # and unique constraint. Exactly one of these fields must be populated.
         entity_fields = (
             'student_id', 'instructor_id', 'pilot_id',
             'training_class_id', 'admin_task_id', 'class_type_id',
@@ -242,7 +280,11 @@ class FsDocument(models.Model):
 
     @api.depends('document_type_id', 'document_type_id.name', 'admin_task_id', 'admin_task_id.name')
     def _compute_name(self):
-        """Document name = Admin Task name (for admin docs) or Document Type name."""
+        """Document name = Admin Task name (for admin docs) or Document Type name.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             name = ''
             if record.admin_task_id:
@@ -253,21 +295,35 @@ class FsDocument(models.Model):
 
     @api.depends('version_ids', 'version_ids.is_current')
     def _compute_current_version(self):
-        """Get the current version of the document."""
+        """Get the current version of the document.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             current = record.version_ids.filtered('is_current')
             record.current_version_id = current[:1]
 
     def _compute_version_count(self):
-        """Count the number of versions."""
+        """Count the number of versions.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.version_count = len(record.version_ids)
 
     @api.depends('expiry_date', 'document_type_id.has_expiry')
     def _compute_expiry_status(self):
-        """Compute expiry status using same logic as related model fields."""
+        """Compute expiry status using same logic as related model fields.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.document_warning_days', '30'))
+        # Use the user's context date so expiry warnings respect timezone and
+        # company context in scheduled actions and interactive sessions.
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
 
@@ -282,14 +338,25 @@ class FsDocument(models.Model):
                 record.expiry_status = 'valid'
 
     def write(self, vals):
-        """Sync expiry to related entity when changed."""
+        """Sync expiry to related entity when changed.
+
+        Args:
+            vals: Field values to write or create, following Odoo ORM conventions.
+
+        Returns:
+            bool: True when Odoo successfully writes the requested values.
+        """
         result = super().write(vals)
         if 'expiry_date' in vals or 'current_version_id' in vals:
             self.sync_expiry_to_related()
         return result
 
     def sync_expiry_to_related(self):
-        """Sync document expiry date to the related entity's field."""
+        """Sync document expiry date to the related entity's field.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             doc_type = record.document_type_id
             if not doc_type.expiry_field or not record.expiry_date:  # type: ignore
@@ -305,7 +372,11 @@ class FsDocument(models.Model):
                 related_entity.write({doc_type.expiry_field: record.expiry_date})  # type: ignore
 
     def action_view_versions(self):
-        """View version history for this document."""
+        """View version history for this document.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Document Versions',
@@ -320,6 +391,9 @@ class FsDocument(models.Model):
         """Open the upload wizard to add a new version.
 
         Prefills the wizard with current document data and skips to Step 2.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
         """
         self.ensure_one()
         return {
@@ -339,12 +413,12 @@ class FsDocument(models.Model):
         """Find existing document or create new one for entity.
 
         Args:
-            document_type_id: ID of fs.document.type
-            entity_field: field name like 'student_id', 'instructor_id', etc.
-            entity_id: ID of the related entity
+            document_type_id: Value supplied by Odoo or the calling workflow.
+            entity_field: Value supplied by Odoo or the calling workflow.
+            entity_id: Value supplied by Odoo or the calling workflow.
 
         Returns:
-            fs.document record (existing or newly created)
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
         domain = [
             ('document_type_id', '=', document_type_id),
@@ -364,6 +438,9 @@ class FsDocument(models.Model):
 
         Called from the Upload Document button in list/kanban views.
         Detects if we're coming from an entity-filtered view and opens the appropriate wizard.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
         """
         # Check for entity context keys
         context_keys = [
@@ -395,7 +472,11 @@ class FsDocument(models.Model):
         }
 
     def action_open_preview(self):
-        """Open a popup preview of the current version."""
+        """Open a popup preview of the current version.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Document Preview',

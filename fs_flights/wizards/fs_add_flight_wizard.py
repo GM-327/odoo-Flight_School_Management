@@ -1,6 +1,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs add flight wizard module.
+
+Purpose:
+    Defines classes FsAddFlightWizard, FsAddSimWizard for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from odoo import api, fields, models
 
 # Import shared constants through the Odoo addon namespace so module loading
@@ -12,7 +25,20 @@ from odoo.addons.fs_scheduling.models.fs_flight_mixin import (
 
 
 class FsAddFlightWizard(models.TransientModel):
-    """Wizard for adding new flights from operations board."""
+    """Wizard for adding new flights from operations board.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.add.flight.wizard``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.flight.mixin']``.
+        _description (str): Human-readable model label, ``Add Flight Wizard``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
+    """
 
     _name = 'fs.add.flight.wizard'
     _description = 'Add Flight Wizard'
@@ -48,6 +74,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.depends('start_time', 'duration')
     def _compute_eta(self):
+        """Compute eta values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.eta = record.start_time + record.duration
 
@@ -115,7 +146,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('flight_category')
     def _onchange_flight_category(self):
-        """Clear all relevant fields when category changes to ensure data consistency."""
+        """Clear all relevant fields when category changes to ensure data consistency.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.pilot1_crew_id = False
         self.pilot1_function = False
         self.pilot2_crew_id = False
@@ -130,7 +165,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
-        """Smart assignment when Pilot 1 crew member is selected."""
+        """Smart assignment when Pilot 1 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # Clear downstream fields to maintain integrity
         self.pilot2_crew_id = False
         self.pilot2_function = False
@@ -168,7 +207,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('pilot2_crew_id')
     def _onchange_pilot2_crew(self):
-        """Smart assignment when Pilot 2 crew member is selected."""
+        """Smart assignment when Pilot 2 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot2_crew_id:
             member_type = self.pilot2_crew_id.member_type  # type: ignore
             if member_type == 'student':
@@ -180,7 +223,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('mission_id')
     def _onchange_mission_id(self):
-        """Update duration and functions from mission."""
+        """Update duration and functions from mission.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.route_id = False
         if self.mission_id:
             self.duration = self.mission_id.duration_hours  # type: ignore
@@ -199,7 +246,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('activity_id')
     def _onchange_activity(self):
-        """Handle activity selection: clear custom_activity and update duration."""
+        """Handle activity selection: clear custom_activity and update duration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.activity_id:
             self.custom_activity_id = False
             if self.activity_id.discipline_id and self.activity_id.discipline_id.default_flight_duration:  # type: ignore
@@ -207,7 +258,11 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.onchange('custom_activity_id')
     def _onchange_custom_activity(self):
-        """Handle custom activity selection: clear activity_id and update duration."""
+        """Handle custom activity selection: clear activity_id and update duration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.custom_activity_id:
             self.activity_id = False
             self.mission_id = False
@@ -216,11 +271,21 @@ class FsAddFlightWizard(models.TransientModel):
 
     @api.depends('mission_id')
     def _compute_is_exam(self):
+        """Compute is exam values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.is_exam = record.mission_id.is_exam if record.mission_id else False  # type: ignore
 
     @api.depends('pilot1_crew_id', 'pilot2_crew_id', 'flight_category')
     def _compute_crew_warning(self):
+        """Compute crew warning values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             warnings = []
             if record.pilot1_crew_id:
@@ -250,7 +315,11 @@ class FsAddFlightWizard(models.TransientModel):
                 record.crew_warning = False
 
     def action_confirm(self):
-        """Create ad-hoc flight (fs.flight)."""
+        """Create ad-hoc flight (fs.flight).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
 
         # Prepare values for flight
@@ -289,7 +358,20 @@ class FsAddFlightWizard(models.TransientModel):
 
 
 class FsAddSimWizard(FsAddFlightWizard):
-    """Wizard for adding new simulator sessions from simulator operations board."""
+    """Wizard for adding new simulator sessions from simulator operations board.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.add.sim.wizard``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.add.flight.wizard']``.
+        _description (str): Human-readable model label, ``Add Simulator Session Wizard``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
+    """
 
     _name = 'fs.add.sim.wizard'
     _inherit = ['fs.add.flight.wizard']
@@ -323,5 +405,9 @@ class FsAddSimWizard(FsAddFlightWizard):
 
     @api.model
     def _get_next_sim_callsign(self):
-        """Generate the next available SIM callsign across flight records."""
+        """Generate the next available SIM callsign across flight records.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         return self._get_next_callsign(is_sim=True)

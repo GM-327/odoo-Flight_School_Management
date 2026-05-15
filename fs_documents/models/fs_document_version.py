@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs document version module.
+
+Purpose:
+    Defines classes FsDocumentVersion for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 import os
 import base64
 from odoo import api, fields, models
@@ -12,6 +25,16 @@ class FsDocumentVersion(models.Model):
 
     Each version has its own file, expiry date, issue date, and reference.
     When a new version is uploaded, it becomes the current version.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.document.version``.
+        _description (str): Human-readable model label, ``Document Version``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
     """
 
     _name = 'fs.document.version'
@@ -95,7 +118,11 @@ class FsDocumentVersion(models.Model):
 
     @api.depends('filename')
     def _compute_file_type(self):
-        """Detect file type from extension."""
+        """Detect file type from extension.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.tiff'}
         pdf_extensions = {'.pdf'}
 
@@ -113,7 +140,11 @@ class FsDocumentVersion(models.Model):
 
     @api.depends('file')
     def _compute_file_size(self):
-        """Compute file size from binary data."""
+        """Compute file size from binary data.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.file:
                 try:
@@ -125,7 +156,14 @@ class FsDocumentVersion(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Create version, auto-increment version number, and set as current."""
+        """Create version, auto-increment version number, and set as current.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         # Detect document IDs being updated to unset their previous current versions
         doc_ids_to_unset = set()
         for vals in vals_list:
@@ -159,7 +197,14 @@ class FsDocumentVersion(models.Model):
         return records
 
     def write(self, vals):
-        """Update version and sync if expiry changed."""
+        """Update version and sync if expiry changed.
+
+        Args:
+            vals: Field values to write or create, following Odoo ORM conventions.
+
+        Returns:
+            bool: True when Odoo successfully writes the requested values.
+        """
         if vals.get('is_current'):
             for record in self:
                 self.search([
@@ -175,7 +220,11 @@ class FsDocumentVersion(models.Model):
         return result
 
     def action_set_as_current(self):
-        """Make this version the current one."""
+        """Make this version the current one.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         # Unset current on siblings
         self.search([
@@ -191,6 +240,9 @@ class FsDocumentVersion(models.Model):
         """Open a popup preview of this specific version.
 
         Reuses the document preview view logic by displaying this version.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
         """
         self.ensure_one()
         return {

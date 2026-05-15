@@ -2,12 +2,38 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs student enrollment module.
+
+Purpose:
+    Defines classes FsStudentEnrollment, FsEnrollmentHours for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
 
 
 class FsStudentEnrollment(models.Model):
-    """Student enrollment in a training class."""
+    """Student enrollment in a training class.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.student.enrollment``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin']``.
+        _description (str): Human-readable model label, ``Student Enrollment``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.student.enrollment'
     _description = 'Student Enrollment'
@@ -101,7 +127,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.depends('pilot_id', 'enrolled_instructor_id')
     def _compute_licensed_person_ref(self):
-        """Build the Reference value from the concrete pilot/instructor Many2one."""
+        """Build the Reference value from the concrete pilot/instructor Many2one.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.pilot_id:
                 record.licensed_person_ref = record.pilot_id
@@ -111,7 +141,11 @@ class FsStudentEnrollment(models.Model):
                 record.licensed_person_ref = False
 
     def _inverse_licensed_person_ref(self):
-        """Propagate Reference selection back to the concrete pilot/instructor Many2one."""
+        """Propagate Reference selection back to the concrete pilot/instructor Many2one.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             ref = record.licensed_person_ref
             if ref and ref._name == 'fs.pilot':  # type: ignore[union-attr]
@@ -126,6 +160,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.depends('pilot_id', 'enrolled_instructor_id', 'student_id')
     def _compute_enrolled_person_name(self):
+        """Compute enrolled person name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.pilot_id:
                 record.enrolled_person_name = record.pilot_id.display_name
@@ -136,6 +175,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.depends('callsign', 'student_id.name', 'pilot_id.display_name', 'enrolled_instructor_id.display_name')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.callsign:
                 record.display_name = record.callsign
@@ -152,6 +196,9 @@ class FsStudentEnrollment(models.Model):
     def _onchange_licensed_person_ref(self):
         """When the Reference widget changes, sync pilot_id/enrolled_instructor_id
         and copy the person's own callsign (for licensed-personnel classes).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         ref = self.licensed_person_ref  # type: ignore
         if ref and ref._name == 'fs.pilot':  # type: ignore[union-attr]
@@ -169,7 +216,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.onchange('pilot_id', 'enrolled_instructor_id')
     def _onchange_licensed_person_callsign(self):
-        """For licensed-personnel classes: copy the pilot/instructor's own callsign."""
+        """For licensed-personnel classes: copy the pilot/instructor's own callsign.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if not self.for_licensed_personnel:  # type: ignore
             return
         person = self.pilot_id or self.enrolled_instructor_id  # type: ignore
@@ -180,6 +231,9 @@ class FsStudentEnrollment(models.Model):
     def _onchange_student_id_suggest_callsign(self):
         """For regular classes: suggest a callsign as ClassCode + incrementing letter.
         Supports batch adding by checking sibling lines in the UI.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         if self.for_licensed_personnel:  # type: ignore
             return  # handled by _onchange_licensed_person_callsign
@@ -221,7 +275,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.onchange('training_class_id')
     def _onchange_training_class_id_set_status(self):
-        """Set enrollment status based on class status and populate hour requirements."""
+        """Set enrollment status based on class status and populate hour requirements.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.training_class_id:
             class_rec = self.training_class_id
             class_status = class_rec.status  # type: ignore
@@ -250,7 +308,14 @@ class FsStudentEnrollment(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Final safety net: Populate flight hours if the UI failed to do so."""
+        """Final safety net: Populate flight hours if the UI failed to do so.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         for vals in vals_list:
             # We check if the required_hour_ids commands sent by the UI are valid.
             hour_commands = vals.get('required_hour_ids', [])
@@ -278,7 +343,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.onchange('required_hour_ids', 'extra_hour_ids')
     def _onchange_hours_recompute_totals(self):
-        """Force real-time recalculation of total hours and progress in the UI."""
+        """Force real-time recalculation of total hours and progress in the UI.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         total = sum(self.required_hour_ids.mapped('hours_logged')) + \
             sum(self.extra_hour_ids.mapped('hours_logged'))
         self.total_hours = total
@@ -434,6 +503,11 @@ class FsStudentEnrollment(models.Model):
         'student_id.has_expired_status', 'pilot_id.has_expired_qualification'
     )
     def _compute_personnel_fields(self):
+        """Compute personnel fields values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             person = record.student_id or record.pilot_id or record.enrolled_instructor_id
             if person:
@@ -504,12 +578,21 @@ class FsStudentEnrollment(models.Model):
 
     @api.depends('status')
     def _compute_is_active(self):
+        """Compute is active values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.is_active = record.status == 'active'
 
     @api.depends('required_hour_ids.hours_logged', 'extra_hour_ids.hours_logged')
     def _compute_total_hours(self):
-        """Compute total hours from all hour records (required + extra)."""
+        """Compute total hours from all hour records (required + extra).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.total_hours = sum(record.required_hour_ids.mapped('hours_logged')) + \
                 sum(record.extra_hour_ids.mapped('hours_logged'))
@@ -517,6 +600,11 @@ class FsStudentEnrollment(models.Model):
     @api.depends('required_hour_ids.hours_logged', 'extra_hour_ids.hours_logged',
                  'training_class_id.class_type_id.hour_requirement_ids')
     def _compute_progression(self):
+        """Compute progression values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if not record.training_class_id or not record.training_class_id.class_type_id:  # type: ignore
                 record.progression = 0.0
@@ -546,7 +634,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours')
     def _compute_remaining_hours(self):
-        """Calculate the sum of hours still required for mandatory activities."""
+        """Calculate the sum of hours still required for mandatory activities.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             remaining = 0.0
             for req in record.required_hour_ids:
@@ -556,7 +648,11 @@ class FsStudentEnrollment(models.Model):
 
     @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours', 'required_hour_ids.activity_id')
     def _compute_remaining_breakdown_html(self):
-        """Generate a pretty HTML summary of remaining hours per activity."""
+        """Generate a pretty HTML summary of remaining hours per activity.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             # Filter for incomplete mandatory items
             incomplete = record.required_hour_ids.filtered(lambda x: x.remaining_hours > 0)  # type: ignore
@@ -596,7 +692,14 @@ class FsStudentEnrollment(models.Model):
 
     @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'training_class_id', 'for_licensed_personnel')
     def _check_enrolled_person_type(self):
-        """Enforce mutual exclusivity: students for regular classes, pilots/instructors for licensed-personnel classes."""
+        """Enforce mutual exclusivity: students for regular classes, pilots/instructors for licensed-personnel classes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             is_licensed = record.for_licensed_personnel
             has_student = bool(record.student_id)
@@ -628,7 +731,14 @@ class FsStudentEnrollment(models.Model):
 
     @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'training_class_id')
     def _check_unique_person_per_class(self):
-        """Prevent duplicate enrollments for any supported person type in the same class."""
+        """Prevent duplicate enrollments for any supported person type in the same class.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if not record.training_class_id:
                 continue
@@ -660,7 +770,14 @@ class FsStudentEnrollment(models.Model):
 
     @api.constrains('student_id', 'pilot_id', 'enrolled_instructor_id', 'status')
     def _check_one_active_enrollment(self):
-        """Ensure each person has only one active enrollment at a time."""
+        """Ensure each person has only one active enrollment at a time.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if record.status == 'active':
                 if record.student_id:
@@ -698,7 +815,14 @@ class FsStudentEnrollment(models.Model):
                         )
 
     def action_graduate(self):
-        """Mark enrollment as graduated. Checks for 100% completion."""
+        """Mark enrollment as graduated. Checks for 100% completion.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         today = fields.Date.context_today(self)
         for record in self:
             if record.progression < 100.0:
@@ -712,7 +836,11 @@ class FsStudentEnrollment(models.Model):
                 record.graduation_date = today
 
     def action_drop(self):
-        """Mark enrollment as dropped."""
+        """Mark enrollment as dropped.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         today = fields.Date.context_today(self)
         for record in self:
             if record.status in ('enrolled', 'active'):
@@ -720,7 +848,11 @@ class FsStudentEnrollment(models.Model):
                 record.drop_date = today
 
     def action_reinstate(self):
-        """Reinstate a dropped or graduated student back to appropriate status."""
+        """Reinstate a dropped or graduated student back to appropriate status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         for record in self:
             if record.status in ('dropped', 'graduated'):
                 # Set status based on class status
@@ -737,7 +869,14 @@ class FsStudentEnrollment(models.Model):
                 record.graduation_date = False
 
     def action_view_student(self):
-        """Open the enrolled person's form view."""
+        """Open the enrolled person's form view.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         if self.student_id:
             res_model = 'fs.student'
@@ -759,7 +898,11 @@ class FsStudentEnrollment(models.Model):
         }
 
     def action_open_enrollment(self):
-        """Open the enrollment form in a popup window."""
+        """Open the enrollment form in a popup window.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
@@ -772,7 +915,19 @@ class FsStudentEnrollment(models.Model):
 
 
 class FsEnrollmentHours(models.Model):
-    """Flight hours logged per activity for an enrollment."""
+    """Flight hours logged per activity for an enrollment.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.enrollment.hours``.
+        _description (str): Human-readable model label, ``Enrollment Flight Hours``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.enrollment.hours'
     _description = 'Enrollment Flight Hours'
@@ -834,13 +989,21 @@ class FsEnrollmentHours(models.Model):
 
     @api.depends('hours_logged', 'minimum_hours')
     def _compute_remaining_hours_line(self):
-        """Calculate remaining hours for this specific activity."""
+        """Calculate remaining hours for this specific activity.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.remaining_hours = max(0.0, record.minimum_hours - record.hours_logged)
 
     @api.depends('hours_logged', 'minimum_hours')
     def _compute_progress_percentage(self):
-        """Compute progress percentage for this hour requirement."""
+        """Compute progress percentage for this hour requirement.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.minimum_hours > 0:
                 record.progress_percentage = (record.hours_logged / record.minimum_hours) * 100.0
@@ -850,7 +1013,11 @@ class FsEnrollmentHours(models.Model):
     @api.depends('enrollment_id.training_class_id.class_type_id.hour_requirement_ids',
                  'activity_id')
     def _compute_minimum_hours(self):
-        """Get minimum hours from class type requirements."""
+        """Get minimum hours from class type requirements.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             min_hours = 0.0
             if record.enrollment_id and record.enrollment_id.training_class_id:  # type: ignore

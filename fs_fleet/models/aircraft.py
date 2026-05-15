@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Fleet aircraft module.
+
+Purpose:
+    Defines classes Aircraft for aircraft categories, aircraft types, aircraft records, maintenance awareness, and fleet dashboard data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training defines aircraft-type requirements.
+"""
 from datetime import date
 
 from odoo import api, fields, models
@@ -9,7 +22,20 @@ from odoo.exceptions import UserError
 
 
 class Aircraft(models.Model):
-    """Individual aircraft in the training fleet."""
+    """Individual aircraft in the training fleet.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.aircraft``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin']``.
+        _description (str): Human-readable model label, ``Aircraft``.
+
+    Related:
+        fs_training defines aircraft-type requirements.
+        fs_scheduling and fs_flights use aircraft availability and total-hour data.
+    """
 
     _name = 'fs.aircraft'
     _description = 'Aircraft'
@@ -85,7 +111,15 @@ class Aircraft(models.Model):
 
     @api.model
     def _read_group_status(self, stages, domain):
-        """Ensure all status columns are visible in Kanban even if empty."""
+        """Ensure all status columns are visible in Kanban even if empty.
+
+        Args:
+            stages: Grouped records supplied by Odoo read_group.
+            domain: Odoo domain limiting the records considered by the operation.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+        """
         return [key for key, val in self.fields_get(['status'])['status']['selection']]
     status_reason = fields.Text(
         string='Status Reason',
@@ -233,6 +267,11 @@ class Aircraft(models.Model):
 
     @api.depends('registration', 'aircraft_type_id.full_name')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             # type: ignore[attr-defined]
             type_name = record.aircraft_type_id.full_name if record.aircraft_type_id else ''
@@ -240,6 +279,11 @@ class Aircraft(models.Model):
 
     @api.depends('status')
     def _compute_status_color(self):
+        """Compute status color values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         color_map = {
             'available': 10,    # Green
             'in_use': 4,        # Blue
@@ -252,11 +296,21 @@ class Aircraft(models.Model):
 
     @api.depends('status')
     def _compute_is_airworthy(self):
+        """Compute is airworthy values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.is_airworthy = record.status in ('available', 'in_use', 'reserved')
 
     @api.depends('maintenance_due_at_hours', 'total_hours')
     def _compute_remaining_maintenance_hours(self):
+        """Compute remaining maintenance hours values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.maintenance_due_at_hours:
                 record.remaining_maintenance_hours = record.maintenance_due_at_hours - record.total_hours
@@ -265,6 +319,11 @@ class Aircraft(models.Model):
 
     @api.depends('remaining_maintenance_hours')
     def _compute_maintenance_hour_status(self):
+        """Compute maintenance hour status values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         config_param = self.env['ir.config_parameter'].sudo()
         warning_hours = float(self.env['ir.config_parameter'].sudo().get_param(
             'flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
@@ -278,6 +337,11 @@ class Aircraft(models.Model):
 
     @api.depends('next_maintenance_date')
     def _compute_maintenance_date_status(self):
+        """Compute maintenance date status values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         today = date.today()
         config_param = self.env['ir.config_parameter'].sudo()
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(
@@ -294,6 +358,11 @@ class Aircraft(models.Model):
 
     @api.depends('maintenance_hour_status', 'maintenance_date_status')
     def _compute_maintenance_status(self):
+        """Compute maintenance status values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if 'overdue' in (record.maintenance_hour_status, record.maintenance_date_status):
                 record.maintenance_status = 'overdue'
@@ -304,35 +373,76 @@ class Aircraft(models.Model):
 
     @api.onchange('registration')
     def _onchange_registration_uppercase(self):
+        """Update form values when registration uppercase changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.registration:
             self.registration = self.registration.upper()
 
     @api.constrains('registration')
     def _check_registration_format(self):
+        """Validate registration format business rules.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         for record in self:
             if record.registration and not record.registration.replace('-', '').isalnum():
                 raise UserError("Registration must contain only letters, numbers, and hyphens.")
 
     @api.constrains('year_manufactured')
     def _check_year_manufactured(self):
+        """Validate year manufactured business rules.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         for record in self:
             if record.year_manufactured:
                 if not record.year_manufactured.isdigit() or len(record.year_manufactured) != 4:
                     raise UserError("Year Manufactured must be 4 numeric characters (YYYY).")
 
     def action_set_available(self):
-        """Set aircraft status to available."""
+        """Set aircraft status to available.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.write({'status': 'available', 'status_reason': False})
 
     def action_set_maintenance(self):
-        """Set aircraft status to in maintenance."""
+        """Set aircraft status to in maintenance.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.write({'status': 'maintenance'})
 
     def action_set_grounded(self):
-        """Set aircraft status to grounded."""
+        """Set aircraft status to grounded.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.write({'status': 'grounded'})
 
     def unlink(self):
+        """Delete records after enforcing Flight School business safeguards.
+
+        Returns:
+            bool: True when Odoo successfully deletes the records.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         for record in self:
             if record.total_hours > 0:
                 raise UserError(

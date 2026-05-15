@@ -2,11 +2,35 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling res config settings module.
+
+Purpose:
+    Defines classes ResConfigSettings for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 from odoo import fields, models
 
 
 class ResConfigSettings(models.TransientModel):
-    """Configuration settings for flight school scheduling module."""
+    """Configuration settings for flight school scheduling module.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _inherit: Odoo model(s) extended by this class: ``res.config.settings``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
+    """
 
     _inherit = 'res.config.settings'
 

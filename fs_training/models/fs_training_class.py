@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs training class module.
+
+Purpose:
+    Defines classes FsTrainingClass for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from datetime import date, timedelta
 from typing import TYPE_CHECKING
 
@@ -14,7 +27,20 @@ if TYPE_CHECKING:
 
 
 class FsTrainingClass(models.Model):
-    """Training class instances."""
+    """Training class instances.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.training.class``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin']``.
+        _description (str): Human-readable model label, ``Training Class``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.training.class'
     _description = 'Training Class'
@@ -178,7 +204,14 @@ class FsTrainingClass(models.Model):
 
     @api.constrains('start_date', 'expected_end_date', 'actual_end_date')
     def _check_dates(self):
-        """Ensure end dates are not before start date."""
+        """Ensure end dates are not before start date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if record.start_date:
                 if record.expected_end_date and record.expected_end_date < record.start_date:
@@ -188,6 +221,11 @@ class FsTrainingClass(models.Model):
 
     @api.depends('start_date', 'class_type_id.duration_value', 'class_type_id.duration_unit')
     def _compute_initial_end_date(self):
+        """Compute initial end date values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             class_type = record.class_type_id
             if record.start_date and class_type and class_type.duration_value:
@@ -204,12 +242,21 @@ class FsTrainingClass(models.Model):
 
     @api.depends('initial_end_date')
     def _compute_expected_end_date(self):
+        """Compute expected end date values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.expected_end_date = record.initial_end_date
 
     @api.depends('expected_end_date', 'status')
     def _compute_end_date_warning(self):
-        """Compute end date warning level and message based on config."""
+        """Compute end date warning level and message based on config.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         today = date.today()
         # Get warning days from config
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(
@@ -235,11 +282,24 @@ class FsTrainingClass(models.Model):
 
     @api.model
     def _read_group_status(self, stages, domain):
-        """Ensure status columns (except cancelled) are visible in Kanban even if empty."""
+        """Ensure status columns (except cancelled) are visible in Kanban even if empty.
+
+        Args:
+            stages: Grouped records supplied by Odoo read_group.
+            domain: Odoo domain limiting the records considered by the operation.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+        """
         return [key for key, val in self.fields_get(['status'])['status']['selection'] if key != 'cancelled']
 
     @api.depends('status')
     def _compute_status_color(self):
+        """Compute status color values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         color_map = {
             'draft': 0,
             'in_progress': 4,  # Blue
@@ -251,6 +311,11 @@ class FsTrainingClass(models.Model):
 
     @api.depends('enrollment_ids', 'enrollment_ids.status')
     def _compute_student_counts(self):
+        """Compute student counts values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             enrollments = record.enrollment_ids
             record.student_count = len(enrollments)
@@ -259,6 +324,11 @@ class FsTrainingClass(models.Model):
 
     @api.depends('enrollment_ids.progression')
     def _compute_progress_percentage(self):
+        """Compute progress percentage values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             progressions = record.enrollment_ids.mapped('progression')
             if progressions:
@@ -268,7 +338,11 @@ class FsTrainingClass(models.Model):
 
     @api.onchange('class_type_id')
     def _onchange_class_type_id(self):
-        """Copy aircraft types and admin tasks from class type."""
+        """Copy aircraft types and admin tasks from class type.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.class_type_id:
             self.aircraft_type_ids = self.class_type_id.aircraft_type_ids
             # Populate admin tasks from templates if no tasks exist yet
@@ -285,7 +359,14 @@ class FsTrainingClass(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Create admin tasks from templates."""
+        """Create admin tasks from templates.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         records = super().create(vals_list)
         for record in records:
             # Create admin tasks from templates ONLY if none were provided via onchange/vals
@@ -305,7 +386,14 @@ class FsTrainingClass(models.Model):
         return records
 
     def write(self, vals):
-        """Handle status transitions and archiving side effects."""
+        """Handle status transitions and archiving side effects.
+
+        Args:
+            vals: Field values to write or create, following Odoo ORM conventions.
+
+        Returns:
+            bool: True when Odoo successfully writes the requested values.
+        """
         # Detect status changes for side effects
         new_status = vals.get('status')
         today = fields.Date.context_today(self)
@@ -353,7 +441,14 @@ class FsTrainingClass(models.Model):
         return result
 
     def action_start_class(self):
-        """Start the training class."""
+        """Start the training class.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if record.status != 'draft':
                 raise ValidationError("Only draft classes can be started.")
@@ -362,7 +457,14 @@ class FsTrainingClass(models.Model):
             record.enrollment_ids.filtered_domain([('status', '=', 'enrolled')]).write({'status': 'active'})
 
     def action_set_draft(self):
-        """Reset the training class to draft status."""
+        """Reset the training class to draft status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if record.status not in ('in_progress', 'cancelled', 'completed'):
                 raise ValidationError("Only in-progress, cancelled or completed classes can be set to draft.")
@@ -372,7 +474,14 @@ class FsTrainingClass(models.Model):
             record.enrollment_ids.filtered_domain([('status', '=', 'active')]).write({'status': 'enrolled'})
 
     def action_complete_class(self):
-        """Complete the training class."""
+        """Complete the training class.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         today = fields.Date.context_today(self)
         for record in self:
             if record.status != 'in_progress':
@@ -401,7 +510,14 @@ class FsTrainingClass(models.Model):
             })
 
     def action_cancel_class(self):
-        """Cancel the training class."""
+        """Cancel the training class.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if record.status == 'cancelled':
                 raise ValidationError("This class is already cancelled.")

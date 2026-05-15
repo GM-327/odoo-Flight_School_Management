@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People fs pilot module.
+
+Purpose:
+    Defines classes FsPilot for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 from datetime import timedelta
 from odoo import api, fields, models
 
@@ -11,6 +24,18 @@ class FsPilot(models.Model):
 
     Pilots are licensed aviators who use the school's aircraft
     but are not students or instructors.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.pilot``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.person']``.
+        _description (str): Human-readable model label, ``Pilot``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
     """
 
     _name = 'fs.pilot'
@@ -36,6 +61,11 @@ class FsPilot(models.Model):
 
     @api.depends('name', 'callsign')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         show_name = self.env.context.get('show_name_only', False)
         for record in self:
             if show_name:
@@ -83,7 +113,11 @@ class FsPilot(models.Model):
 
     @api.depends('qualification_ids', 'qualification_ids.qualification_code', 'qualification_ids.expiry_status')
     def _compute_qualification_badges(self):
-        """Compute HTML badges for qualifications with status-based colors."""
+        """Compute HTML badges for qualifications with status-based colors.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         status_colors = {
             'valid': '#28a745',      # Green
             'expiring': '#ffc107',   # Yellow
@@ -107,7 +141,11 @@ class FsPilot(models.Model):
             record.qualification_badges = ''.join(badges) if badges else ''
 
     def action_view_qualifications(self):
-        """Navigate to the detailed qualifications list in a popup."""
+        """Navigate to the detailed qualifications list in a popup.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Qualifications & Ratings',
@@ -134,7 +172,11 @@ class FsPilot(models.Model):
     @api.depends('qualification_ids.expiry_status', 'qualification_ids.expiry_date', 'medical_status',
                  'english_status', 'security_clearance_status', 'insurance_status')
     def _compute_has_expired_qualification(self):
-        """Check if any qualification or status is expired and find earliest expiry."""
+        """Check if any qualification or status is expired and find earliest expiry.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.has_expired_qualification = (
                 # type: ignore
@@ -192,7 +234,11 @@ class FsPilot(models.Model):
 
     @api.depends('english_expiry')
     def _compute_english_status(self):
-        """Compute English proficiency status based on expiry date and warning period from settings."""
+        """Compute English proficiency status based on expiry date and warning period from settings.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.english_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -242,7 +288,11 @@ class FsPilot(models.Model):
 
     @api.depends('security_clearance_expiry')
     def _compute_security_clearance_status(self):
-        """Compute security clearance status based on expiry date."""
+        """Compute security clearance status based on expiry date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.security_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -260,7 +310,11 @@ class FsPilot(models.Model):
 
     @api.depends('insurance_expiry')
     def _compute_insurance_status(self):
-        """Compute insurance status based on expiry date."""
+        """Compute insurance status based on expiry date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.insurance_warning_days', '30'))
         today = fields.Date.context_today(self)

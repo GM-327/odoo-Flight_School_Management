@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs document upload wizard module.
+
+Purpose:
+    Defines classes FsDocumentUploadWizard for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 from typing import Any
 from odoo import api, fields, models
 from odoo.exceptions import UserError
@@ -14,6 +27,16 @@ class FsDocumentUploadWizard(models.TransientModel):
     Step 1: Select entity type, then specific entity, then document type
     Step 2: Upload the file
     Step 3: Enter details (reference, dates) and submit
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.document.upload.wizard``.
+        _description (str): Human-readable model label, ``Document Upload Wizard``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
     """
 
     _name = 'fs.document.upload.wizard'
@@ -27,6 +50,14 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     @api.model
     def default_get(self, fields):
+        """Build default wizard values from the active Odoo context.
+
+        Args:
+            fields: Field names requested by the Odoo framework.
+
+        Returns:
+            dict: Default field values keyed by field name.
+        """
         res = super().default_get(fields)
 
         # Mapping from context keys to (entity_code, actual_field, xml_id)
@@ -130,7 +161,11 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     @api.depends('entity_type_id')
     def _compute_document_type_domain(self):
-        """Compute domain to filter document types that apply to the selected entity type."""
+        """Compute domain to filter document types that apply to the selected entity type.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.entity_type_id:
                 record.document_type_domain = [('applies_to_ids', 'in', [record.entity_type_id.id])]
@@ -139,7 +174,11 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     @api.depends('training_class_id')
     def _compute_admin_task_domain(self):
-        """Compute domain to filter admin tasks by training class."""
+        """Compute domain to filter admin tasks by training class.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.training_class_id:
                 record.admin_task_domain = [('training_class_id', '=', record.training_class_id.id)]
@@ -148,7 +187,11 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     @api.onchange('entity_type_id')
     def _onchange_entity_type_id(self):
-        """When entity type changes, clear non-matching entity and document type selections."""
+        """When entity type changes, clear non-matching entity and document type selections.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if not self.entity_type_id:
             # Clear all if no entity type
             self.student_id = False
@@ -178,13 +221,21 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     @api.onchange('student_id', 'instructor_id', 'pilot_id', 'training_class_id', 'class_type_id')
     def _onchange_entity(self):
-        """When entity changes, clear document type to force re-selection."""
+        """When entity changes, clear document type to force re-selection.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # Only clear document type, not admin_task (which is optional for training class)
         self.document_type_id = False
 
     @api.onchange('training_class_id')
     def _onchange_training_class_id(self):
-        """Reset admin task when training class changes."""
+        """Reset admin task when training class changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.admin_task_id = False
 
     # === Step 2: File Upload ===
@@ -230,7 +281,11 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     @api.depends('document_id', 'document_type_id', 'student_id', 'instructor_id', 'pilot_id', 'training_class_id', 'admin_task_id', 'class_type_id')
     def _compute_existing_document(self):
-        """Check if a document of this type already exists for the entity."""
+        """Check if a document of this type already exists for the entity.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.document_id:
                 record.existing_document_id = record.document_id
@@ -269,7 +324,11 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     # === Helper to get selected entity ===
     def _get_selected_entity_info(self):
-        """Return (entity_field_name, entity_id) for the selected entity."""
+        """Return (entity_field_name, entity_id) for the selected entity.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+        """
         if self.student_id:
             return ('student_id', self.student_id.id)
         elif self.instructor_id:
@@ -286,11 +345,19 @@ class FsDocumentUploadWizard(models.TransientModel):
 
     # === Navigation ===
     def _step_order(self):
-        """Return step order."""
+        """Return step order.
+
+        Returns:
+            list: Values prepared for the Odoo view, search, or grouping API.
+        """
         return ['type', 'upload', 'details']
 
     def _reopen_wizard(self):
-        """Reopen wizard with current state."""
+        """Reopen wizard with current state.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         # Use entity-specific view if we have an entity or document_id context
         view_id = False
         if any(self.env.context.get(k) for k in ['default_student_id', 'default_instructor_id', 'default_pilot_id', 'default_training_class_id', 'default_class_type_id', 'default_document_id']):
@@ -307,7 +374,14 @@ class FsDocumentUploadWizard(models.TransientModel):
         }
 
     def action_next(self):
-        """Move to the next step with validation."""
+        """Move to the next step with validation.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         steps = self._step_order()
         idx = steps.index(self.state or steps[0])
@@ -343,7 +417,11 @@ class FsDocumentUploadWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def action_previous(self):
-        """Move to previous step."""
+        """Move to previous step.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         steps = self._step_order()
         idx = steps.index(self.state or steps[0])
@@ -352,7 +430,14 @@ class FsDocumentUploadWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def action_submit(self):
-        """Create or update document and add new version."""
+        """Create or update document and add new version.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
 
         # Validate expiry if required

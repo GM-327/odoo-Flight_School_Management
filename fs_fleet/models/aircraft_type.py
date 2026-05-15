@@ -2,12 +2,37 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Fleet aircraft type module.
+
+Purpose:
+    Defines classes AircraftType for aircraft categories, aircraft types, aircraft records, maintenance awareness, and fleet dashboard data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training defines aircraft-type requirements.
+"""
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
 class AircraftType(models.Model):
-    """Aircraft type/model definition (e.g., Cessna 172, Diamond DA40)."""
+    """Aircraft type/model definition (e.g., Cessna 172, Diamond DA40).
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.aircraft.type``.
+        _description (str): Human-readable model label, ``Aircraft Type``.
+
+    Related:
+        fs_training defines aircraft-type requirements.
+        fs_scheduling and fs_flights use aircraft availability and total-hour data.
+    """
 
     _name = 'fs.aircraft.type'
     _description = 'Aircraft Type'
@@ -153,6 +178,11 @@ class AircraftType(models.Model):
 
     @api.depends('manufacturer', 'name')
     def _compute_full_name(self):
+        """Compute full name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.manufacturer and record.name:
                 record.full_name = f"{record.manufacturer} {record.name}"
@@ -161,14 +191,31 @@ class AircraftType(models.Model):
 
     @api.depends('aircraft_ids')
     def _compute_aircraft_count(self):
+        """Compute aircraft count values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.aircraft_count = len(record.aircraft_ids)
 
     def name_get(self):
-        """Display full name (manufacturer + model) in dropdowns."""
+        """Display full name (manufacturer + model) in dropdowns.
+
+        Returns:
+            list: Matching record identifiers and display names in Odoo format.
+        """
         return [(rec.id, rec.full_name or rec.name) for rec in self]
 
     def unlink(self):
+        """Delete records after enforcing Flight School business safeguards.
+
+        Returns:
+            bool: True when Odoo successfully deletes the records.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         for record in self:
             if record.aircraft_ids:
                 raise UserError(

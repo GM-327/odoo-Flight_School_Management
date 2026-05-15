@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs crew member module.
+
+Purpose:
+    Defines classes FsCrewMember for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 from collections import defaultdict
 
 from markupsafe import Markup
@@ -52,7 +65,19 @@ STUDENT_LICENSE_BADGE_LABEL = 'SC'
 
 
 class FsCrewMember(models.Model):
-    """Unified SQL view of students, instructors, and pilots for scheduling."""
+    """Unified SQL view of students, instructors, and pilots for scheduling.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.crew.member``.
+        _description (str): Human-readable model label, ``Crew Member``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
+    """
 
     _name = 'fs.crew.member'
     _description = 'Crew Member'
@@ -86,6 +111,11 @@ class FsCrewMember(models.Model):
 
     @api.model
     def _get_view_query(self):
+        """Return view query information used by Flight School workflows.
+
+        Returns:
+            str: Formatted display value.
+        """
         return f"""
             -- Students (via enrollment)
             SELECT
@@ -158,7 +188,11 @@ class FsCrewMember(models.Model):
         """
 
     def init(self):
-        """Create or replace the SQL view."""
+        """Create or replace the SQL view.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         tools.drop_view_if_exists(self.env.cr, self._table)
 
         # Interpolate the view name as an SQL identifier while keeping the body readable.
@@ -174,7 +208,18 @@ class FsCrewMember(models.Model):
 
     @api.model
     def _name_search(self, name='', domain=None, operator='ilike', limit=100, order=None):
-        """Search by callsign or full name."""
+        """Search by callsign or full name.
+
+        Args:
+            name: Search term or display name supplied by the caller.
+            domain: Odoo domain limiting the records considered by the operation.
+            operator: Search operator requested by Odoo name-search APIs.
+            limit: Maximum number of records to return.
+            order: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            list: Matching record identifiers and display names in Odoo format.
+        """
         domain = domain or []
         if not name:
             return self._search(domain, limit=limit, order=order)
@@ -189,7 +234,11 @@ class FsCrewMember(models.Model):
         return self._search(search_domain, limit=limit, order=order)
 
     def get_source_record(self):
-        """Return the linked student/instructor/pilot record if it still exists."""
+        """Return the linked student/instructor/pilot record if it still exists.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         self.ensure_one()
 
         if not self.source_model or not self.source_id:
@@ -201,7 +250,11 @@ class FsCrewMember(models.Model):
         return self.env[self.source_model].browse(self.source_id).exists()
 
     def get_enrollment_record(self):
-        """Return the student enrollment record if it still exists."""
+        """Return the student enrollment record if it still exists.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         self.ensure_one()
         if self.member_type != 'student' or not self.enrollment_id:
             return False
@@ -211,7 +264,15 @@ class FsCrewMember(models.Model):
 
     @api.model
     def _build_status_badge(self, status, label):
-        """Build a small HTML badge for student status display."""
+        """Build a small HTML badge for student status display.
+
+        Args:
+            status: Value supplied by Odoo or the calling workflow.
+            label: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         background_color = STATUS_COLORS.get(status, DEFAULT_BADGE_COLOR)
         text_color = (
             EXPIRING_BADGE_TEXT_COLOR
@@ -229,7 +290,14 @@ class FsCrewMember(models.Model):
 
     @api.model
     def _get_source_badges_map(self, crew_members):
-        """Batch-load qualification badges from source models."""
+        """Batch-load qualification badges from source models.
+
+        Args:
+            crew_members: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         source_ids_by_model = defaultdict(set)
 
         for member in crew_members:
@@ -252,7 +320,11 @@ class FsCrewMember(models.Model):
 
     @api.depends('member_type', 'source_model', 'source_id', 'license_status')
     def _compute_qualification_badges(self):
-        """Compute qualification badges for instructors/pilots and license badges for students."""
+        """Compute qualification badges for instructors/pilots and license badges for students.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # Instructor and pilot badges already exist on their source records, so fetch them once.
         source_badges = self._get_source_badges_map(
             self.filtered(lambda member: member.member_type in QUALIFICATION_SOURCE_TYPES)

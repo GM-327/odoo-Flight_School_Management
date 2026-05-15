@@ -2,11 +2,35 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs student module.
+
+Purpose:
+    Defines classes FsStudent for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from odoo import api, fields, models
 
 
 class FsStudent(models.Model):
-    """Extend student model with training-specific availability logic."""
+    """Extend student model with training-specific availability logic.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _inherit: Odoo model(s) extended by this class: ``fs.student``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _inherit = 'fs.student'  # type: ignore
 
@@ -64,13 +88,21 @@ class FsStudent(models.Model):
     )
 
     def _compute_enrollment_count(self):
-        """Compute the number of classes the student is enrolled in."""
+        """Compute the number of classes the student is enrolled in.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.enrollment_count = len(record.enrollment_ids)
 
     @api.depends('enrollment_ids', 'enrollment_ids.callsign', 'enrollment_ids.training_class_id.code', 'enrollment_ids.status', 'enrollment_ids.enrollment_date')
     def _compute_enrollment_data(self):
-        """Find the callsign and class code from the most relevant enrollment (active first, then most recent)."""
+        """Find the callsign and class code from the most relevant enrollment (active first, then most recent).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             enrollments = record.enrollment_ids
             if enrollments:
@@ -106,7 +138,11 @@ class FsStudent(models.Model):
                 record.enrollment_expected_end_date = False
 
     def action_view_enrolled_classes(self):
-        """View the list of enrollments for this student."""
+        """View the list of enrollments for this student.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Enrolled Classes',
@@ -119,7 +155,11 @@ class FsStudent(models.Model):
 
     @api.depends('enrollment_ids.status')
     def _compute_is_available_for_enrollment(self):
-        """Check if student is available for new enrollment."""
+        """Check if student is available for new enrollment.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             active_count = self.env['fs.student.enrollment'].sudo().search_count([
                 ('student_id', '=', record.id),

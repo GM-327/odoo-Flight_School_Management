@@ -2,15 +2,47 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People res users module.
+
+Purpose:
+    Defines classes ResUsers for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 from odoo import api, models
 
 
 class ResUsers(models.Model):
+    """Odoo model for res users.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _inherit: Odoo model(s) extended by this class: ``res.users``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
+    """
     _inherit = 'res.users'
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Override create to link the new user back to the personnel record if specified in context."""
+        """Override create to link the new user back to the personnel record if specified in context.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         users = super(ResUsers, self).create(vals_list)
 
         # Check context for personnel linkage

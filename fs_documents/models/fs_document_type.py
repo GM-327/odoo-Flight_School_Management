@@ -2,11 +2,35 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs document type module.
+
+Purpose:
+    Defines classes FsDocumentEntityType, FsDocumentType for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 from odoo import fields, models
 
 
 class FsDocumentEntityType(models.Model):
-    """Entity types that documents can apply to."""
+    """Entity types that documents can apply to.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.document.entity.type``.
+        _description (str): Human-readable model label, ``Document Entity Type``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
+    """
 
     _name = 'fs.document.entity.type'
     _description = 'Document Entity Type'
@@ -33,7 +57,18 @@ class FsDocumentEntityType(models.Model):
 
 
 class FsDocumentType(models.Model):
-    """Document type categories for organizing documents."""
+    """Document type categories for organizing documents.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.document.type``.
+        _description (str): Human-readable model label, ``Document Type``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
+    """
 
     _name = 'fs.document.type'
     _description = 'Document Type'

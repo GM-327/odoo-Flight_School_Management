@@ -1,6 +1,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs flight module.
+
+Purpose:
+    Defines classes FsFlight for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
@@ -18,6 +31,18 @@ class FsFlight(models.Model):
     This model represents the day-of-operations flight. It is usually created
     by 'pushing' a scheduled flight from the scheduling module, but acts as
     an independent record that can be modified during execution.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.flight``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin', 'fs.flight.mixin']``.
+        _description (str): Human-readable model label, ``Flight``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
     """
 
     _name = 'fs.flight'
@@ -37,7 +62,14 @@ class FsFlight(models.Model):
     # === Constraints ===
     @api.constrains('callsign', 'date')
     def _check_unique_callsign(self):
-        """Ensure callsign is unique (except for 'ADD' which is a placeholder)."""
+        """Ensure callsign is unique (except for 'ADD' which is a placeholder).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            ValidationError: If record data violates a model constraint.
+        """
         for record in self:
             if not record.callsign:
                 continue
@@ -62,7 +94,11 @@ class FsFlight(models.Model):
     # Note: ADD callsign is preserved on create - conversion happens when opening the form for edit
 
     def action_open_form(self):
-        """Open flight form and auto-assign callsign if it's 'ADD'. Opens the appropriate popup view."""
+        """Open flight form and auto-assign callsign if it's 'ADD'. Opens the appropriate popup view.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         # Auto-convert ADD callsign when opening for edit
         if self.callsign and self.callsign.upper() == 'ADD':
@@ -85,7 +121,11 @@ class FsFlight(models.Model):
         }
 
     def action_save_and_close(self):
-        """Save the record and close the popup. Used by popup form views."""
+        """Save the record and close the popup. Used by popup form views.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {'type': 'ir.actions.act_window_close'}
 
@@ -119,7 +159,11 @@ class FsFlight(models.Model):
 
     @api.depends('date', 'aircraft_id.category_id.is_simulator')
     def _compute_daily_ops(self):
-        """Compute link to operations board. Does NOT create boards - that's handled in create/write."""
+        """Compute link to operations board. Does NOT create boards - that's handled in create/write.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # Collect all dates for batch lookup
         non_sim_dates = set()
         sim_dates = set()
@@ -155,7 +199,11 @@ class FsFlight(models.Model):
                 record.simulator_ops_id = False
 
     def _ensure_operations_board(self):
-        """Ensure operations board exists for this flight's date. Called from create/write."""
+        """Ensure operations board exists for this flight's date. Called from create/write.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if not record.date:
                 continue
@@ -274,7 +322,11 @@ class FsFlight(models.Model):
     @api.depends('activity_id', 'activity_id.code', 'custom_activity_id', 'custom_activity_id.code',  # type: ignore
                  'custom_activity_id.name', 'mission_id', 'mission_id.activity_id', 'mission_id.activity_id.code')  # type: ignore
     def _compute_activity_display(self):
-        """Compute display value for activity column showing activity/custom_activity code."""
+        """Compute display value for activity column showing activity/custom_activity code.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.mission_id and record.mission_id.activity_id:  # type: ignore
                 # For student training: show mission's activity code
@@ -316,7 +368,14 @@ class FsFlight(models.Model):
     # === Onchange Methods ===
 
     def _get_next_add_callsign(self, reference_date=None):
-        """Generate the next available ADD callsign (e.g., ABS7001, ABS7002, etc.)."""
+        """Generate the next available ADD callsign (e.g., ABS7001, ABS7002, etc.).
+
+        Args:
+            reference_date: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            str: Formatted display value.
+        """
         ICP = self.env['ir.config_parameter'].sudo()
         prefix = str(ICP.get_param('flight_school.mission_callsign_prefix', 'ABS') or 'ABS')
         threshold = int(ICP.get_param('flight_school.first_added_mission_number', '7000'))  # type: ignore
@@ -353,7 +412,11 @@ class FsFlight(models.Model):
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
-        """Smart assignment when Pilot 1 crew member is selected."""
+        """Smart assignment when Pilot 1 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         # Clear downstream fields to maintain integrity
         self.pilot2_crew_id = False
         self.pilot2_function = False
@@ -390,7 +453,11 @@ class FsFlight(models.Model):
 
     @api.onchange('pilot2_crew_id')
     def _onchange_pilot2_crew(self):
-        """Smart assignment when Pilot 2 crew member is selected."""
+        """Smart assignment when Pilot 2 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot2_crew_id:
             member_type = self.pilot2_crew_id.member_type  # type: ignore
             if member_type == 'instructor':
@@ -402,7 +469,11 @@ class FsFlight(models.Model):
 
     @api.onchange('flight_category')
     def _onchange_flight_category(self):
-        """Clear all relevant fields when category changes to ensure data consistency."""
+        """Clear all relevant fields when category changes to ensure data consistency.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.pilot1_crew_id = False
         self.pilot1_function = False
         self.pilot2_crew_id = False
@@ -416,7 +487,11 @@ class FsFlight(models.Model):
 
     @api.onchange('mission_id')
     def _onchange_mission_id(self):
-        """Update duration and functions from mission."""
+        """Update duration and functions from mission.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.route_id = False
         if self.mission_id:
             self.scheduled_duration = self.mission_id.duration_hours  # type: ignore
@@ -435,7 +510,11 @@ class FsFlight(models.Model):
 
     @api.onchange('activity_id')
     def _onchange_activity(self):
-        """Handle activity selection: clear custom_activity and update duration."""
+        """Handle activity selection: clear custom_activity and update duration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.activity_id:
             self.custom_activity_id = False
             if self.activity_id.discipline_id and self.activity_id.discipline_id.default_flight_duration:  # type: ignore
@@ -443,7 +522,11 @@ class FsFlight(models.Model):
 
     @api.onchange('custom_activity_id')
     def _onchange_custom_activity(self):
-        """Handle custom activity selection: clear activity_id and update duration."""
+        """Handle custom activity selection: clear activity_id and update duration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.custom_activity_id:
             self.activity_id = False
             self.mission_id = False
@@ -490,6 +573,11 @@ class FsFlight(models.Model):
 
     @api.depends('mission_id')
     def _compute_is_exam(self):
+        """Compute is exam values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.is_exam = record.mission_id.is_exam if record.mission_id else False  # type: ignore
 
@@ -505,6 +593,11 @@ class FsFlight(models.Model):
         'flight_category',
     )
     def _compute_crew_warning(self):
+        """Compute crew warning values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             warnings = []
             if record.pilot1_crew_id:
@@ -539,6 +632,11 @@ class FsFlight(models.Model):
         'pilot1_crew_id.enrollment_id',
     )
     def _compute_student_info(self):
+        """Compute student info values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.pilot1_crew_id and record.pilot1_crew_id.member_type == 'student' and record.pilot1_crew_id.enrollment_id:  # type: ignore
                 enrollment = self.env['fs.student.enrollment'].browse(
@@ -552,6 +650,11 @@ class FsFlight(models.Model):
 
     @api.depends('mission_id', 'mission_id.activity_id', 'mission_id.activity_id.code', 'activity_id', 'activity_id.code')
     def _compute_flight_code(self):
+        """Compute flight code values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.mission_id and record.mission_id.activity_id:  # type: ignore
                 record.flight_code = record.mission_id.activity_id.code  # type: ignore
@@ -562,11 +665,21 @@ class FsFlight(models.Model):
 
     @api.depends('scheduled_start', 'scheduled_duration')
     def _compute_eta(self):
+        """Compute eta values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.eta = record.scheduled_start + (record.scheduled_duration or 0)
 
     @api.depends('atd', 'ata')
     def _compute_actual_duration(self):
+        """Compute actual duration values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if record.atd is not False and record.ata is not False:
                 if record.ata >= record.atd:
@@ -578,6 +691,11 @@ class FsFlight(models.Model):
 
     @api.depends('status', 'cancellation_code')
     def _compute_status_display(self):
+        """Compute status display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         selection_map = dict(self.env['fs.flight'].fields_get(['status'])['status']['selection'])
         for record in self:
             if record.status == 'cancelled' and record.cancellation_code:
@@ -587,6 +705,11 @@ class FsFlight(models.Model):
 
     @api.depends('status')
     def _compute_status_color(self):
+        """Compute status color values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         color_map = {'scheduled': 3, 'in_progress': 4, 'done': 10, 'cancelled': 1}
         for record in self:
             record.status_color = color_map.get(str(record.status), 0)
@@ -594,7 +717,11 @@ class FsFlight(models.Model):
     # === Actions ===
 
     def _compute_status_from_times(self):
-        """Determine status based on presence of ATD/ATA. Entering times overrides cancellation."""
+        """Determine status based on presence of ATD/ATA. Entering times overrides cancellation.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.atd is not False and self.ata is not False:
             return 'done'
         if self.atd is not False:
@@ -609,6 +736,9 @@ class FsFlight(models.Model):
         The _origin.write() pattern is critical for the operations board because
         it uses a computed Many2many list where standard row-level saving
         often fails to persist unless forced.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         new_status = self._compute_status_from_times()
         was_cancelled = self.status == 'cancelled'
@@ -634,16 +764,31 @@ class FsFlight(models.Model):
             self._origin.write(vals)
 
     def action_start_flight(self):
+        """Perform the start flight user action.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         now = fields.Datetime.now()
         current_time = now.hour + now.minute / 60.0
         self.write({'atd': current_time, 'status': 'in_progress'})
 
     def action_complete_flight(self):
+        """Perform the complete flight user action.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         now = fields.Datetime.now()
         current_time = now.hour + now.minute / 60.0
         self.write({'ata': current_time, 'status': 'done'})
 
     def action_cancel_flight(self):
+        """Perform the cancel flight user action.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': _('Cancel Flight'),
             'type': 'ir.actions.act_window',
@@ -659,7 +804,14 @@ class FsFlight(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Create flight records and ensure operations boards exist."""
+        """Create flight records and ensure operations boards exist.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         records = super().create(vals_list)
         records._ensure_operations_board()
         return records
@@ -668,6 +820,12 @@ class FsFlight(models.Model):
         """Override write to handle status updates and hour distribution on state changes.
 
         This method is designed to be recursion-safe and batch-compatible.
+
+        Args:
+            vals: Field values to write or create, following Odoo ORM conventions.
+
+        Returns:
+            bool: True when Odoo successfully writes the requested values.
         """
         # 1. Handle cross-field status automation
         # Clear times when explicit cancellation occurs
@@ -752,7 +910,11 @@ class FsFlight(models.Model):
         return res
 
     def _compute_status_from_times_batch(self):
-        """Helper for batch status computation using context or record values."""
+        """Helper for batch status computation using context or record values.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         atd = self.env.context.get('atd', self.atd)
         ata = self.env.context.get('ata', self.ata)
         status = self.env.context.get('status', self.status)
@@ -764,7 +926,11 @@ class FsFlight(models.Model):
         return status if status == 'cancelled' else 'scheduled'
 
     def unlink(self):
-        """Override unlink to subtract hours if flight was completed."""
+        """Override unlink to subtract hours if flight was completed.
+
+        Returns:
+            bool: True when Odoo successfully deletes the records.
+        """
         for record in self:
             if record.status == 'done' and record.distributed_hours > 0:
                 record._distribute_hours(-record.distributed_hours)
@@ -774,6 +940,9 @@ class FsFlight(models.Model):
         """Check if this is a simulator session.
 
         Priority: mission flag > activity flag > aircraft category
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
         self.ensure_one()
         if self.mission_id and hasattr(self.mission_id, 'is_sim') and self.mission_id.is_sim:  # type: ignore
@@ -789,6 +958,12 @@ class FsFlight(models.Model):
 
         Uses member_type to determine correct model since the SQL view
         has inconsistent source_model for students.
+
+        Args:
+            crew: Crew-member record from the unified scheduling view.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
         if not crew or not crew.source_id:
             return False
@@ -809,6 +984,12 @@ class FsFlight(models.Model):
         """Get pilot function configuration by code.
 
         Returns dict with is_counted_flight, is_counted_instructor, is_counted_solo.
+
+        Args:
+            function_code: Configured pilot-function code.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
         """
         if not function_code:
             return {'is_counted_flight': False, 'is_counted_instructor': False, 'is_counted_solo': False}
@@ -828,7 +1009,10 @@ class FsFlight(models.Model):
         """Distribute flight hours to Aircraft, Instructor, Pilot, and Student.
 
         Args:
-            hours_delta: Hours to add (positive) or subtract (negative).
+            hours_delta: Signed number of hours to add or subtract.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         self.ensure_one()
         if hours_delta == 0:
@@ -836,6 +1020,10 @@ class FsFlight(models.Model):
 
         is_sim = self._is_simulator_session()
         today = fields.Date.context_today(self)
+
+        # Use a signed delta so completing a flight, editing a completed
+        # flight, and reverting a completed flight can share the same code path.
+        # Positive values add totals; negative values subtract previous totals.
 
         # 1. Update Aircraft
         if self.aircraft_id:
@@ -846,7 +1034,9 @@ class FsFlight(models.Model):
                 vals['last_flight_date'] = today
             aircraft.sudo().write(vals)
 
-        # 2. Update Crew members (P1 and P2)
+        # 2. Update Crew members (P1 and P2). Student-training P1 hours are
+        # skipped here and handled through student_id below to avoid double
+        # counting the same person when the crew view points at the enrollment.
         for crew_attr, func_attr in [('pilot1_crew_id', 'pilot1_function'),
                                      ('pilot2_crew_id', 'pilot2_function')]:
             crew = getattr(self, crew_attr, False)
@@ -931,7 +1121,10 @@ class FsFlight(models.Model):
         """Update student enrollment activity hours.
 
         Args:
-            hours_delta: Hours to add (positive) or subtract (negative).
+            hours_delta: Signed number of hours to add or subtract.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         self.ensure_one()
         if not self.student_id or not self.training_class_id:
@@ -946,7 +1139,9 @@ class FsFlight(models.Model):
         if not enrollment:
             return
 
-        # Get activity from mission or direct activity
+        # Resolve the activity from the mission first so syllabus-defined
+        # missions update the correct hour bucket; direct activities support
+        # staff training and ad-hoc operations.
         activity = None
         if self.mission_id and self.mission_id.activity_id:  # type: ignore
             activity = self.mission_id.activity_id  # type: ignore
@@ -966,7 +1161,8 @@ class FsFlight(models.Model):
             new_hours = max(0, rec.hours_logged + hours_delta)  # type: ignore
             rec.sudo().write({'hours_logged': new_hours})
         elif hours_delta > 0:
-            # Only create new record for positive hours
+            # Create ledger rows only for positive deltas; negative corrections
+            # should never create a new requirement line with negative hours.
             EnrollmentHours.sudo().create({
                 'enrollment_id': enrollment.id,
                 'activity_id': activity.id,
@@ -976,11 +1172,23 @@ class FsFlight(models.Model):
 
     @api.depends('callsign')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.display_name = record.callsign or _("New Flight")
 
     def action_delete_flight(self):
-        """Delete the flight."""
+        """Delete the flight.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         if self.status == 'done':
             raise UserError(_("You cannot delete a completed flight."))

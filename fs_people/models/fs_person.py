@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People fs person module.
+
+Purpose:
+    Defines classes FsPerson for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import UserError
@@ -12,6 +25,18 @@ class FsPerson(models.AbstractModel):
 
     This model is NOT related to res.partner. Personnel data is managed
     independently. Users can optionally be created and linked for system access.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.person``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread', 'mail.activity.mixin']``.
+        _description (str): Human-readable model label, ``Flight School Person (Base)``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
     """
 
     _name = 'fs.person'
@@ -131,7 +156,11 @@ class FsPerson(models.AbstractModel):
 
     @api.depends('medical_expiry')
     def _compute_medical_status(self):
-        """Compute medical status based on expiry date and warning period from settings."""
+        """Compute medical status based on expiry date and warning period from settings.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.medical_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -149,11 +178,23 @@ class FsPerson(models.AbstractModel):
 
     @api.depends('user_id')
     def _compute_has_user(self):
+        """Compute has user values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.has_user = bool(record.user_id)
 
     def action_create_user(self):
-        """Create an Odoo user account for this person."""
+        """Create an Odoo user account for this person.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         if self.user_id:
             raise UserError(self.env._("This person already has a user account."))
@@ -175,14 +216,25 @@ class FsPerson(models.AbstractModel):
         }
 
     def _suggest_login(self):
-        """Suggest a login based on the person's name."""
+        """Suggest a login based on the person's name.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         if self.name:
             # Convert name to lowercase, replace spaces with dots
             return self.name.lower().replace(' ', '.')
         return ''
 
     def action_view_user(self):
-        """Open the linked user account."""
+        """Open the linked user account.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         self.ensure_one()
         if not self.user_id:
             raise UserError(self.env._("This person does not have a user account."))

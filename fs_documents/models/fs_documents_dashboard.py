@@ -1,6 +1,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs documents dashboard module.
+
+Purpose:
+    Defines classes FsDocumentsDashboard for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 import json
 
 from odoo import fields, models
@@ -11,6 +24,16 @@ class FsDocumentsDashboard(models.TransientModel):
 
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.documents.dashboard``.
+        _description (str): Human-readable model label, ``Documents Dashboard``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
     """
 
     _name = 'fs.documents.dashboard'
@@ -69,7 +92,11 @@ class FsDocumentsDashboard(models.TransientModel):
     )
 
     def _compute_summary_kpis(self):
-        """Compute top-level summary statistics."""
+        """Compute top-level summary statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Document = self.env['fs.document']
         for record in self:
             total = Document.search_count([])
@@ -78,7 +105,11 @@ class FsDocumentsDashboard(models.TransientModel):
             record.doc_health = ((total - expired) / total * 100) if total > 0 else 100.0
 
     def _compute_document_kpis(self):
-        """Compute document status statistics."""
+        """Compute document status statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Document = self.env['fs.document']
         for record in self:
             record.doc_total = Document.search_count([])
@@ -93,7 +124,11 @@ class FsDocumentsDashboard(models.TransientModel):
             ])
 
     def _compute_entity_kpis(self):
-        """Compute document counts by entity type."""
+        """Compute document counts by entity type.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Document = self.env['fs.document']
         for record in self:
             record.doc_students = Document.search_count([
@@ -110,7 +145,11 @@ class FsDocumentsDashboard(models.TransientModel):
             ])
 
     def _compute_doc_graph_data(self):
-        """Compute document distribution graph data."""
+        """Compute document distribution graph data.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Doc = self.env['fs.document']
 
         # Status distribution
@@ -141,7 +180,11 @@ class FsDocumentsDashboard(models.TransientModel):
 
     # === Action Methods ===
     def action_view_documents(self):
-        """Open all documents."""
+        """Open all documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'All Documents',
             'type': 'ir.actions.act_window',
@@ -150,7 +193,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_documents_expired(self):
-        """Open expired documents."""
+        """Open expired documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Expired Documents',
             'type': 'ir.actions.act_window',
@@ -160,7 +207,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_documents_expiring(self):
-        """Open expiring documents."""
+        """Open expiring documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Expiring Soon',
             'type': 'ir.actions.act_window',
@@ -170,7 +221,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_documents_valid(self):
-        """Open valid documents."""
+        """Open valid documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Valid Documents',
             'type': 'ir.actions.act_window',
@@ -180,7 +235,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_student_documents(self):
-        """Open student documents."""
+        """Open student documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Student Documents',
             'type': 'ir.actions.act_window',
@@ -190,7 +249,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_instructor_documents(self):
-        """Open instructor documents."""
+        """Open instructor documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Instructor Documents',
             'type': 'ir.actions.act_window',
@@ -200,7 +263,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_pilot_documents(self):
-        """Open pilot documents."""
+        """Open pilot documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Pilot Documents',
             'type': 'ir.actions.act_window',
@@ -210,7 +277,11 @@ class FsDocumentsDashboard(models.TransientModel):
         }
 
     def action_view_class_documents(self):
-        """Open training class documents."""
+        """Open training class documents.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Class Documents',
             'type': 'ir.actions.act_window',

@@ -1,4 +1,24 @@
+"""Pre-migration script for flight-route name normalization.
+
+Purpose:
+    Converts translated JSONB route names to plain ``VARCHAR`` values before
+    the upgraded ``fs.flight.route`` model is loaded.
+
+Related Modules:
+    Protects route labels used by scheduled flights, operations boards, and
+    timeline grouping.
+"""
+
 def migrate(cr, version):
+    """Convert ``fs_flight_route.name`` from JSONB to VARCHAR when needed.
+
+    Args:
+        cr: Database cursor provided by Odoo during module migration.
+        version: Installed module version provided by Odoo during migration.
+
+    Returns:
+        None: Updates database schema in place.
+    """
     # Check if table exists
     cr.execute("SELECT 1 FROM information_schema.tables WHERE table_name = 'fs_flight_route'")
     if cr.fetchone():

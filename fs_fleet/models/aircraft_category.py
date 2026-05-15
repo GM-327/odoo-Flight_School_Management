@@ -2,12 +2,38 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Fleet aircraft category module.
+
+Purpose:
+    Defines classes AircraftCategory for aircraft categories, aircraft types, aircraft records, maintenance awareness, and fleet dashboard data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training defines aircraft-type requirements.
+"""
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
 class AircraftCategory(models.Model):
-    """Aircraft category classification (single-engine, multi-engine, etc.)."""
+    """Aircraft category classification (single-engine, multi-engine, etc.).
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.aircraft.category``.
+        _inherit: Odoo model(s) extended by this class: ``['mail.thread']``.
+        _description (str): Human-readable model label, ``Aircraft Category``.
+
+    Related:
+        fs_training defines aircraft-type requirements.
+        fs_scheduling and fs_flights use aircraft availability and total-hour data.
+    """
 
     _name = 'fs.aircraft.category'
     _description = 'Aircraft Category'
@@ -72,21 +98,47 @@ class AircraftCategory(models.Model):
 
     @api.depends('aircraft_type_ids')
     def _compute_aircraft_type_count(self):
+        """Compute aircraft type count values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.aircraft_type_count = len(record.aircraft_type_ids)
 
     @api.constrains('code')
     def _check_code_uppercase(self):
+        """Validate code uppercase business rules.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         for record in self:
             if record.code and record.code != record.code.upper():
                 raise UserError("Category code must be uppercase.")
 
     @api.onchange('code')
     def _onchange_code_uppercase(self):
+        """Update form values when code uppercase changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.code:
             self.code = self.code.upper()
 
     def unlink(self):
+        """Delete records after enforcing Flight School business safeguards.
+
+        Returns:
+            bool: True when Odoo successfully deletes the records.
+
+        Raises:
+            UserError: If user-facing business validation fails.
+        """
         for record in self:
             if record.aircraft_type_ids:
                 raise UserError(

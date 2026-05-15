@@ -1,13 +1,38 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs daily operations module.
+
+Purpose:
+    Defines classes FsDailyOperations for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from datetime import timedelta
 
 from odoo import _, api, fields, models
 
 
 class FsDailyOperations(models.Model):
-    """Dashboard for daily flight operations monitoring."""
+    """Dashboard for daily flight operations monitoring.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.daily.operations``.
+        _description (str): Human-readable model label, ``Daily Operations Dashboard``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
+    """
 
     _name = 'fs.daily.operations'
     _description = 'Daily Operations Dashboard'
@@ -21,6 +46,14 @@ class FsDailyOperations(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create records while applying module-specific defaults and side effects.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         records = super().create(vals_list)
         for record in records:
             if record.date:
@@ -52,6 +85,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('date')
     def _compute_name(self):
+        """Compute name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.name = (
                 _("Operations Board - %s") % record.date
@@ -61,6 +99,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('date')
     def _compute_date_display(self):
+        """Compute date display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         import calendar
         for record in self:
             if record.date:
@@ -150,11 +193,21 @@ class FsDailyOperations(models.Model):
 
     @api.depends('flight_log_ids')
     def _compute_flight_log_count(self):
+        """Compute flight log count values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.flight_log_count = len(record.flight_log_ids)
 
     # === Pagination for Carousel ===
     def _default_page_size(self):
+        """Return the default page size value.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         value = self.env['ir.config_parameter'].sudo().get_param(
             'flight_school.operations_page_size', '10',
         )
@@ -193,7 +246,11 @@ class FsDailyOperations(models.Model):
         'flight_log_ids.aircraft_id',
     )
     def _compute_kpis(self):
-        """Compute summary KPIs for today's flights."""
+        """Compute summary KPIs for today's flights.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             # Filter non-simulators
             logs = record.flight_log_ids.filtered(
@@ -225,7 +282,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('date')
     def _compute_last_add_callsign(self):
-        """Compute the last added callsign for the whole year."""
+        """Compute the last added callsign for the whole year.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             if not record.date:
                 record.last_add_callsign = '-'
@@ -272,7 +333,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('flight_log_count', 'page_size')
     def _compute_pagination(self):
-        """Compute pagination info."""
+        """Compute pagination info.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             page_size = max(record.page_size or 10, 1)
             total_count = record.flight_log_count
@@ -283,7 +348,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('flight_log_ids', 'current_page', 'page_size')
     def _compute_paginated_flights(self):
-        """Get the flights for the current page."""
+        """Get the flights for the current page.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             page_size = max(record.page_size or 10, 1)
             current_page = record.current_page or 0
@@ -302,7 +371,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('date')
     def _compute_available_aircraft(self):
-        """Compute available aircraft (not in flight, not in maintenance)."""
+        """Compute available aircraft (not in flight, not in maintenance).
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             today = record.date or fields.Date.context_today(self)
 
@@ -335,7 +408,11 @@ class FsDailyOperations(models.Model):
 
     @api.depends('date')
     def _compute_cancellation_summary(self):
-        """Show cancellation reasons breakdown."""
+        """Show cancellation reasons breakdown.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             today = record.date or fields.Date.context_today(self)
             cancelled = self.env['fs.flight'].search([
@@ -377,21 +454,36 @@ class FsDailyOperations(models.Model):
     # === Actions ===
 
     def action_previous_day(self):
-        """Go to previous day."""
+        """Go to previous day.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         today = self.date or fields.Date.context_today(self)
         target_date = today - timedelta(days=1)
         return self._open_date(target_date)
 
     def action_next_day(self):
-        """Go to next day."""
+        """Go to next day.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         today = self.date or fields.Date.context_today(self)
         target_date = today + timedelta(days=1)
         return self._open_date(target_date)
 
     def _open_date(self, target_date):
-        """Find or create record for target date and open it."""
+        """Find or create record for target date and open it.
+
+        Args:
+            target_date: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         record = self.search([('date', '=', target_date)], limit=1)
         if not record:
             record = self.create({'date': target_date})
@@ -406,7 +498,11 @@ class FsDailyOperations(models.Model):
         }
 
     def action_add_flight(self):
-        """Open add flight wizard."""
+        """Open add flight wizard.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': _('Add Flight'),
             'type': 'ir.actions.act_window',
@@ -417,14 +513,22 @@ class FsDailyOperations(models.Model):
         }
 
     def action_refresh(self):
-        """Refresh the operations board."""
+        """Refresh the operations board.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
         }
 
     def action_open_operations_board(self):
-        """Open the operations board in full view."""
+        """Open the operations board in full view.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         today = fields.Date.context_today(self)
         record = self.search([('date', '=', today)], limit=1)
         if not record:
@@ -443,7 +547,11 @@ class FsDailyOperations(models.Model):
     # === Pagination Navigation ===
 
     def action_next_page(self):
-        """Go to next page of flights (infinite loop)."""
+        """Go to next page of flights (infinite loop).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.total_pages > 1:
             # If on last page, go to first (0), else next
@@ -454,7 +562,11 @@ class FsDailyOperations(models.Model):
         return self._reload_view()
 
     def action_prev_page(self):
-        """Go to previous page of flights (infinite loop)."""
+        """Go to previous page of flights (infinite loop).
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.total_pages > 1:
             # If on first page, go to last, else previous
@@ -465,18 +577,30 @@ class FsDailyOperations(models.Model):
         return self._reload_view()
 
     def action_first_page(self):
-        """Go to first page of flights."""
+        """Go to first page of flights.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         self.current_page = 0
         return self._reload_view()
 
     def action_last_page(self):
-        """Go to last page of flights."""
+        """Go to last page of flights.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         self.current_page = self.total_pages - 1
         return self._reload_view()
 
     def _reload_view(self):
-        """Helper to reload the current view without closing it."""
+        """Helper to reload the current view without closing it.
+
+        Returns:
+            bool: True or False according to the validation or lookup result.
+        """
         # returning True forces the web client to reload the form data in-place
         return True

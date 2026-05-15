@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs mission completion module.
+
+Purpose:
+    Defines classes FsMissionCompletion for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from odoo import api, fields, models
 
 
@@ -10,6 +23,17 @@ class FsMissionCompletion(models.Model):
 
     This model records which missions have been completed by students
     within their enrollment, along with completion dates and notes.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.mission.completion``.
+        _description (str): Human-readable model label, ``Mission Completion``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
     """
     _name = 'fs.mission.completion'
     _description = 'Mission Completion'
@@ -72,6 +96,11 @@ class FsMissionCompletion(models.Model):
 
     @api.depends('enrollment_id.student_id.display_name', 'mission_id.name')
     def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             student_name = record.student_id.display_name or 'Unknown'
             mission_name = record.mission_name or 'N/A'
@@ -79,13 +108,22 @@ class FsMissionCompletion(models.Model):
 
     @api.onchange('is_completed')
     def _onchange_is_completed(self):
+        """Update form values when is completed changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.is_completed and not self.completion_date:
             self.completion_date = fields.Date.context_today(self)
         elif not self.is_completed:
             self.completion_date = False
 
     def action_mark_complete(self):
-        """Mark the mission as completed."""
+        """Mark the mission as completed.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         for record in self:
             record.write({
                 'is_completed': True,
@@ -93,7 +131,11 @@ class FsMissionCompletion(models.Model):
             })
 
     def action_mark_incomplete(self):
-        """Mark the mission as not completed."""
+        """Mark the mission as not completed.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         for record in self:
             record.write({
                 'is_completed': False,

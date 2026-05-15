@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People fs student module.
+
+Purpose:
+    Defines classes FsStudent for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 from datetime import timedelta
 from odoo import api, fields, models
 
@@ -11,6 +24,18 @@ class FsStudent(models.Model):
 
     Note: Enrollment in training classes is handled by fs_training module.
     A student can be enrolled in multiple classes but active in only one.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.student``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.person']``.
+        _description (str): Human-readable model label, ``Flight Student``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
     """
 
     _name = 'fs.student'
@@ -51,7 +76,11 @@ class FsStudent(models.Model):
 
     @api.depends('license_expiry')
     def _compute_license_expiry_status(self):
-        """Compute license expiry status based on expiry date."""
+        """Compute license expiry status based on expiry date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.license_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -75,7 +104,11 @@ class FsStudent(models.Model):
 
     @api.depends('license_expiry_status', 'medical_status', 'security_clearance_status', 'insurance_status')
     def _compute_has_expired_status(self):
-        """Check if any status is expired for row decoration."""
+        """Check if any status is expired for row decoration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.has_expired_status = (
                 record.license_expiry_status == 'expired' or  # type: ignore
@@ -118,7 +151,11 @@ class FsStudent(models.Model):
 
     @api.depends('security_clearance_expiry')
     def _compute_security_clearance_status(self):
-        """Compute security clearance status based on expiry date."""
+        """Compute security clearance status based on expiry date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.security_warning_days', '30'))
         today = fields.Date.context_today(self)
@@ -136,7 +173,11 @@ class FsStudent(models.Model):
 
     @api.depends('insurance_expiry')
     def _compute_insurance_status(self):
-        """Compute insurance status based on expiry date."""
+        """Compute insurance status based on expiry date.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
             'flight_school.insurance_warning_days', '30'))
         today = fields.Date.context_today(self)

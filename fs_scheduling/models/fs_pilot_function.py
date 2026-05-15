@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs pilot function module.
+
+Purpose:
+    Defines classes FsPilotFunction for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 from odoo import api, fields, models
 
 
@@ -10,6 +23,17 @@ class FsPilotFunction(models.Model):
 
     This model defines the available pilot functions and their hour counting behavior.
     The 'code' field links to the existing Selection field values for compatibility.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.pilot.function``.
+        _description (str): Human-readable model label, ``Pilot Function``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
     """
 
     _name = 'fs.pilot.function'
@@ -60,10 +84,10 @@ class FsPilotFunction(models.Model):
         """Get pilot function record by code.
 
         Args:
-            code: Selection field value (e.g., 'instructor', 'student')
+            code: Configured pilot-function code to search for.
 
         Returns:
-            fs.pilot.function record or False
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
         if not code:
             return False

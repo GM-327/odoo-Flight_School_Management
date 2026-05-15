@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Flights fs recalculate hours wizard module.
+
+Purpose:
+    Defines classes FsRecalculateHoursWizard, FsRecalculateHoursLine for daily operations boards, simulator operations, flight execution logs, cancellation workflows, schedule imports, and hour distribution.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
+    fs_scheduling provides planned flights.
+"""
 from odoo import api, fields, models
 
 
@@ -11,6 +24,17 @@ class FsRecalculateHoursWizard(models.TransientModel):
     Shows a preview of calculated values vs current values,
     highlighting differences. Administrators can select which
     values to apply.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.recalculate.hours.wizard``.
+        _description (str): Human-readable model label, ``Recalculate Hours Wizard``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
     """
     _name = 'fs.recalculate.hours.wizard'
     _description = 'Recalculate Hours Wizard'
@@ -41,11 +65,20 @@ class FsRecalculateHoursWizard(models.TransientModel):
 
     @api.depends('line_ids.difference')
     def _compute_changes_count(self):
+        """Compute changes count values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.changes_count = len(record.line_ids.filtered(lambda l: l.difference != 0))
 
     def action_calculate(self):
-        """Calculate differences and show preview."""
+        """Calculate differences and show preview.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         self.line_ids.unlink()
 
@@ -74,7 +107,14 @@ class FsRecalculateHoursWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def _calculate_aircraft_hours(self, flights):
-        """Calculate aircraft hours from flights."""
+        """Calculate aircraft hours from flights.
+
+        Args:
+            flights: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         lines = []
         Aircraft = self.env['fs.aircraft']
 
@@ -105,7 +145,15 @@ class FsRecalculateHoursWizard(models.TransientModel):
         return lines
 
     def _calculate_person_hours(self, model_name, flights):
-        """Calculate person hours from flights."""
+        """Calculate person hours from flights.
+
+        Args:
+            model_name: Value supplied by Odoo or the calling workflow.
+            flights: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            Any: Value required by the Odoo ORM, action system, or calling workflow.
+        """
         lines = []
         Model = self.env[model_name]
 
@@ -207,7 +255,11 @@ class FsRecalculateHoursWizard(models.TransientModel):
         return lines
 
     def action_apply(self):
-        """Apply selected changes."""
+        """Apply selected changes.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
 
         lines_to_apply = self.line_ids.filtered(lambda l: l.apply and l.difference != 0)
@@ -222,13 +274,21 @@ class FsRecalculateHoursWizard(models.TransientModel):
         return self._reopen_wizard()
 
     def action_back(self):
-        """Go back to selection."""
+        """Go back to selection.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.state = 'select'
         self.line_ids.unlink()
         return self._reopen_wizard()
 
     def _reopen_wizard(self):
-        """Reopen the wizard form."""
+        """Reopen the wizard form.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         return {
             'type': 'ir.actions.act_window',
             'res_model': self._name,
@@ -239,7 +299,19 @@ class FsRecalculateHoursWizard(models.TransientModel):
 
 
 class FsRecalculateHoursLine(models.TransientModel):
-    """Line item for recalculate hours wizard."""
+    """Line item for recalculate hours wizard.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.recalculate.hours.line``.
+        _description (str): Human-readable model label, ``Recalculate Hours Line``.
+
+    Related:
+        fs_scheduling provides planned flights.
+        fs_training enrollments receive completed-hour updates.
+    """
     _name = 'fs.recalculate.hours.line'
     _description = 'Recalculate Hours Line'
 
@@ -280,5 +352,10 @@ class FsRecalculateHoursLine(models.TransientModel):
 
     @api.depends('current_value', 'calculated_value')
     def _compute_difference(self):
+        """Compute difference values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.difference = record.calculated_value - record.current_value

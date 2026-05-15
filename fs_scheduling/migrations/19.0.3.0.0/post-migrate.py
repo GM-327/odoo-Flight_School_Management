@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Post-migration script for unified crew member refactoring.
+"""Post-migration script for the unified crew-member identifiers.
 
-This script migrates from the old separate crew fields to the new unified
-fs.crew.member fields (pilot1_crew_id, pilot2_crew_id).
+Purpose:
+    Converts old Pilot 1 / Pilot 2 instructor and enrollment columns on
+    ``fs_scheduled_flight`` into the unified ``fs.crew.member`` identifiers
+    used by the scheduling wizard and timeline views.
 
-Runs AFTER ORM has created new columns.
-
-IMPORTANT: Remove this migration script after all databases have been migrated.
+Related Modules:
+    Uses the ID conventions from ``fs_scheduling.models.fs_crew_member`` and
+    preserves planned-flight data later consumed by ``fs_flights``.
 """
 import logging
 
@@ -14,7 +16,15 @@ _logger = logging.getLogger(__name__)
 
 
 def migrate(cr, version):
-    """Migrate old crew fields to unified crew member fields."""
+    """Migrate old crew fields to unified crew member fields.
+
+    Args:
+        cr: Database cursor provided by Odoo during module migration.
+        version: Installed module version provided by Odoo during migration.
+
+    Returns:
+        None: Updates Odoo records, computed fields, or wizard state in place.
+    """
     if not version:
         return
 
@@ -22,9 +32,9 @@ def migrate(cr, version):
 
     # Check if old columns exist before attempting migration
     cr.execute("""
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'fs_scheduled_flight' 
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'fs_scheduled_flight'
         AND column_name IN ('pilot1_enrollment_id', 'pilot1_instructor_id', 'pilot2_instructor_id');
     """)
     old_columns = [row[0] for row in cr.fetchall()]
@@ -37,7 +47,7 @@ def migrate(cr, version):
     # Enrollment ID is used directly as crew member ID for students
     if 'pilot1_enrollment_id' in old_columns:
         cr.execute("""
-            UPDATE fs_scheduled_flight 
+            UPDATE fs_scheduled_flight
             SET pilot1_crew_id = pilot1_enrollment_id
             WHERE pilot1_enrollment_id IS NOT NULL
               AND pilot1_crew_id IS NULL;
@@ -49,7 +59,7 @@ def migrate(cr, version):
     # Instructor ID + 1000000 = crew member ID for instructors
     if 'pilot1_instructor_id' in old_columns:
         cr.execute("""
-            UPDATE fs_scheduled_flight 
+            UPDATE fs_scheduled_flight
             SET pilot1_crew_id = pilot1_instructor_id + 1000000
             WHERE pilot1_instructor_id IS NOT NULL
               AND pilot1_crew_id IS NULL;
@@ -61,7 +71,7 @@ def migrate(cr, version):
     # Instructor ID + 1000000 = crew member ID for instructors
     if 'pilot2_instructor_id' in old_columns:
         cr.execute("""
-            UPDATE fs_scheduled_flight 
+            UPDATE fs_scheduled_flight
             SET pilot2_crew_id = pilot2_instructor_id + 1000000
             WHERE pilot2_instructor_id IS NOT NULL
               AND pilot2_crew_id IS NULL;
@@ -71,9 +81,9 @@ def migrate(cr, version):
 
     # Also migrate wizard lines if they exist
     cr.execute("""
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'fs_scheduling_wizard_line' 
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = 'fs_scheduling_wizard_line'
         AND column_name IN ('pilot1_enrollment_id', 'pilot2_instructor_id');
     """)
     wizard_old_columns = [row[0] for row in cr.fetchall()]
@@ -83,7 +93,7 @@ def migrate(cr, version):
 
         if 'pilot1_enrollment_id' in wizard_old_columns:
             cr.execute("""
-                UPDATE fs_scheduling_wizard_line 
+                UPDATE fs_scheduling_wizard_line
                 SET pilot1_crew_id = pilot1_enrollment_id
                 WHERE pilot1_enrollment_id IS NOT NULL
                   AND pilot1_crew_id IS NULL;
@@ -91,7 +101,7 @@ def migrate(cr, version):
 
         if 'pilot2_instructor_id' in wizard_old_columns:
             cr.execute("""
-                UPDATE fs_scheduling_wizard_line 
+                UPDATE fs_scheduling_wizard_line
                 SET pilot2_crew_id = pilot2_instructor_id + 1000000
                 WHERE pilot2_instructor_id IS NOT NULL
                   AND pilot2_crew_id IS NULL;

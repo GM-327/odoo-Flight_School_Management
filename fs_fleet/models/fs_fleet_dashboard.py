@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Fleet fs fleet dashboard module.
+
+Purpose:
+    Defines classes FsFleetDashboard for aircraft categories, aircraft types, aircraft records, maintenance awareness, and fleet dashboard data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training defines aircraft-type requirements.
+"""
 from datetime import date, timedelta
 import json
 from odoo import api, fields, models
@@ -12,6 +25,17 @@ class FsFleetDashboard(models.TransientModel):
 
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.fleet.dashboard``.
+        _description (str): Human-readable model label, ``Fleet Dashboard``.
+
+    Related:
+        fs_training defines aircraft-type requirements.
+        fs_scheduling and fs_flights use aircraft availability and total-hour data.
     """
 
     _name = 'fs.fleet.dashboard'
@@ -82,7 +106,11 @@ class FsFleetDashboard(models.TransientModel):
     )
 
     def _compute_summary_kpis(self):
-        """Compute top-level summary statistics."""
+        """Compute top-level summary statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Aircraft = self.env['fs.aircraft']
         for record in self:
             total = Aircraft.search_count([])
@@ -91,7 +119,11 @@ class FsFleetDashboard(models.TransientModel):
             record.fleet_availability = (available / total * 100) if total > 0 else 100.0
 
     def _compute_aircraft_kpis(self):
-        """Compute aircraft status statistics."""
+        """Compute aircraft status statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Aircraft = self.env['fs.aircraft']
         for record in self:
             record.aircraft_total = Aircraft.search_count([])
@@ -109,7 +141,11 @@ class FsFleetDashboard(models.TransientModel):
             ])
 
     def _compute_maintenance_kpis(self):
-        """Compute maintenance alert statistics."""
+        """Compute maintenance alert statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Aircraft = self.env['fs.aircraft']
         for record in self:
             record.maintenance_overdue = Aircraft.search_count([
@@ -120,7 +156,11 @@ class FsFleetDashboard(models.TransientModel):
             ])
 
     def _compute_certificate_kpis(self):
-        """Compute certificate expiry statistics."""
+        """Compute certificate expiry statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Aircraft = self.env['fs.aircraft']
         today = date.today()
         warning_date = today + timedelta(days=30)
@@ -141,7 +181,11 @@ class FsFleetDashboard(models.TransientModel):
             ])
 
     def _compute_fleet_graph_data(self):
-        """Compute fleet distribution graph data."""
+        """Compute fleet distribution graph data.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Aircraft = self.env['fs.aircraft']
 
         # Status distribution
@@ -176,7 +220,11 @@ class FsFleetDashboard(models.TransientModel):
 
     # === Action Methods ===
     def action_view_aircraft(self):
-        """Open all aircraft."""
+        """Open all aircraft.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'All Aircraft',
             'type': 'ir.actions.act_window',
@@ -185,7 +233,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_aircraft_available(self):
-        """Open available aircraft."""
+        """Open available aircraft.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Available Aircraft',
             'type': 'ir.actions.act_window',
@@ -195,7 +247,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_aircraft_in_use(self):
-        """Open aircraft in use."""
+        """Open aircraft in use.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Aircraft In Use',
             'type': 'ir.actions.act_window',
@@ -205,7 +261,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_aircraft_maintenance(self):
-        """Open aircraft in maintenance."""
+        """Open aircraft in maintenance.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Aircraft In Maintenance',
             'type': 'ir.actions.act_window',
@@ -215,7 +275,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_aircraft_grounded(self):
-        """Open grounded aircraft."""
+        """Open grounded aircraft.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Grounded Aircraft',
             'type': 'ir.actions.act_window',
@@ -225,7 +289,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_maintenance_overdue(self):
-        """Open aircraft with overdue maintenance."""
+        """Open aircraft with overdue maintenance.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Maintenance Overdue',
             'type': 'ir.actions.act_window',
@@ -235,7 +303,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_maintenance_due_soon(self):
-        """Open aircraft with maintenance due soon."""
+        """Open aircraft with maintenance due soon.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Maintenance Due Soon',
             'type': 'ir.actions.act_window',
@@ -245,7 +317,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_cert_expired(self):
-        """Open aircraft with expired certificates."""
+        """Open aircraft with expired certificates.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         today = date.today()
         return {
             'name': 'Expired Certificates',
@@ -261,7 +337,11 @@ class FsFleetDashboard(models.TransientModel):
         }
 
     def action_view_cert_expiring(self):
-        """Open aircraft with certificates expiring soon."""
+        """Open aircraft with certificates expiring soon.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         today = date.today()
         warning_date = today + timedelta(days=30)
         return {

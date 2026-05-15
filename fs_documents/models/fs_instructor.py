@@ -2,11 +2,35 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs instructor module.
+
+Purpose:
+    Defines classes FsInstructor for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 from odoo import api, fields, models
 
 
 class FsInstructor(models.Model):
-    """Extend instructor model with document management."""
+    """Extend instructor model with document management.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.instructor``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.instructor']``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
+    """
 
     _name = 'fs.instructor'
     _inherit = ['fs.instructor']
@@ -44,13 +68,21 @@ class FsInstructor(models.Model):
     )
 
     def _compute_document_count(self):
-        """Compute the number of documents."""
+        """Compute the number of documents.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.document_count = len(record.document_ids)
 
     @api.depends('document_ids', 'document_ids.document_type_id.display_field')
     def _compute_document_shortcuts(self):
-        """Find specific document types for quick access buttons based on display_field."""
+        """Find specific document types for quick access buttons based on display_field.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             docs = record.document_ids
             record.medical_document_id = docs.filtered_domain(
@@ -63,7 +95,11 @@ class FsInstructor(models.Model):
                 [('document_type_id.display_field', '=', 'identification_number')])[:1]
 
     def action_view_documents(self):
-        """View all documents for this instructor."""
+        """View all documents for this instructor.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Instructor Documents',
@@ -75,7 +111,11 @@ class FsInstructor(models.Model):
         }
 
     def action_upload_document(self):
-        """Open document upload wizard with this instructor pre-selected."""
+        """Open document upload wizard with this instructor pre-selected.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Upload Document',
@@ -88,31 +128,54 @@ class FsInstructor(models.Model):
         }
 
     def action_view_medical_document(self):
-        """View medical document."""
+        """View medical document.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.medical_document_id:
             return self._open_document_preview(self.medical_document_id)
 
     def action_view_license_document(self):
-        """View license document."""
+        """View license document.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.license_document_id:
             return self._open_document_preview(self.license_document_id)
 
     def action_view_english_document(self):
-        """View english proficiency document."""
+        """View english proficiency document.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.english_document_id:
             return self._open_document_preview(self.english_document_id)
 
     def action_view_id_document(self):
-        """View ID document."""
+        """View ID document.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         if self.id_document_id:
             return self._open_document_preview(self.id_document_id)
 
     def _open_document_preview(self, document):
-        """Open document in preview popup."""
+        """Open document in preview popup.
+
+        Args:
+            document: Value supplied by Odoo or the calling workflow.
+
+        Returns:
+            dict: Structured data or an Odoo action dictionary produced by the workflow.
+        """
         view_id = self.env.ref('fs_documents.view_fs_document_preview').id
         return {
             'name': 'Document Preview',

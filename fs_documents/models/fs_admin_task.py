@@ -2,11 +2,35 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Documents fs admin task module.
+
+Purpose:
+    Defines classes FsAdminTask for document types, uploaded files, version history, expiry status, previews, and entity shortcuts.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: web, fs_core, fs_people, fs_training.
+    fs_people and fs_training provide the related business entities whose files are managed here.
+"""
 from odoo import fields, models
 
 
 class FsAdminTask(models.Model):
-    """Extend admin task model with document management."""
+    """Extend admin task model with document management.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.admin.task``.
+        _inherit: Odoo model(s) extended by this class: ``['fs.admin.task']``.
+
+    Related:
+        fs_people and fs_training provide the related business entities whose files are managed here.
+    """
 
     _name = 'fs.admin.task'
     _inherit = ['fs.admin.task']
@@ -32,19 +56,31 @@ class FsAdminTask(models.Model):
     )
 
     def _compute_document_count(self):
-        """Count documents related to this admin task."""
+        """Count documents related to this admin task.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             record.document_count = len(record.document_ids)
 
     def _compute_document_info(self):
-        """Get document reference and filename from first linked document."""
+        """Get document reference and filename from first linked document.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for record in self:
             doc = record.document_ids[:1]
             record.document_reference = doc.reference if doc else False  # type: ignore
             record.document_filename = doc.filename if doc else False  # type: ignore
 
     def action_view_documents(self):
-        """Open list of documents for this admin task."""
+        """Open list of documents for this admin task.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Documents',
@@ -59,7 +95,11 @@ class FsAdminTask(models.Model):
         }
 
     def action_upload_document(self):
-        """Open document upload wizard with this admin task pre-selected."""
+        """Open document upload wizard with this admin task pre-selected.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return {
             'name': 'Upload Document',
@@ -72,7 +112,11 @@ class FsAdminTask(models.Model):
         }
 
     def action_open_document(self):
-        """Open the first document for this task in a preview popup."""
+        """Open the first document for this task in a preview popup.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         doc = self.document_ids[:1]
         if not doc:

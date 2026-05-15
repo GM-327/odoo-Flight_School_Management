@@ -1,11 +1,36 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Training fs class type module.
+
+Purpose:
+    Defines classes FsClassType, FsClassTypeHours for class types, training classes, enrollments, missions, activities, completion tracking, and training KPIs.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_people, fs_fleet, mail.
+    fs_scheduling schedules training missions.
+"""
 from odoo import api, fields, models
 
 
 class FsClassType(models.Model):
-    """Training class type templates."""
+    """Training class type templates.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.class.type``.
+        _description (str): Human-readable model label, ``Class Type``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.class.type'
     _description = 'Class Type'
@@ -105,7 +130,14 @@ class FsClassType(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Auto-add default requirements and admin tasks on create."""
+        """Auto-add default requirements and admin tasks on create.
+
+        Args:
+            vals_list: List of value dictionaries passed to the multi-record create method.
+
+        Returns:
+            models.Model: Odoo recordset returned by the ORM.
+        """
         default_requirements = self.env['fs.class.requirement'].search([
             ('is_default', '=', True),
         ])
@@ -127,7 +159,19 @@ class FsClassType(models.Model):
 
 
 class FsClassTypeHours(models.Model):
-    """Minimum hour requirements per activity."""
+    """Minimum hour requirements per activity.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.class.type.hours``.
+        _description (str): Human-readable model label, ``Class Type Hour Requirements``.
+
+    Related:
+        fs_scheduling schedules training missions.
+        fs_flights posts completed hours back to enrollments.
+    """
 
     _name = 'fs.class.type.hours'
     _description = 'Class Type Hour Requirements'

@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School Scheduling fs scheduling wizard line module.
+
+Purpose:
+    Defines classes FsSchedulingWizardLine for planned flights, crew selection, route management, scheduling wizards, conflict detection, and timeline data.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
+    fs_flights publishes scheduled plans to operations boards.
+"""
 from odoo import api, fields, models, _
 
 # Import shared constants from mixin
@@ -12,6 +25,19 @@ from ..models.fs_flight_mixin import (
 
 
 class FsSchedulingWizardLine(models.TransientModel):
+    """Odoo model for Scheduling Wizard Line.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.scheduling.wizard.line``.
+        _description (str): Human-readable model label, ``Scheduling Wizard Line``.
+
+    Related:
+        fs_flights publishes scheduled plans to operations boards.
+        fs_fleet supplies aircraft availability.
+    """
     _name = 'fs.scheduling.wizard.line'
     _description = 'Scheduling Wizard Line'
     _order = 'sequence, id'
@@ -152,6 +178,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.depends('pilot1_crew_id', 'pilot1_function', 'flight_category')
     def _compute_pilot1_display(self):
+        """Compute pilot1 display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             if line.pilot1_crew_id:
                 line.pilot1_display = line.pilot1_crew_id.name or ''  # type: ignore
@@ -160,6 +191,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.depends('pilot2_crew_id', 'pilot2_function')
     def _compute_pilot2_display(self):
+        """Compute pilot2 display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             if line.pilot2_crew_id:
                 line.pilot2_display = line.pilot2_crew_id.name or ''  # type: ignore
@@ -168,7 +204,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.depends('pilot1_function', 'pilot2_function', 'is_sim')
     def _compute_flight_type_id(self):
-        """Auto-determine flight type from crew configuration."""
+        """Auto-determine flight type from crew configuration.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         FlightType = self.env['fs.flight.type']
         dual_type = FlightType.search([('code', '=', 'DUAL')], limit=1)
         solo_type = FlightType.search([('code', '=', 'SOLO')], limit=1)
@@ -189,6 +229,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.depends('mission_id', 'mission_id.is_sim', 'activity_id', 'activity_id.is_sim')
     def _compute_is_sim(self):
+        """Compute is sim values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             if line.mission_id:
                 line.is_sim = line.mission_id.is_sim  # type: ignore
@@ -204,6 +249,9 @@ class FsSchedulingWizardLine(models.TransientModel):
         For simulator missions: airworthy simulators from the class type's aircraft types
         For student training: filter by student's assigned aircraft type
         For staff training / fallback: filter by allowed aircraft types from class
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
         """
         Aircraft = self.env['fs.aircraft']
         for line in self:
@@ -253,6 +301,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.depends('mission_id', 'mission_id.is_exam', 'custom_activity_id', 'custom_activity_id.is_exam')  # type: ignore
     def _compute_is_exam(self):
+        """Compute is exam values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             if line.mission_id:
                 line.is_exam = line.mission_id.is_exam  # type: ignore
@@ -264,7 +317,11 @@ class FsSchedulingWizardLine(models.TransientModel):
     @api.depends('activity_id', 'activity_id.code', 'custom_activity_id', 'custom_activity_id.code',  # type: ignore
                  'custom_activity_id.name', 'mission_id', 'mission_id.activity_id', 'mission_id.activity_id.code')  # type: ignore
     def _compute_activity_display(self):
-        """Compute display value for activity column showing activity/custom_activity code."""
+        """Compute display value for activity column showing activity/custom_activity code.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             if line.mission_id and line.mission_id.activity_id:  # type: ignore
                 # For student training: show mission's activity code
@@ -280,11 +337,21 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.depends('start_time', 'duration')
     def _compute_end_time(self):
+        """Compute end time values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             line.end_time = (line.start_time or 0.0) + (line.duration or 0.0)
 
     @api.depends('callsign_number', 'is_sim', 'is_added_mission')
     def _compute_callsign_display(self):
+        """Compute callsign display values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             # SIM missions never use ADD behavior
             if line.is_added_mission and not line.is_sim:
@@ -295,6 +362,11 @@ class FsSchedulingWizardLine(models.TransientModel):
             line.callsign_display = f"{prefix}{num:04d}"
 
     def _inverse_callsign_display(self):
+        """Synchronize stored values from the inverse of callsign display.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         for line in self:
             display = line.callsign_display or ''
             for prefix in ['SIM', line.wizard_id.callsign_prefix or 'ABS']:  # type: ignore
@@ -308,7 +380,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('flight_category')
     def _onchange_flight_category(self):
-        """Handle category change: clear and reset crew fields."""
+        """Handle category change: clear and reset crew fields.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.flight_category == 'student_training':
             # Clear staff activity
             self.activity_id = False
@@ -348,7 +424,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
-        """Smart assignment when Pilot 1 crew member is selected."""
+        """Smart assignment when Pilot 1 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot1_crew_id:
             member_type = self.pilot1_crew_id.member_type  # type: ignore
             if member_type == 'student':
@@ -385,7 +465,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('pilot2_crew_id')
     def _onchange_pilot2_crew(self):
-        """Smart assignment when Pilot 2 crew member is selected."""
+        """Smart assignment when Pilot 2 crew member is selected.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot2_crew_id:
             member_type = self.pilot2_crew_id.member_type  # type: ignore
             if member_type == 'student':
@@ -398,7 +482,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('pilot1_function')
     def _onchange_pilot1_function(self):
-        """Handle function changes - update Pilot 2 accordingly."""
+        """Handle function changes - update Pilot 2 accordingly.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot1_function == 'solo':
             # Solo flight: Pilot 2 becomes supervisor (on ground)
             if self.pilot2_crew_id:
@@ -408,6 +496,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('mission_id')
     def _onchange_mission(self):
+        """Update form values when mission changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.mission_id:
             self.duration = self.mission_id.duration_hours  # type: ignore
             # Auto-fill activity_id from mission
@@ -429,6 +522,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('activity_id')
     def _onchange_activity(self):
+        """Update form values when activity changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.activity_id:
             self.custom_activity_id = False
             if self.activity_id.discipline_id and self.activity_id.discipline_id.default_flight_duration:  # type: ignore
@@ -438,6 +536,11 @@ class FsSchedulingWizardLine(models.TransientModel):
 
     @api.onchange('custom_activity_id')
     def _onchange_custom_activity(self):
+        """Update form values when custom activity changes.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.custom_activity_id:
             self.duration = self.custom_activity_id.default_duration or 1.0  # type: ignore
             self.activity_id = False
@@ -451,21 +554,33 @@ class FsSchedulingWizardLine(models.TransientModel):
     # === Helper Methods ===
 
     def _check_examinator_warning(self):
-        """Check if an examinator is required but not assigned for missions."""
+        """Check if an examinator is required but not assigned for missions.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.mission_id and self.mission_id.is_exam:  # type: ignore
             self._check_pilot2_has_examinator_qual()
         else:
             self.has_examinator_warning = False
 
     def _check_examinator_warning_for_custom_activity(self):
-        """Check if an examinator is required but not assigned for custom activities."""
+        """Check if an examinator is required but not assigned for custom activities.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.custom_activity_id and self.custom_activity_id.is_exam:  # type: ignore
             self._check_pilot2_has_examinator_qual()
         else:
             self.has_examinator_warning = False
 
     def _check_pilot2_has_examinator_qual(self):
-        """Check if Pilot 2 has examinator qualification."""
+        """Check if Pilot 2 has examinator qualification.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         if self.pilot2_crew_id and self.pilot2_crew_id.member_type == 'instructor':  # type: ignore
             # Get the actual instructor record
             instructor = self.pilot2_crew_id.get_source_record()  # type: ignore
@@ -484,7 +599,11 @@ class FsSchedulingWizardLine(models.TransientModel):
     # === Action Methods ===
 
     def action_show_examinator_warning(self):
-        """Show a warning popup with available examinators."""
+        """Show a warning popup with available examinators.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         examinators = self.env['fs.instructor'].search([
             ('has_expired_qualification', '=', False),
@@ -502,7 +621,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         }
 
     def action_move_up(self):
-        """Move this line up in the sequence."""
+        """Move this line up in the sequence.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
@@ -518,7 +641,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def action_move_down(self):
-        """Move this line down in the sequence."""
+        """Move this line down in the sequence.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
@@ -534,7 +661,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def action_move_first(self):
-        """Move this line to the first position."""
+        """Move this line to the first position.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
@@ -546,7 +677,11 @@ class FsSchedulingWizardLine(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def action_move_last(self):
-        """Move this line to the last position."""
+        """Move this line to the last position.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         wizard = self.wizard_id
         lines = wizard.line_ids.sorted(key=lambda l: l.sequence)  # type: ignore
@@ -558,11 +693,19 @@ class FsSchedulingWizardLine(models.TransientModel):
         return wizard._reopen_wizard()  # type: ignore
 
     def toggle_lock(self):
-        """Toggle the locked status of this line."""
+        """Toggle the locked status of this line.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         self.ensure_one()
         self.is_locked = not self.is_locked
 
     def action_save_and_close(self):
-        """Save the wizard line and close the popup, returning to the wizard."""
+        """Save the wizard line and close the popup, returning to the wizard.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         self.ensure_one()
         return self.wizard_id._reopen_wizard()  # type: ignore

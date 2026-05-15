@@ -2,6 +2,19 @@
 # Part of Flight School Management System
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl-3.0).
 
+"""Flight School People fs people dashboard module.
+
+Purpose:
+    Defines classes FsPeopleDashboard for students, instructors, pilots, administrative staff, qualifications, licenses, and medical tracking.
+
+External Dependencies:
+    Odoo ORM APIs from ``odoo.api``, ``odoo.fields``, and
+    ``odoo.models`` are used throughout the addon.
+
+Related Modules:
+    Depends on: fs_core, mail.
+    fs_training enrolls people in classes.
+"""
 import json
 from odoo import fields, models
 
@@ -11,6 +24,17 @@ class FsPeopleDashboard(models.TransientModel):
 
     Uses TransientModel to create temporary records in database.
     Records are automatically cleaned up by Odoo's garbage collection.
+
+    This class is part of the Flight School Management Odoo addon suite.
+    It uses the Odoo ORM for persistence, security, and view integration.
+
+    Attributes:
+        _name (str): Odoo model identifier ``fs.people.dashboard``.
+        _description (str): Human-readable model label, ``People Dashboard``.
+
+    Related:
+        fs_training enrolls people in classes.
+        fs_scheduling exposes people through the crew-member SQL view.
     """
 
     _name = 'fs.people.dashboard'
@@ -81,7 +105,11 @@ class FsPeopleDashboard(models.TransientModel):
     )
 
     def _compute_instructor_kpis(self):
-        """Compute instructor statistics."""
+        """Compute instructor statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Instructor = self.env['fs.instructor']
         for record in self:
             record.instructor_total = Instructor.search_count([])
@@ -99,7 +127,11 @@ class FsPeopleDashboard(models.TransientModel):
             ])
 
     def _compute_student_kpis(self):
-        """Compute student statistics."""
+        """Compute student statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Student = self.env['fs.student']
         for record in self:
             record.student_total = Student.search_count([])
@@ -117,7 +149,11 @@ class FsPeopleDashboard(models.TransientModel):
             ])
 
     def _compute_pilot_kpis(self):
-        """Compute pilot statistics."""
+        """Compute pilot statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Pilot = self.env['fs.pilot']
         for record in self:
             record.pilot_total = Pilot.search_count([])
@@ -135,7 +171,11 @@ class FsPeopleDashboard(models.TransientModel):
             ])
 
     def _compute_summary_kpis(self):
-        """Compute top-level summary statistics."""
+        """Compute top-level summary statistics.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Instructor = self.env['fs.instructor']
         Student = self.env['fs.student']
         Pilot = self.env['fs.pilot']
@@ -158,7 +198,11 @@ class FsPeopleDashboard(models.TransientModel):
                 (total - expired) / total * 100) if total > 0 else 100.0
 
     def _compute_student_graph_data(self):
-        """Compute student distribution graph data."""
+        """Compute student distribution graph data.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Student = self.env['fs.student']
         # Distribution by license type using a grouped query to avoid loading
         # all license types and issuing one count query per type.
@@ -189,7 +233,11 @@ class FsPeopleDashboard(models.TransientModel):
             }])
 
     def _compute_instructor_graph_data(self):
-        """Compute instructor distribution graph data."""
+        """Compute instructor distribution graph data.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
         Instructor = self.env['fs.instructor']
         # Distribution by medical status
         data = [
@@ -208,7 +256,11 @@ class FsPeopleDashboard(models.TransientModel):
 
     # === Action Methods ===
     def action_view_instructors(self):
-        """Open instructors list."""
+        """Open instructors list.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Instructors',
             'type': 'ir.actions.act_window',
@@ -218,7 +270,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_instructors_expired(self):
-        """Open instructors with expired status."""
+        """Open instructors with expired status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Instructors - Expired Status',
             'type': 'ir.actions.act_window',
@@ -232,7 +288,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_instructors_expiring(self):
-        """Open instructors with expiring status."""
+        """Open instructors with expiring status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Instructors - Expiring Soon',
             'type': 'ir.actions.act_window',
@@ -246,7 +306,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_students(self):
-        """Open students list."""
+        """Open students list.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Students',
             'type': 'ir.actions.act_window',
@@ -255,7 +319,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_students_expired(self):
-        """Open students with expired status."""
+        """Open students with expired status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Students - Expired Status',
             'type': 'ir.actions.act_window',
@@ -265,7 +333,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_students_expiring(self):
-        """Open students with expiring status."""
+        """Open students with expiring status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Students - Expiring Soon',
             'type': 'ir.actions.act_window',
@@ -281,7 +353,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_pilots(self):
-        """Open pilots list."""
+        """Open pilots list.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Pilots',
             'type': 'ir.actions.act_window',
@@ -290,7 +366,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_pilots_expired(self):
-        """Open pilots with expired status."""
+        """Open pilots with expired status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Pilots - Expired Status',
             'type': 'ir.actions.act_window',
@@ -300,7 +380,11 @@ class FsPeopleDashboard(models.TransientModel):
         }
 
     def action_view_pilots_expiring(self):
-        """Open pilots with expiring status."""
+        """Open pilots with expiring status.
+
+        Returns:
+            dict | None: Odoo action dictionary, or None when no action is needed.
+        """
         return {
             'name': 'Pilots - Expiring Soon',
             'type': 'ir.actions.act_window',
