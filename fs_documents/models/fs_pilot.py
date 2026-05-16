@@ -83,8 +83,11 @@ class FsPilot(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        grouped = self.env['fs.document']._read_group(
+            [('pilot_id', 'in', self.ids)], groupby=['pilot_id'], aggregates=['__count'])
+        count_by_pilot = {pilot.id: count for pilot, count in grouped}
         for record in self:
-            record.document_count = len(record.document_ids)
+            record.document_count = count_by_pilot.get(record.id, 0)
 
     @api.depends('document_ids', 'document_ids.document_type_id.display_field')
     def _compute_document_shortcuts(self):

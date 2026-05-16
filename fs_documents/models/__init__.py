@@ -25,3 +25,4 @@ from . import fs_training_class
 from . import fs_class_type
 from . import fs_admin_task
 from . import fs_documents_dashboard
+from . import res_config_settings

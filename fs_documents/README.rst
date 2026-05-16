@@ -68,11 +68,20 @@ Usage examples
 
 Create or retrieve a document for a student::
 
-    document_type = env['fs.document.type'].search([('code', '=', 'MEDICAL')], limit=1)
+    document_type = env['fs.document.type'].search([('code', '=', 'MED')], limit=1)
     document = env['fs.document'].get_or_create_for_entity(
-        document_type=document_type,
-        entity_model='fs.student',
+        document_type_id=document_type.id,
+        entity_field='student_id',
         entity_id=student.id,
+    )
+
+Archive a file for a specific administrative task::
+
+    document_type = env['fs.document.type'].search([('code', '=', 'ADMIN')], limit=1)
+    document = env['fs.document'].get_or_create_for_entity(
+        document_type_id=document_type.id,
+        entity_field='admin_task_id',
+        entity_id=admin_task.id,
     )
 
 Open the upload wizard for an existing document::
@@ -102,8 +111,9 @@ Common workflow
 Exceptions and validation
 =========================
 
-* ``ValidationError`` is raised when a document is linked to more than one
-  entity or when uniqueness rules are violated.
+* ``ValidationError`` is raised when a document is not linked to exactly one
+  entity, when the selected document type does not apply to that entity, when
+  issue/expiry dates are inconsistent, or when uniqueness rules are violated.
 * ``UserError`` is raised by the upload wizard when required wizard steps or
   files are missing.
 

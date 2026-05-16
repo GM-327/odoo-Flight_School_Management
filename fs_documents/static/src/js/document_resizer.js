@@ -11,9 +11,12 @@
         const handle = e.target.closest('.o_document_splitter_handle');
         if (!handle) return;
 
-        isResizing = true;
         const container = handle.closest('.o_document_form_container');
+        if (!container) return;
         const leftPane = container.querySelector('.o_document_form_main');
+        if (!leftPane) return;
+
+        isResizing = true;
 
         const startX = e.pageX;
         const startWidth = leftPane.offsetWidth;

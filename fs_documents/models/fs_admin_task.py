@@ -61,8 +61,11 @@ class FsAdminTask(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        grouped = self.env['fs.document']._read_group(
+            [('admin_task_id', 'in', self.ids)], groupby=['admin_task_id'], aggregates=['__count'])
+        count_by_task = {admin_task.id: count for admin_task, count in grouped}
         for record in self:
-            record.document_count = len(record.document_ids)
+            record.document_count = count_by_task.get(record.id, 0)
 
     def _compute_document_info(self):
         """Get document reference and filename from first linked document.
@@ -70,10 +73,15 @@ class FsAdminTask(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        documents = self.env['fs.document'].search(
+            [('admin_task_id', 'in', self.ids)], order='id')
+        document_by_task = {}
+        for document in documents:
+            document_by_task.setdefault(document.admin_task_id.id, document)
         for record in self:
-            doc = record.document_ids[:1]
-            record.document_reference = doc.reference if doc else False  # type: ignore
-            record.document_filename = doc.filename if doc else False  # type: ignore
+            doc = document_by_task.get(record.id)
+            record.document_reference = doc.reference if doc else False
+            record.document_filename = doc.filename if doc else False
 
     def action_view_documents(self):
         """Open list of documents for this admin task.
@@ -108,7 +116,10 @@ class FsAdminTask(models.Model):
             'view_mode': 'form',
             'view_id': self.env.ref('fs_documents.view_fs_document_upload_wizard_entity_form').id,
             'target': 'new',
-            'context': {'default_admin_task_id': self.id},
+            'context': {
+                'default_admin_task_id': self.id,
+                'default_training_class_id': self.training_class_id.id,
+            },
         }
 
     def action_open_document(self):

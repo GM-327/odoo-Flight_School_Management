@@ -11,6 +11,7 @@
     'license': 'LGPL-3',
     'depends': [
         'web',
+        'mail',
         'fs_core',
         'fs_people',
         'fs_training',
@@ -21,6 +22,7 @@
         # Data
         'data/fs_document_entity_type_data.xml',
         'data/fs_document_type_data.xml',
+        'data/fs_document_cron_data.xml',
         # Wizards
         'wizard/fs_document_upload_wizard_views.xml',
         # Views

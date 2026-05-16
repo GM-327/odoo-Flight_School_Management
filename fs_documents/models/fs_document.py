@@ -16,7 +16,7 @@ Related Modules:
     fs_people and fs_training provide the related business entities whose files are managed here.
 """
 from datetime import timedelta
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 
@@ -42,6 +42,22 @@ class FsDocument(models.Model):
     _description = 'Document'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'document_type_id, id'
+
+    ENTITY_FIELD_TO_TYPE = {
+        'student_id': 'student',
+        'instructor_id': 'instructor',
+        'pilot_id': 'pilot',
+        'training_class_id': 'training_class',
+        'admin_task_id': 'admin_task',
+        'class_type_id': 'class_type',
+    }
+    EXPIRY_FIELD_WARNING_PARAMS = {
+        'medical_expiry': 'flight_school.medical_warning_days',
+        'license_expiry': 'flight_school.license_warning_days',
+        'english_expiry': 'flight_school.english_warning_days',
+        'security_clearance_expiry': 'flight_school.security_warning_days',
+        'insurance_expiry': 'flight_school.insurance_warning_days',
+    }
 
     # === Core Fields ===
     name = fields.Char(
@@ -202,25 +218,11 @@ class FsDocument(models.Model):
         for record in self:
             name = False
             etype = False
-
-            if record.student_id:
-                name = record.student_id.display_name
-                etype = 'student'
-            elif record.instructor_id:
-                name = record.instructor_id.display_name
-                etype = 'instructor'
-            elif record.pilot_id:
-                name = record.pilot_id.display_name
-                etype = 'pilot'
-            elif record.training_class_id:
-                name = record.training_class_id.display_name
-                etype = 'training_class'
-            elif record.admin_task_id:
-                name = record.admin_task_id.display_name
-                etype = 'admin_task'
-            elif record.class_type_id:
-                name = record.class_type_id.display_name
-                etype = 'class_type'
+            entity_field = record._get_entity_field()
+            if entity_field:
+                entity = record[entity_field]
+                name = entity.display_name
+                etype = record.ENTITY_FIELD_TO_TYPE[entity_field]
 
             record.related_entity_name = name
             record.related_entity_type = etype
@@ -267,16 +269,31 @@ class FsDocument(models.Model):
         # The document model uses explicit nullable Many2one fields instead
         # of a generic reference so each target can have its own access rules
         # and unique constraint. Exactly one of these fields must be populated.
-        entity_fields = (
-            'student_id', 'instructor_id', 'pilot_id',
-            'training_class_id', 'admin_task_id', 'class_type_id',
-        )
         for record in self:
-            linked_count = sum(1 for field_name in entity_fields if record[field_name])
+            linked_count = sum(1 for field_name in record.ENTITY_FIELD_TO_TYPE if record[field_name])
             if linked_count != 1:
                 raise ValidationError(
-                    self.env._("A document must be linked to exactly one related entity.")
+                    _("A document must be linked to exactly one related entity.")
                 )
+
+    @api.constrains(
+        'document_type_id', 'student_id', 'instructor_id', 'pilot_id',
+        'training_class_id', 'admin_task_id', 'class_type_id'
+    )
+    def _check_document_type_applies_to_entity(self):
+        """Ensure document types cannot be attached to unsupported entities."""
+        for record in self:
+            entity_code = record._get_entity_type_code()
+            if not entity_code or not record.document_type_id:
+                continue
+            allowed_codes = set(record.document_type_id.applies_to_ids.mapped('code'))
+            if allowed_codes and entity_code not in allowed_codes:
+                raise ValidationError(_(
+                    "Document type '%(document_type)s' does not apply to entity type '%(entity_type)s'."
+                ) % {
+                    'document_type': record.document_type_id.display_name,
+                    'entity_type': entity_code.replace('_', ' ').title(),
+                })
 
     @api.depends('document_type_id', 'document_type_id.name', 'admin_task_id', 'admin_task_id.name')
     def _compute_name(self):
@@ -300,9 +317,15 @@ class FsDocument(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        current_by_document = {}
+        current_versions = self.env['fs.document.version'].search([
+            ('document_id', 'in', self.ids),
+            ('is_current', '=', True),
+        ], order='version_number desc, id desc')
+        for version in current_versions:
+            current_by_document.setdefault(version.document_id.id, version)
         for record in self:
-            current = record.version_ids.filtered('is_current')
-            record.current_version_id = current[:1]
+            record.current_version_id = current_by_document.get(record.id, False)
 
     def _compute_version_count(self):
         """Count the number of versions.
@@ -310,24 +333,26 @@ class FsDocument(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        grouped = self.env['fs.document.version']._read_group(
+            [('document_id', 'in', self.ids)], groupby=['document_id'], aggregates=['__count'])
+        count_by_document = {document.id: count for document, count in grouped}
         for record in self:
-            record.version_count = len(record.version_ids)
+            record.version_count = count_by_document.get(record.id, 0)
 
-    @api.depends('expiry_date', 'document_type_id.has_expiry')
+    @api.depends('expiry_date', 'document_type_id.has_expiry', 'document_type_id.expiry_field')
     def _compute_expiry_status(self):
         """Compute expiry status using same logic as related model fields.
 
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.document_warning_days', '30'))
         # Use the user's context date so expiry warnings respect timezone and
         # company context in scheduled actions and interactive sessions.
         today = fields.Date.context_today(self)
-        warning_date = today + timedelta(days=warning_days)
 
         for record in self:
+            warning_days = self._get_warning_days(record.document_type_id.expiry_field)
+            warning_date = today + timedelta(days=warning_days)
             if not record.document_type_id.has_expiry or not record.expiry_date:  # type: ignore
                 record.expiry_status = 'no_expiry'
             elif record.expiry_date < today:
@@ -336,6 +361,39 @@ class FsDocument(models.Model):
                 record.expiry_status = 'expiring'
             else:
                 record.expiry_status = 'valid'
+
+    @api.model
+    def _get_warning_days(self, expiry_field=False):
+        """Return the related expiry field warning-day configuration."""
+        param_name = self.EXPIRY_FIELD_WARNING_PARAMS.get(expiry_field)
+        if not param_name:
+            return 30
+        raw_value = self.env['ir.config_parameter'].sudo().get_param(param_name, '30')  # type: ignore
+        try:
+            return max(int(raw_value), 0)
+        except (TypeError, ValueError):
+            return 30
+
+    @api.model
+    def cron_refresh_expiry_status(self):
+        """Refresh stored expiry statuses so date-based badges do not go stale."""
+        documents = self.search([])
+        documents._compute_expiry_status()
+        return True
+
+    def _get_entity_field(self):
+        """Return the populated entity field for a document record."""
+        self.ensure_one()
+        for field_name in self.ENTITY_FIELD_TO_TYPE:
+            if self[field_name]:
+                return field_name
+        return False
+
+    def _get_entity_type_code(self):
+        """Return the selected entity type code for a document record."""
+        self.ensure_one()
+        entity_field = self._get_entity_field()
+        return self.ENTITY_FIELD_TO_TYPE.get(entity_field) if entity_field else False
 
     def write(self, vals):
         """Sync expiry to related entity when changed.

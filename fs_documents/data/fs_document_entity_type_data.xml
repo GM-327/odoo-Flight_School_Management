@@ -32,5 +32,11 @@
             <field name="sequence">50</field>
         </record>
 
+        <record id="entity_type_admin_task" model="fs.document.entity.type">
+            <field name="name">Admin Task</field>
+            <field name="code">admin_task</field>
+            <field name="sequence">60</field>
+        </record>
+
     </data>
 </odoo>

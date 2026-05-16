@@ -73,8 +73,11 @@ class FsInstructor(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        grouped = self.env['fs.document']._read_group(
+            [('instructor_id', 'in', self.ids)], groupby=['instructor_id'], aggregates=['__count'])
+        count_by_instructor = {instructor.id: count for instructor, count in grouped}
         for record in self:
-            record.document_count = len(record.document_ids)
+            record.document_count = count_by_instructor.get(record.id, 0)
 
     @api.depends('document_ids', 'document_ids.document_type_id.display_field')
     def _compute_document_shortcuts(self):

@@ -80,8 +80,8 @@
         <record id="document_type_admin" model="fs.document.type">
             <field name="name">Admin Document</field>
             <field name="code">ADMIN</field>
-            <field name="description">Administrative task related documents (e.g., signed forms, approvals)</field>
-            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_training_class')])]"/>
+            <field name="description">Administrative task archive documents (e.g., signed forms, approvals)</field>
+            <field name="applies_to_ids" eval="[(6, 0, [ref('entity_type_admin_task')])]"/>
             <field name="has_expiry">False</field>
             <field name="sequence">90</field>
         </record>

@@ -55,12 +55,12 @@
                             <field name="class_type_id" options="{'no_create': True}" 
                                    invisible="entity_type_code != 'class_type'"
                                    required="entity_type_code == 'class_type' and state == 'type'"/>
-                            <!-- Optional admin task for training class -->
                             <field name="admin_task_domain" invisible="1"/>
-                            <field name="admin_task_id" options="{'no_create': True}" 
+                            <field name="admin_task_id" options="{'no_create': True}"
                                    domain="admin_task_domain"
-                                   invisible="entity_type_code != 'training_class' or not training_class_id"
-                                   string="Link to Admin Task (Optional)"/>
+                                   invisible="entity_type_code not in ['admin_task', 'training_class'] or (entity_type_code == 'training_class' and not training_class_id)"
+                                   required="(entity_type_code == 'admin_task' or (entity_type_code == 'training_class' and document_type_code == 'ADMIN')) and state == 'type'"
+                                   string="Admin Task Archive"/>
                         </group>
                         
                         <!-- 3. Document Type Selection (filtered by entity type) -->
@@ -196,6 +196,7 @@
                             <field name="instructor_id" readonly="1" force_save="1" invisible="not instructor_id"/>
                             <field name="pilot_id" readonly="1" force_save="1" invisible="not pilot_id"/>
                             <field name="training_class_id" readonly="1" force_save="1" invisible="not training_class_id"/>
+                            <field name="admin_task_id" readonly="1" force_save="1" invisible="not admin_task_id"/>
                             <field name="class_type_id" readonly="1" force_save="1" invisible="not class_type_id"/>
                         </group>
                         
@@ -210,8 +211,9 @@
                             <field name="admin_task_domain" invisible="1"/>
                             <field name="admin_task_id" options="{'no_create': True}"
                                    domain="admin_task_domain"
-                                   invisible="not training_class_id or document_type_code != 'ADMIN'"
-                                   string="Link to Admin Task"/>
+                                   invisible="entity_type_code == 'admin_task' or not training_class_id or document_type_code != 'ADMIN'"
+                                   required="entity_type_code == 'training_class' and document_type_code == 'ADMIN' and state == 'type'"
+                                   string="Admin Task Archive"/>
                         </group>
                         
                         <!-- Hidden fields -->

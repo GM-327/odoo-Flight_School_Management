@@ -51,8 +51,11 @@ class FsTrainingClass(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        grouped = self.env['fs.document']._read_group(
+            [('training_class_id', 'in', self.ids)], groupby=['training_class_id'], aggregates=['__count'])
+        count_by_class = {training_class.id: count for training_class, count in grouped}
         for record in self:
-            record.document_count = len(record.document_ids)
+            record.document_count = count_by_class.get(record.id, 0)
 
     def action_view_documents(self):
         """View all documents for this training class.

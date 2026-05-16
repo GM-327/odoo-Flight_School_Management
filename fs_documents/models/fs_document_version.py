@@ -16,8 +16,8 @@ Related Modules:
     fs_people and fs_training provide the related business entities whose files are managed here.
 """
 import os
-import base64
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class FsDocumentVersion(models.Model):
@@ -40,6 +40,11 @@ class FsDocumentVersion(models.Model):
     _name = 'fs.document.version'
     _description = 'Document Version'
     _order = 'version_number desc'
+
+    _unique_document_version_number = models.Constraint(
+        'UNIQUE(document_id, version_number)',
+        'Version numbers must be unique per document!',
+    )
 
     document_id = fields.Many2one(
         comodel_name='fs.document',
@@ -147,12 +152,34 @@ class FsDocumentVersion(models.Model):
         """
         for record in self:
             if record.file:
-                try:
-                    record.file_size = len(base64.b64decode(record.file))
-                except Exception:
-                    record.file_size = 0
+                data = record.file.encode() if isinstance(record.file, str) else record.file
+                padding = data[-2:].count(b'=') if data else 0
+                record.file_size = max((len(data) * 3 // 4) - padding, 0)
             else:
                 record.file_size = 0
+
+    @api.constrains('document_id', 'is_current')
+    def _check_single_current_version(self):
+        """Keep one current version per document."""
+        for record in self.filtered('is_current'):
+            if self.search_count([
+                ('document_id', '=', record.document_id.id),
+                ('is_current', '=', True),
+            ]) > 1:
+                raise ValidationError(_("Only one version can be current for a document."))
+
+    @api.constrains('document_id', 'is_current', 'expiry_date', 'issue_date')
+    def _check_dates_and_required_expiry(self):
+        """Validate version dates and required current-version expiry."""
+        for record in self:
+            if record.issue_date and record.expiry_date and record.expiry_date < record.issue_date:
+                raise ValidationError(_("Expiry date cannot be before issue date."))
+            if (
+                record.is_current
+                and record.document_id.document_type_id.has_expiry
+                and not record.expiry_date
+            ):
+                raise ValidationError(_("This document type requires an expiry date."))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -166,6 +193,7 @@ class FsDocumentVersion(models.Model):
         """
         # Detect document IDs being updated to unset their previous current versions
         doc_ids_to_unset = set()
+        next_version_by_doc = {}
         for vals in vals_list:
             doc_id = vals.get('document_id')
             if doc_id:
@@ -175,10 +203,13 @@ class FsDocumentVersion(models.Model):
 
                 # Auto-calculate version number if not provided
                 if not vals.get('version_number'):
-                    max_version = self.search([
-                        ('document_id', '=', doc_id),
-                    ], order='version_number desc', limit=1)
-                    vals['version_number'] = (max_version.version_number + 1) if max_version else 1
+                    if doc_id not in next_version_by_doc:
+                        max_version = self.search([
+                            ('document_id', '=', doc_id),
+                        ], order='version_number desc', limit=1)
+                        next_version_by_doc[doc_id] = (max_version.version_number + 1) if max_version else 1
+                    vals['version_number'] = next_version_by_doc[doc_id]
+                    next_version_by_doc[doc_id] += 1
 
         # Unset current flag on existing versions for these documents
         if doc_ids_to_unset:
@@ -217,6 +248,16 @@ class FsDocumentVersion(models.Model):
         if 'expiry_date' in vals:
             # If this is the current version, sync to related entity
             self.filtered('is_current').document_id.sync_expiry_to_related()  # type: ignore
+        return result
+
+    def unlink(self):
+        """Promote the latest remaining version if the current one is deleted."""
+        affected_documents = self.filtered('is_current').document_id
+        result = super().unlink()
+        for document in affected_documents.exists():
+            document.invalidate_recordset(['current_version_id', 'version_ids'])
+            if not document.current_version_id and document.version_ids:
+                document.version_ids[:1].action_set_as_current()
         return result
 
     def action_set_as_current(self):

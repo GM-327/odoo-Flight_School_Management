@@ -57,10 +57,11 @@ class FsClassType(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        grouped = self.env['fs.document']._read_group(
+            [('class_type_id', 'in', self.ids)], groupby=['class_type_id'], aggregates=['__count'])
+        count_by_class_type = {class_type.id: count for class_type, count in grouped}
         for record in self:
-            record.document_count = self.env['fs.document'].search_count([
-                ('class_type_id', '=', record.id)
-            ])
+            record.document_count = count_by_class_type.get(record.id, 0)
 
     def action_view_documents(self):
         """Open list of documents for this class type.

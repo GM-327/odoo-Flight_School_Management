@@ -16,7 +16,7 @@ Related Modules:
 """
 import json
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsDocumentsDashboard(models.TransientModel):
@@ -91,6 +91,18 @@ class FsDocumentsDashboard(models.TransientModel):
         compute='_compute_entity_kpis',
     )
 
+    @api.model
+    def _get_status_counts(self):
+        """Return document counts grouped by expiry status."""
+        return dict(self.env['fs.document']._read_group(
+            [], groupby=['expiry_status'], aggregates=['__count']))
+
+    @api.model
+    def _get_entity_counts(self):
+        """Return document counts grouped by computed entity type."""
+        return dict(self.env['fs.document']._read_group(
+            [], groupby=['related_entity_type'], aggregates=['__count']))
+
     def _compute_summary_kpis(self):
         """Compute top-level summary statistics.
 
@@ -98,9 +110,10 @@ class FsDocumentsDashboard(models.TransientModel):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         Document = self.env['fs.document']
+        status_counts = self._get_status_counts()
         for record in self:
             total = Document.search_count([])
-            expired = Document.search_count([('expiry_status', '=', 'expired')])
+            expired = status_counts.get('expired', 0)
             record.doc_total = total
             record.doc_health = ((total - expired) / total * 100) if total > 0 else 100.0
 
@@ -111,17 +124,12 @@ class FsDocumentsDashboard(models.TransientModel):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         Document = self.env['fs.document']
+        status_counts = self._get_status_counts()
         for record in self:
             record.doc_total = Document.search_count([])
-            record.doc_expired = Document.search_count([
-                ('expiry_status', '=', 'expired'),
-            ])
-            record.doc_expiring = Document.search_count([
-                ('expiry_status', '=', 'expiring'),
-            ])
-            record.doc_valid = Document.search_count([
-                ('expiry_status', '=', 'valid'),
-            ])
+            record.doc_expired = status_counts.get('expired', 0)
+            record.doc_expiring = status_counts.get('expiring', 0)
+            record.doc_valid = status_counts.get('valid', 0)
 
     def _compute_entity_kpis(self):
         """Compute document counts by entity type.
@@ -129,20 +137,12 @@ class FsDocumentsDashboard(models.TransientModel):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        Document = self.env['fs.document']
+        entity_counts = self._get_entity_counts()
         for record in self:
-            record.doc_students = Document.search_count([
-                ('student_id', '!=', False),
-            ])
-            record.doc_instructors = Document.search_count([
-                ('instructor_id', '!=', False),
-            ])
-            record.doc_pilots = Document.search_count([
-                ('pilot_id', '!=', False),
-            ])
-            record.doc_classes = Document.search_count([
-                ('training_class_id', '!=', False),
-            ])
+            record.doc_students = entity_counts.get('student', 0)
+            record.doc_instructors = entity_counts.get('instructor', 0)
+            record.doc_pilots = entity_counts.get('pilot', 0)
+            record.doc_classes = entity_counts.get('training_class', 0)
 
     def _compute_doc_graph_data(self):
         """Compute document distribution graph data.
@@ -150,22 +150,23 @@ class FsDocumentsDashboard(models.TransientModel):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        Doc = self.env['fs.document']
+        status_counts = self._get_status_counts()
+        entity_counts = self._get_entity_counts()
 
         # Status distribution
         status_data = [
-            {'label': 'Valid', 'value': Doc.search_count([('expiry_status', '=', 'valid')]), 'type': 'future'},
-            {'label': 'Expiring', 'value': Doc.search_count([('expiry_status', '=', 'expiring')]), 'type': 'past'},
-            {'label': 'Expired', 'value': Doc.search_count([('expiry_status', '=', 'expired')]), 'type': 'past'},
-            {'label': 'No Expiry', 'value': Doc.search_count([('expiry_status', '=', 'no_expiry')]), 'type': 'future'},
+            {'label': 'Valid', 'value': status_counts.get('valid', 0), 'type': 'future'},
+            {'label': 'Expiring', 'value': status_counts.get('expiring', 0), 'type': 'past'},
+            {'label': 'Expired', 'value': status_counts.get('expired', 0), 'type': 'past'},
+            {'label': 'No Expiry', 'value': status_counts.get('no_expiry', 0), 'type': 'future'},
         ]
 
         # Entity distribution
         entity_data = [
-            {'label': 'Students', 'value': Doc.search_count([('student_id', '!=', False)]), 'type': 'future'},
-            {'label': 'Instructors', 'value': Doc.search_count([('instructor_id', '!=', False)]), 'type': 'future'},
-            {'label': 'Pilots', 'value': Doc.search_count([('pilot_id', '!=', False)]), 'type': 'future'},
-            {'label': 'Classes', 'value': Doc.search_count([('training_class_id', '!=', False)]), 'type': 'future'},
+            {'label': 'Students', 'value': entity_counts.get('student', 0), 'type': 'future'},
+            {'label': 'Instructors', 'value': entity_counts.get('instructor', 0), 'type': 'future'},
+            {'label': 'Pilots', 'value': entity_counts.get('pilot', 0), 'type': 'future'},
+            {'label': 'Classes', 'value': entity_counts.get('training_class', 0), 'type': 'future'},
         ]
 
         for record in self:
