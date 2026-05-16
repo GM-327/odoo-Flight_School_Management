@@ -337,10 +337,9 @@ class FsSimulatorOperations(models.Model):
             ])
             in_use_ids = in_use_logs.mapped('aircraft_id.id')
 
-            # Get available simulators
+            # Get simulators that can be assigned immediately.
             available = self.env['fs.aircraft'].search([
-                ('is_airworthy', '=', True),
-                ('status', '=', 'available'),
+                ('is_available_for_assignment', '=', True),
                 ('id', 'not in', in_use_ids),
                 ('category_id.is_simulator', '=', True),
             ])

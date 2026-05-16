@@ -47,3 +47,9 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='flight_school.maintenance_warning_hours',
         help="Hours before maintenance is due to show warnings.",
     )
+
+    def set_values(self):
+        """Persist settings and refresh stored maintenance warning fields."""
+        res = super().set_values()
+        self.env['fs.aircraft'].cron_refresh_aircraft_maintenance_status()
+        return res

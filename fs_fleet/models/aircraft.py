@@ -15,10 +15,10 @@ Related Modules:
     Depends on: fs_core, mail.
     fs_training defines aircraft-type requirements.
 """
-from datetime import date
+from datetime import date, timedelta
 
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class Aircraft(models.Model):
@@ -99,7 +99,6 @@ class Aircraft(models.Model):
             ('in_use', 'In Use'),
             ('maintenance', 'In Maintenance'),
             ('grounded', 'Grounded'),
-            ('reserved', 'Reserved'),
         ],
         string='Status',
         default='available',
@@ -134,7 +133,30 @@ class Aircraft(models.Model):
         string='Airworthy',
         compute='_compute_is_airworthy',
         store=True,
-        help="Aircraft is available or in use (can fly).",
+        help="Aircraft is technically fit to fly. Operational assignment uses a separate field.",
+    )
+    is_available_for_assignment = fields.Boolean(
+        string='Available for Assignment',
+        compute='_compute_is_available_for_assignment',
+        store=True,
+        help="Aircraft can be assigned immediately to a new flight or simulator session.",
+    )
+    airworthiness_blocker = fields.Selection(
+        selection=[
+            ('maintenance', 'In Maintenance'),
+            ('grounded', 'Grounded'),
+        ],
+        string='Airworthiness Blocker',
+        compute='_compute_airworthiness_blocker',
+        store=True,
+    )
+    has_operational_warning = fields.Boolean(
+        string='Has Operational Warning',
+        compute='_compute_operational_warning',
+    )
+    operational_warning = fields.Text(
+        string='Operational Warning',
+        compute='_compute_operational_warning',
     )
 
     # === Hours Tracking ===
@@ -183,6 +205,7 @@ class Aircraft(models.Model):
             ('ok', 'OK'),
             ('due_soon', 'Due Soon'),
             ('overdue', 'Overdue'),
+            ('not_configured', 'Not Configured'),
         ],
         string='Hour Warning',
         compute='_compute_maintenance_hour_status',
@@ -192,6 +215,7 @@ class Aircraft(models.Model):
             ('ok', 'OK'),
             ('due_soon', 'Due Soon'),
             ('overdue', 'Overdue'),
+            ('not_configured', 'Not Configured'),
         ],
         string='Date Warning',
         compute='_compute_maintenance_date_status',
@@ -201,6 +225,7 @@ class Aircraft(models.Model):
             ('ok', 'OK'),
             ('due_soon', 'Due Soon'),
             ('overdue', 'Overdue'),
+            ('not_configured', 'Not Configured'),
         ],
         string='Overall Maintenance Status',
         compute='_compute_maintenance_status',
@@ -265,6 +290,116 @@ class Aircraft(models.Model):
         'Aircraft registration must be unique!',
     )
 
+    @api.model
+    def _normalize_registration_value(self, registration):
+        """Normalize registrations server-side for imports and API writes."""
+        if not registration:
+            return registration
+        return registration.strip().upper()
+
+    @api.model
+    def _normalize_write_vals(self, vals):
+        """Apply fleet normalization rules to create/write values."""
+        normalized = dict(vals)
+        if 'registration' in normalized and normalized['registration']:
+            normalized['registration'] = self._normalize_registration_value(normalized['registration'])
+        return normalized
+
+    @api.model
+    def _get_maintenance_warning_hours(self):
+        """Return the configured maintenance-hour warning threshold."""
+        return float(
+            self.env['ir.config_parameter'].sudo().get_param(
+                'flight_school.maintenance_warning_hours',
+                '5.0',
+            )
+        )
+
+    @api.model
+    def _get_maintenance_warning_days(self):
+        """Return the configured maintenance-date warning threshold."""
+        return int(
+            self.env['ir.config_parameter'].sudo().get_param(
+                'flight_school.maintenance_warning_days',
+                '7',
+            )
+        )
+
+    def _get_remaining_maintenance_hours_value(self):
+        """Return remaining hours before the next maintenance event."""
+        self.ensure_one()
+        if self.maintenance_due_at_hours:
+            return self.maintenance_due_at_hours - self.total_hours
+        return 0.0
+
+    def _get_maintenance_hour_status_value(self, warning_hours):
+        """Return the hour-based maintenance warning state."""
+        self.ensure_one()
+        if not self.maintenance_due_at_hours:
+            return 'not_configured'
+
+        remaining_hours = self._get_remaining_maintenance_hours_value()
+        if remaining_hours < 0:
+            return 'overdue'
+        if remaining_hours <= warning_hours:
+            return 'due_soon'
+        return 'ok'
+
+    def _get_maintenance_date_status_value(self, today, warning_days):
+        """Return the date-based maintenance warning state."""
+        self.ensure_one()
+        if not self.next_maintenance_date:
+            return 'not_configured'
+
+        days_until = (self.next_maintenance_date - today).days
+        if days_until < 0:
+            return 'overdue'
+        if days_until <= warning_days:
+            return 'due_soon'
+        return 'ok'
+
+    def _get_maintenance_status_value(self, hour_status, date_status):
+        """Return the consolidated maintenance warning state."""
+        self.ensure_one()
+        configured_statuses = {hour_status, date_status} - {'not_configured'}
+        if 'overdue' in configured_statuses:
+            return 'overdue'
+        if 'due_soon' in configured_statuses:
+            return 'due_soon'
+        if 'ok' in configured_statuses:
+            return 'ok'
+        return 'not_configured'
+
+    def _get_operational_warning_parts(self, today=None):
+        """Return non-blocking maintenance and document warning messages."""
+        self.ensure_one()
+        today = today or date.today()
+        warning_date = today + timedelta(days=30)
+        warnings = []
+
+        maintenance_messages = {
+            'overdue': _('Maintenance is overdue.'),
+            'due_soon': _('Maintenance is due soon.'),
+            'not_configured': _('Maintenance thresholds are not configured.'),
+        }
+        if self.maintenance_status in maintenance_messages:
+            warnings.append(maintenance_messages[self.maintenance_status])
+
+        document_labels = [
+            (_('Insurance'), self.insurance_expiry),
+            (_('Certificate of Airworthiness'), self.cof_a_expiry),
+            (_('ARC'), self.arc_expiry),
+        ]
+        for label, expiry_date in document_labels:
+            if not expiry_date:
+                warnings.append(_('%(label)s expiry date is missing.', label=label))
+            elif expiry_date < today:
+                warnings.append(_('%(label)s has expired.', label=label))
+            elif expiry_date <= warning_date:
+                warnings.append(_('%(label)s expires within 30 days.', label=label))
+
+        return warnings
+
     @api.depends('registration', 'aircraft_type_id.full_name')
     def _compute_display_name(self):
         """Compute display name values for the current recordset.
@@ -289,7 +424,6 @@ class Aircraft(models.Model):
             'in_use': 4,        # Blue
             'maintenance': 3,   # Yellow
             'grounded': 1,      # Red
-            'reserved': 2,      # Orange
         }
         for record in self:
             record.status_color = color_map.get(record.status or 'available', 0)
@@ -302,7 +436,42 @@ class Aircraft(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            record.is_airworthy = record.status in ('available', 'in_use', 'reserved')
+            record.is_airworthy = record.status not in ('maintenance', 'grounded')
+
+    @api.depends('is_airworthy', 'status')
+    def _compute_is_available_for_assignment(self):
+        """Compute assignment availability values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
+        for record in self:
+            record.is_available_for_assignment = record.is_airworthy and record.status == 'available'
+
+    @api.depends('status')
+    def _compute_airworthiness_blocker(self):
+        """Compute the blocking state that makes an aircraft non-airworthy."""
+        for record in self:
+            if record.status == 'maintenance':
+                record.airworthiness_blocker = 'maintenance'
+            elif record.status == 'grounded':
+                record.airworthiness_blocker = 'grounded'
+            else:
+                record.airworthiness_blocker = False
+
+    @api.depends(
+        'maintenance_status',
+        'insurance_expiry',
+        'cof_a_expiry',
+        'arc_expiry',
+    )
+    def _compute_operational_warning(self):
+        """Compute non-blocking operational warning messages."""
+        today = date.today()
+        for record in self:
+            warnings = record._get_operational_warning_parts(today=today)
+            record.has_operational_warning = bool(warnings)
+            record.operational_warning = '\n'.join(warnings) if warnings else False
 
     @api.depends('maintenance_due_at_hours', 'total_hours')
     def _compute_remaining_maintenance_hours(self):
@@ -312,10 +481,7 @@ class Aircraft(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            if record.maintenance_due_at_hours:
-                record.remaining_maintenance_hours = record.maintenance_due_at_hours - record.total_hours
-            else:
-                record.remaining_maintenance_hours = 0.0
+            record.remaining_maintenance_hours = record._get_remaining_maintenance_hours_value()
 
     @api.depends('remaining_maintenance_hours')
     def _compute_maintenance_hour_status(self):
@@ -324,16 +490,9 @@ class Aircraft(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        config_param = self.env['ir.config_parameter'].sudo()
-        warning_hours = float(self.env['ir.config_parameter'].sudo().get_param(
-            'flight_school.maintenance_warning_hours', '10.0'))  # type: ignore
+        warning_hours = self._get_maintenance_warning_hours()
         for record in self:
-            status = 'ok'
-            if record.remaining_maintenance_hours < 0:
-                status = 'overdue'
-            elif record.remaining_maintenance_hours <= warning_hours:
-                status = 'due_soon'
-            record.maintenance_hour_status = status
+            record.maintenance_hour_status = record._get_maintenance_hour_status_value(warning_hours)
 
     @api.depends('next_maintenance_date')
     def _compute_maintenance_date_status(self):
@@ -343,18 +502,9 @@ class Aircraft(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         today = date.today()
-        config_param = self.env['ir.config_parameter'].sudo()
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(
-            'flight_school.maintenance_warning_days', '7'))  # type: ignore
+        warning_days = self._get_maintenance_warning_days()
         for record in self:
-            status = 'ok'
-            if record.next_maintenance_date:
-                days_until = (record.next_maintenance_date - today).days
-                if days_until < 0:
-                    status = 'overdue'
-                elif days_until <= warning_days:
-                    status = 'due_soon'
-            record.maintenance_date_status = status
+            record.maintenance_date_status = record._get_maintenance_date_status_value(today, warning_days)
 
     @api.depends('maintenance_hour_status', 'maintenance_date_status')
     def _compute_maintenance_status(self):
@@ -364,12 +514,20 @@ class Aircraft(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            if 'overdue' in (record.maintenance_hour_status, record.maintenance_date_status):
-                record.maintenance_status = 'overdue'
-            elif 'due_soon' in (record.maintenance_hour_status, record.maintenance_date_status):
-                record.maintenance_status = 'due_soon'
-            else:
-                record.maintenance_status = 'ok'
+            record.maintenance_status = record._get_maintenance_status_value(
+                record.maintenance_hour_status,
+                record.maintenance_date_status,
+            )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Normalize aircraft values before creation."""
+        normalized_vals_list = [self._normalize_write_vals(vals) for vals in vals_list]
+        return super().create(normalized_vals_list)
+
+    def write(self, vals):
+        """Normalize aircraft values before writing."""
+        return super().write(self._normalize_write_vals(vals))
 
     @api.onchange('registration')
     def _onchange_registration_uppercase(self):
@@ -393,7 +551,9 @@ class Aircraft(models.Model):
         """
         for record in self:
             if record.registration and not record.registration.replace('-', '').isalnum():
-                raise UserError("Registration must contain only letters, numbers, and hyphens.")
+                raise ValidationError(
+                    _('Registration must contain only letters, numbers, and hyphens.'),
+                )
 
     @api.constrains('year_manufactured')
     def _check_year_manufactured(self):
@@ -408,7 +568,64 @@ class Aircraft(models.Model):
         for record in self:
             if record.year_manufactured:
                 if not record.year_manufactured.isdigit() or len(record.year_manufactured) != 4:
-                    raise UserError("Year Manufactured must be 4 numeric characters (YYYY).")
+                    raise ValidationError(
+                        _('Year Manufactured must be 4 numeric characters (YYYY).'),
+                    )
+
+    def _check_schedulable_aircraft(self, expected_simulator=None):
+        """Ensure aircraft can be planned on a schedule.
+
+        Scheduling is warning-based for maintenance/document issues. Only hard
+        blockers such as grounded/maintenance states and simulator mismatches
+        prevent planning.
+        """
+        blocker_labels = {
+            'maintenance': _('in maintenance'),
+            'grounded': _('grounded'),
+        }
+        for record in self:
+            if not record.is_airworthy:
+                raise ValidationError(
+                    _(
+                        "Aircraft '%(registration)s' cannot be scheduled because it is %(blocker)s.",
+                        registration=record.registration,
+                        blocker=blocker_labels.get(record.airworthiness_blocker, _('unavailable')),
+                    ),
+                )
+            if expected_simulator is not None and bool(record.category_id.is_simulator) != bool(expected_simulator):
+                raise ValidationError(
+                    _(
+                        "Aircraft '%(registration)s' does not match the selected mission type.",
+                        registration=record.registration,
+                    ),
+                )
+
+    def _check_dispatchable_aircraft(self, expected_simulator=None):
+        """Ensure aircraft can be assigned immediately to a flight."""
+        self._check_schedulable_aircraft(expected_simulator=expected_simulator)
+        for record in self:
+            if not record.is_available_for_assignment:
+                raise ValidationError(
+                    _(
+                        "Aircraft '%(registration)s' is not currently available for assignment.",
+                        registration=record.registration,
+                    ),
+                )
+
+    @api.model
+    def cron_refresh_aircraft_maintenance_status(self):
+        """Refresh stored maintenance warning fields that depend on the current date."""
+        records = self.search([])
+        warning_hours = self._get_maintenance_warning_hours()
+        warning_days = self._get_maintenance_warning_days()
+        today = date.today()
+        for record in records:
+            hour_status = record._get_maintenance_hour_status_value(warning_hours)
+            date_status = record._get_maintenance_date_status_value(today, warning_days)
+            record.sudo().write({
+                'remaining_maintenance_hours': record._get_remaining_maintenance_hours_value(),
+                'maintenance_status': record._get_maintenance_status_value(hour_status, date_status),
+            })
 
     def action_set_available(self):
         """Set aircraft status to available.
@@ -446,7 +663,10 @@ class Aircraft(models.Model):
         for record in self:
             if record.total_hours > 0:
                 raise UserError(
-                    f"Cannot delete aircraft '{record.registration}' with flight history. "
-                    "Archive it instead by unchecking 'Active'."
+                    _(
+                        "Cannot delete aircraft '%(registration)s' with flight history. "
+                        "Archive it instead by unchecking 'Active'.",
+                        registration=record.registration,
+                    )
                 )
         return super().unlink()

@@ -15,8 +15,8 @@ Related Modules:
     Depends on: fs_core, mail.
     fs_training defines aircraft-type requirements.
 """
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 
 class AircraftCategory(models.Model):
@@ -96,6 +96,14 @@ class AircraftCategory(models.Model):
         'Category name must be unique!',
     )
 
+    @api.model
+    def _normalize_write_vals(self, vals):
+        """Apply category normalization rules to create/write values."""
+        normalized = dict(vals)
+        if 'code' in normalized and normalized['code']:
+            normalized['code'] = normalized['code'].strip().upper()
+        return normalized
+
     @api.depends('aircraft_type_ids')
     def _compute_aircraft_type_count(self):
         """Compute aircraft type count values for the current recordset.
@@ -105,6 +113,16 @@ class AircraftCategory(models.Model):
         """
         for record in self:
             record.aircraft_type_count = len(record.aircraft_type_ids)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Normalize category values before creation."""
+        normalized_vals_list = [self._normalize_write_vals(vals) for vals in vals_list]
+        return super().create(normalized_vals_list)
+
+    def write(self, vals):
+        """Normalize category values before writing."""
+        return super().write(self._normalize_write_vals(vals))
 
     @api.constrains('code')
     def _check_code_uppercase(self):
@@ -118,7 +136,7 @@ class AircraftCategory(models.Model):
         """
         for record in self:
             if record.code and record.code != record.code.upper():
-                raise UserError("Category code must be uppercase.")
+                raise ValidationError(_('Category code must be uppercase.'))
 
     @api.onchange('code')
     def _onchange_code_uppercase(self):
@@ -142,8 +160,11 @@ class AircraftCategory(models.Model):
         for record in self:
             if record.aircraft_type_ids:
                 raise UserError(
-                    f"Cannot delete category '{record.name}' because it has "
-                    f"{len(record.aircraft_type_ids)} aircraft type(s) assigned. "
-                    "Archive it instead."
+                    _(
+                        "Cannot delete category '%(name)s' because it has %(count)s aircraft type(s) assigned. "
+                        "Archive it instead.",
+                        name=record.name,
+                        count=len(record.aircraft_type_ids),
+                    )
                 )
         return super().unlink()

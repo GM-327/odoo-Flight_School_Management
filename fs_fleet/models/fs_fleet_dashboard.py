@@ -105,6 +105,16 @@ class FsFleetDashboard(models.TransientModel):
         compute='_compute_certificate_kpis',
     )
 
+    @api.model
+    def _get_group_count_map(self, field_name, domain=None):
+        """Return grouped counts for a field as a plain dictionary."""
+        grouped_rows = self.env['fs.aircraft']._read_group(
+            domain or [],
+            groupby=[field_name],
+            aggregates=['__count'],
+        )
+        return {key: count for key, count in grouped_rows}
+
     def _compute_summary_kpis(self):
         """Compute top-level summary statistics.
 
@@ -112,10 +122,11 @@ class FsFleetDashboard(models.TransientModel):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         Aircraft = self.env['fs.aircraft']
+        status_counts = self._get_group_count_map('status')
+        total = Aircraft.search_count([])
         for record in self:
-            total = Aircraft.search_count([])
-            available = Aircraft.search_count([('status', '=', 'available')])
             record.fleet_total = total
+            available = status_counts.get('available', 0)
             record.fleet_availability = (available / total * 100) if total > 0 else 100.0
 
     def _compute_aircraft_kpis(self):
@@ -124,21 +135,13 @@ class FsFleetDashboard(models.TransientModel):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        Aircraft = self.env['fs.aircraft']
+        status_counts = self._get_group_count_map('status')
         for record in self:
-            record.aircraft_total = Aircraft.search_count([])
-            record.aircraft_available = Aircraft.search_count([
-                ('status', '=', 'available'),
-            ])
-            record.aircraft_in_use = Aircraft.search_count([
-                ('status', '=', 'in_use'),
-            ])
-            record.aircraft_maintenance = Aircraft.search_count([
-                ('status', '=', 'maintenance'),
-            ])
-            record.aircraft_grounded = Aircraft.search_count([
-                ('status', '=', 'grounded'),
-            ])
+            record.aircraft_total = sum(status_counts.values())
+            record.aircraft_available = status_counts.get('available', 0)
+            record.aircraft_in_use = status_counts.get('in_use', 0)
+            record.aircraft_maintenance = status_counts.get('maintenance', 0)
+            record.aircraft_grounded = status_counts.get('grounded', 0)
 
     def _compute_maintenance_kpis(self):
         """Compute maintenance alert statistics.
@@ -146,14 +149,10 @@ class FsFleetDashboard(models.TransientModel):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        Aircraft = self.env['fs.aircraft']
+        maintenance_counts = self._get_group_count_map('maintenance_status')
         for record in self:
-            record.maintenance_overdue = Aircraft.search_count([
-                ('maintenance_status', '=', 'overdue'),
-            ])
-            record.maintenance_due_soon = Aircraft.search_count([
-                ('maintenance_status', '=', 'due_soon'),
-            ])
+            record.maintenance_overdue = maintenance_counts.get('overdue', 0)
+            record.maintenance_due_soon = maintenance_counts.get('due_soon', 0)
 
     def _compute_certificate_kpis(self):
         """Compute certificate expiry statistics.
@@ -187,13 +186,14 @@ class FsFleetDashboard(models.TransientModel):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         Aircraft = self.env['fs.aircraft']
+        status_counts = self._get_group_count_map('status')
 
         # Status distribution
         status_data = [
-            {'label': 'Available', 'value': Aircraft.search_count([('status', '=', 'available')]), 'type': 'future'},
-            {'label': 'In Use', 'value': Aircraft.search_count([('status', '=', 'in_use')]), 'type': 'future'},
-            {'label': 'Maintenance', 'value': Aircraft.search_count([('status', '=', 'maintenance')]), 'type': 'past'},
-            {'label': 'Grounded', 'value': Aircraft.search_count([('status', '=', 'grounded')]), 'type': 'past'},
+            {'label': 'Available', 'value': status_counts.get('available', 0), 'type': 'future'},
+            {'label': 'In Use', 'value': status_counts.get('in_use', 0), 'type': 'future'},
+            {'label': 'Maintenance', 'value': status_counts.get('maintenance', 0), 'type': 'past'},
+            {'label': 'Grounded', 'value': status_counts.get('grounded', 0), 'type': 'past'},
         ]
 
         # Type distribution (by manufacturer)

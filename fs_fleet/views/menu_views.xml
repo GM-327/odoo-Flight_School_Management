@@ -10,6 +10,7 @@
     <menuitem id="menu_fleet_root"
               name="Fleet"
               web_icon="fs_fleet,static/description/icon.png"
+              groups="fs_core.group_flight_school_user"
               sequence="20"/>
 
     <!-- Dashboard -->
@@ -17,6 +18,7 @@
               name="Dashboard"
               parent="menu_fleet_root"
               action="action_fs_fleet_dashboard"
+              groups="fs_core.group_flight_school_user"
               sequence="1"/>
 
     <!-- Fleet submenu items -->
@@ -24,18 +26,21 @@
               name="Aircraft"
               parent="menu_fleet_root"
               action="action_aircraft"
+              groups="fs_core.group_flight_school_user"
               sequence="10"/>
 
     <menuitem id="menu_aircraft_available"
               name="Available"
               parent="menu_fleet_root"
               action="action_aircraft_available"
+              groups="fs_core.group_flight_school_user"
               sequence="20"/>
 
     <menuitem id="menu_aircraft_maintenance"
               name="Maintenance Due"
               parent="menu_fleet_root"
               action="action_aircraft_maintenance_due"
+              groups="fs_core.group_flight_school_user"
               sequence="30"/>
 
     <!-- Configuration submenu (under Fleet app) -->

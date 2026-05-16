@@ -130,6 +130,16 @@
                         </div>
                     </div>
 
+                    <field name="has_aircraft_operational_warning" invisible="1"/>
+                    <div role="alert" invisible="not has_aircraft_operational_warning"
+                         style="background: rgba(255,193,7,0.1); display: flex; align-items: flex-start; margin-bottom: 1.5rem; border-radius: 0.5rem; padding: 1rem; border: 1px solid rgba(255,193,7,0.3);">
+                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning" title="Aircraft Warning"/>
+                        <div>
+                            <h6 class="fw-bold mb-1">Aircraft Operational Warning</h6>
+                            <field name="aircraft_operational_warning" nolabel="1" readonly="1" widget="text" class="small mb-0"/>
+                        </div>
+                    </div>
+
                     <div class="row g-4">
                         <!-- Column 1: Configuration -->
                         <div class="col-lg-4">

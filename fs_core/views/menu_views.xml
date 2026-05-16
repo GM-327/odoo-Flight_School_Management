@@ -72,7 +72,7 @@
               parent="menu_flight_school_root"
               action="action_res_config_settings"
               sequence="1"
-              groups="group_flight_school_admin"/>
+              groups="group_flight_school_manager"/>
 
     <!-- Users Settings -->
     <menuitem id="menu_config_users"

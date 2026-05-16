@@ -20,6 +20,7 @@
         'data/aircraft_category_data.xml',
         'data/aircraft_type_data.xml',
         'data/aircraft_data.xml',
+        'data/fs_fleet_cron_data.xml',
         # Views
         'views/fs_fleet_dashboard_views.xml',
         'views/aircraft_category_views.xml',

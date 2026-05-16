@@ -145,13 +145,16 @@
                                             <strong>Student Training Flight</strong>
                                         </div>
                                         <group>
+                                            <field name="has_aircraft_operational_warning" invisible="1"/>
                                             <field name="aircraft_id" options="{'no_create': True}" placeholder="Select aircraft..."
-                                                   domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', False), ('aircraft_type_id', '=?', aircraft_type_id)]"/>
+                                                   domain="[('is_available_for_assignment', '=', True), ('category_id.is_simulator', '=', False), ('aircraft_type_id', '=?', aircraft_type_id)]"/>
                                             <field name="mission_id" options="{'no_create': True}" required="flight_category == 'student_training'" 
                                                    placeholder="Select mission..."
                                                    domain="[('is_sim', '=', False), ('class_type_id', '=', class_type_id)]"/>
                                             <field name="route_id" options="{'no_create': True}" string="Route" placeholder="e.g., R2, TUC..."/>
                                             <field name="duration" widget="float_time" string="Dur."/>
+                                            <field name="aircraft_operational_warning" readonly="1" widget="text"
+                                                   invisible="not has_aircraft_operational_warning"/>
                                         </group>
                                     </div>
                                     
@@ -162,13 +165,16 @@
                                             <strong>Pilot/Staff Training Flight</strong>
                                         </div>
                                         <group>
+                                            <field name="has_aircraft_operational_warning" invisible="1"/>
                                             <field name="aircraft_id" options="{'no_create': True}" placeholder="Select aircraft..."
-                                                   domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', False)]"/>
+                                                   domain="[('is_available_for_assignment', '=', True), ('category_id.is_simulator', '=', False)]"/>
                                             <field name="activity_id" string="Act." options="{'no_create': True}" invisible="custom_activity_id"
                                                    domain="[('is_sim', '=', False)]"/>
                                             <field name="custom_activity_id" string="Custom" options="{'no_create': True}" invisible="activity_id"/>
                                             <field name="route_id" options="{'no_create': True}" string="Route"/>
                                             <field name="duration" widget="float_time" string="Dur."/>
+                                            <field name="aircraft_operational_warning" readonly="1" widget="text"
+                                                   invisible="not has_aircraft_operational_warning"/>
                                         </group>
                                     </div>
                                 </div>
@@ -322,9 +328,10 @@
                                         <i class="fa fa-desktop text-info me-2" title="Details"/>3️⃣ Sim Details
                                     </h5>
                                     
-                                    <group>
+                                     <group>
+                                        <field name="has_aircraft_operational_warning" invisible="1"/>
                                         <field name="aircraft_id" string="Simulator" options="{'no_create': True}" placeholder="Select simulator..."
-                                               domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', True), ('aircraft_type_id', '=?', aircraft_type_id)]"/>
+                                               domain="[('is_available_for_assignment', '=', True), ('category_id.is_simulator', '=', True), ('aircraft_type_id', '=?', aircraft_type_id)]"/>
                                         <field name="mission_id" invisible="flight_category != 'student_training'" 
                                                options="{'no_create': True}" 
                                                required="flight_category == 'student_training'" 
@@ -332,7 +339,9 @@
                                                placeholder="Select Syllabus mission..."/>
                                         <field name="activity_id" string="Act." invisible="flight_category != 'staff_training'" options="{'no_create': True}"/>
                                         <field name="duration" widget="float_time" string="Dur."/>
-                                    </group>
+                                        <field name="aircraft_operational_warning" readonly="1" widget="text"
+                                               invisible="not has_aircraft_operational_warning"/>
+                                     </group>
                                 </div>
                             </div>
                         </div>

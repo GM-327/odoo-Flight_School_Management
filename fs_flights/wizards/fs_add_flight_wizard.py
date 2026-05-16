@@ -92,7 +92,15 @@ class FsAddFlightWizard(models.TransientModel):
         comodel_name='fs.aircraft',
         string='Aircraft',
         required=True,
-        domain="[('is_airworthy', '=', True)]",
+        domain="[('is_available_for_assignment', '=', True)]",
+    )
+    has_aircraft_operational_warning = fields.Boolean(
+        related='aircraft_id.has_operational_warning',
+        readonly=True,
+    )
+    aircraft_operational_warning = fields.Text(
+        related='aircraft_id.operational_warning',
+        readonly=True,
     )
     pilot1_crew_id = fields.Many2one(
         comodel_name='fs.crew.member',
@@ -387,7 +395,7 @@ class FsAddSimWizard(FsAddFlightWizard):
         comodel_name='fs.aircraft',
         string='Simulator',
         required=True,
-        domain="[('is_airworthy', '=', True), ('category_id.is_simulator', '=', True)]",
+        domain="[('is_available_for_assignment', '=', True), ('category_id.is_simulator', '=', True)]",
     )
 
     mission_id = fields.Many2one(

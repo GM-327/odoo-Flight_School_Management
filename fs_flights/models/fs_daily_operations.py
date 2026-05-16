@@ -386,10 +386,9 @@ class FsDailyOperations(models.Model):
             ])
             in_flight_aircraft_ids = in_flight_logs.mapped('aircraft_id.id')
 
-            # Get available aircraft only (not in maintenance, not grounded)
+            # Get aircraft that can be assigned immediately.
             available = self.env['fs.aircraft'].search([
-                ('is_airworthy', '=', True),
-                ('status', '=', 'available'),
+                ('is_available_for_assignment', '=', True),
                 ('id', 'not in', in_flight_aircraft_ids),
                 ('category_id.is_simulator', '=', False),
             ])

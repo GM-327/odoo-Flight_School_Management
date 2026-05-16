@@ -13,7 +13,7 @@
         <field name="arch" type="xml">
             <list decoration-success="status == 'available'" 
                   decoration-info="status == 'in_use'"
-                  decoration-warning="status in ('maintenance', 'reserved')"
+                  decoration-warning="status == 'maintenance'"
                   decoration-danger="status == 'grounded'"
                   decoration-muted="not active">
                 <field name="registration"/>
@@ -24,23 +24,29 @@
                 <field name="status" widget="badge" 
                        decoration-success="status == 'available'"
                        decoration-info="status == 'in_use'"
-                       decoration-warning="status in ('maintenance', 'reserved')"
+                       decoration-warning="status == 'maintenance'"
                        decoration-danger="status == 'grounded'"/>
                 <field name="maintenance_hour_status" widget="badge" string="Hour Status"
                        decoration-success="maintenance_hour_status == 'ok'"
                        decoration-warning="maintenance_hour_status == 'due_soon'"
                        decoration-danger="maintenance_hour_status == 'overdue'"
+                       decoration-muted="maintenance_hour_status == 'not_configured'"
                        optional="show"/>
                 <field name="maintenance_date_status" widget="badge" string="Date Status"
                        decoration-success="maintenance_date_status == 'ok'"
                        decoration-warning="maintenance_date_status == 'due_soon'"
                        decoration-danger="maintenance_date_status == 'overdue'"
+                       decoration-muted="maintenance_date_status == 'not_configured'"
                        optional="show"/>
                 <field name="maintenance_status" widget="badge" string="Overall Status"
                        decoration-success="maintenance_status == 'ok'"
                        decoration-warning="maintenance_status == 'due_soon'"
                        decoration-danger="maintenance_status == 'overdue'"
+                       decoration-muted="maintenance_status == 'not_configured'"
                        optional="hide"/>
+                <field name="is_airworthy" optional="hide"/>
+                <field name="is_available_for_assignment" string="Assignable" optional="hide"/>
+                <field name="airworthiness_blocker" widget="badge" optional="hide"/>
                 <field name="remaining_maintenance_hours" widget="float_time" optional="show"/>
                 <field name="maintenance_due_at_hours" widget="float_time" optional="hide"/>
 
@@ -85,11 +91,22 @@
                             <field name="year_manufactured" placeholder="YYYY"/>
                         </group>
                         <group string="Status">
-                            <field name="is_airworthy" widget="boolean_toggle"/>
+                            <field name="is_airworthy" readonly="1"/>
+                            <field name="is_available_for_assignment" readonly="1"/>
+                            <field name="airworthiness_blocker" widget="badge" invisible="not airworthiness_blocker"/>
                             <field name="status_reason" invisible="status in ('available', 'in_use')"/>
                             <field name="active"/>
                         </group>
                     </group>
+                    <field name="has_operational_warning" invisible="1"/>
+                    <div role="alert" invisible="not has_operational_warning"
+                         class="alert alert-warning d-flex align-items-start mb-3">
+                        <i class="fa fa-exclamation-triangle fa-2x me-3 text-warning" title="Warning"/>
+                        <div>
+                            <h6 class="fw-bold mb-1">Operational Warnings</h6>
+                            <field name="operational_warning" nolabel="1" readonly="1" widget="text" class="small mb-0"/>
+                        </div>
+                    </div>
                     <notebook>
                         <page string="Maintenance &amp; Hours" name="hours">
                             <group>
@@ -106,7 +123,8 @@
                                         <field name="maintenance_date_status" widget="badge" nolabel="1"
                                                decoration-success="maintenance_date_status == 'ok'"
                                                decoration-warning="maintenance_date_status == 'due_soon'"
-                                               decoration-danger="maintenance_date_status == 'overdue'"/>
+                                               decoration-danger="maintenance_date_status == 'overdue'"
+                                               decoration-muted="maintenance_date_status == 'not_configured'"/>
                                     </div>
                                     <separator string="Hour Thresholds" class="mt-3"/>
                                     <field name="maintenance_due_at_hours" widget="float_time"/>
@@ -116,7 +134,8 @@
                                         <field name="maintenance_hour_status" widget="badge" nolabel="1"
                                                decoration-success="maintenance_hour_status == 'ok'"
                                                decoration-warning="maintenance_hour_status == 'due_soon'"
-                                               decoration-danger="maintenance_hour_status == 'overdue'"/>
+                                               decoration-danger="maintenance_hour_status == 'overdue'"
+                                               decoration-muted="maintenance_hour_status == 'not_configured'"/>
                                     </div>
                                 </group>
                             </group>
@@ -125,7 +144,7 @@
                             <group>
                                 <group string="Insurance Policy">
                                     <field name="insurance_policy"/>
-                                    <field name="insurance_expiry" decoration-danger="maintenance_date_status == 'overdue'"/> <!-- Just for coloring if expired -->
+                                    <field name="insurance_expiry"/>
                                 </group>
                                 <group string="Technical Certificates">
                                     <field name="cof_a_expiry"/>
@@ -161,7 +180,7 @@
                 <field name="next_maintenance_date"/>
                 <field name="category_code"/>
                 <field name="image_128"/>
-                <progressbar field="maintenance_status" colors='{"ok": "success", "due_soon": "warning", "overdue": "danger"}'/>
+                <progressbar field="maintenance_status" colors='{"ok": "success", "due_soon": "warning", "overdue": "danger", "not_configured": "secondary"}'/>
                 <templates>
                     <t t-name="card">
                         <div class="d-flex align-items-center">
@@ -182,7 +201,7 @@
                                                 <i class="fa fa-clock-o me-1" title="Remaining Hours"/><field name="remaining_maintenance_hours" widget="float_time"/>
                                             </span>
                                         </div>
-                                        <div t-if="record.maintenance_date_status.raw_value != 'ok'" class="mt-1">
+                                        <div t-if="record.maintenance_date_status.raw_value not in ['ok', 'not_configured']" class="mt-1">
                                             <span t-attf-class="badge text-nowrap d-inline-flex align-items-center #{record.maintenance_date_status.raw_value == 'due_soon' ? 'text-bg-warning' : 'text-bg-danger'}">
                                                 <i class="fa fa-calendar me-1" title="Maintenance Due Date"/>
                                                 <field name="next_maintenance_date"/>
@@ -215,6 +234,7 @@
                 <filter name="grounded" string="Grounded" domain="[('status', '=', 'grounded')]"/>
                 <separator/>
                 <filter name="airworthy" string="Airworthy" domain="[('is_airworthy', '=', True)]"/>
+                <filter name="assignable" string="Assignable" domain="[('is_available_for_assignment', '=', True)]"/>
                 <filter name="maintenance_due" string="Maintenance Due" domain="[('maintenance_status', 'in', ['due_soon', 'overdue'])]"/>
                 <separator/>
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>

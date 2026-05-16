@@ -90,6 +90,16 @@ class FsFlight(models.Model):
                       date=duplicates.date),
                 )
 
+    @api.constrains('aircraft_id', 'mission_id', 'activity_id', 'flight_category')
+    def _check_aircraft_assignment_rules(self):
+        """Ensure selected aircraft matches the mission type and hard blockers."""
+        for record in self:
+            if not record.aircraft_id:
+                continue
+            record.aircraft_id._check_schedulable_aircraft(
+                expected_simulator=record._is_simulator_session(),
+            )
+
     # === CRUD Overrides ===
     # Note: ADD callsign is preserved on create - conversion happens when opening the form for edit
 
@@ -235,7 +245,7 @@ class FsFlight(models.Model):
         string='Aircraft',
         required=True,
         tracking=True,
-        domain="[('is_airworthy', '=', True)]",
+        domain="[('is_available_for_assignment', '=', True)]",
     )
     aircraft_registration = fields.Char(
         related='aircraft_id.registration',
@@ -246,6 +256,14 @@ class FsFlight(models.Model):
         comodel_name='fs.aircraft.type',
         string='Assigned Aircraft Type',
         help="Student's specifically assigned aircraft type from their enrollment.",
+    )
+    has_aircraft_operational_warning = fields.Boolean(
+        related='aircraft_id.has_operational_warning',
+        readonly=True,
+    )
+    aircraft_operational_warning = fields.Text(
+        related='aircraft_id.operational_warning',
+        readonly=True,
     )
 
     # === Crew ===
@@ -769,6 +787,11 @@ class FsFlight(models.Model):
         Returns:
             dict | None: Odoo action dictionary, or None when no action is needed.
         """
+        self.ensure_one()
+        if self.aircraft_id:
+            self.aircraft_id._check_dispatchable_aircraft(
+                expected_simulator=self._is_simulator_session(),
+            )
         now = fields.Datetime.now()
         current_time = now.hour + now.minute / 60.0
         self.write({'atd': current_time, 'status': 'in_progress'})
@@ -814,6 +837,7 @@ class FsFlight(models.Model):
         """
         records = super().create(vals_list)
         records._ensure_operations_board()
+        records._sync_linked_aircraft_statuses()
         return records
 
     def write(self, vals):
@@ -839,6 +863,7 @@ class FsFlight(models.Model):
                 'distributed_hours': r.distributed_hours,
                 'atd': r.atd,
                 'ata': r.ata,
+                'aircraft_id': r.aircraft_id.id,
             } for r in self
         }
 
@@ -907,7 +932,31 @@ class FsFlight(models.Model):
         if 'date' in vals or 'aircraft_id' in vals:
             self._ensure_operations_board()
 
+        if 'status' in vals or 'aircraft_id' in vals:
+            impacted_aircraft_ids = {
+                data.get('aircraft_id') for data in old_data.values() if data.get('aircraft_id')
+            }
+            impacted_aircraft_ids.update(self.mapped('aircraft_id').ids)
+            if impacted_aircraft_ids:
+                self.env['fs.flight']._sync_linked_aircraft_statuses(
+                    self.env['fs.aircraft'].browse(list(impacted_aircraft_ids)),
+                )
+
         return res
+
+    def _sync_linked_aircraft_statuses(self, aircraft_records=None):
+        """Synchronize aircraft operational status from active flight execution."""
+        aircraft_records = aircraft_records or self.mapped('aircraft_id')
+        for aircraft in aircraft_records.exists():
+            has_active_flight = bool(self.search_count([
+                ('aircraft_id', '=', aircraft.id),
+                ('status', '=', 'in_progress'),
+            ]))
+            if has_active_flight:
+                if aircraft.status not in ('maintenance', 'grounded') and aircraft.status != 'in_use':
+                    aircraft.sudo().write({'status': 'in_use'})
+            elif aircraft.status == 'in_use':
+                aircraft.sudo().write({'status': 'available', 'status_reason': False})
 
     def _compute_status_from_times_batch(self):
         """Helper for batch status computation using context or record values.

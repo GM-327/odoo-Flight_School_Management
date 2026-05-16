@@ -14,7 +14,7 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="Flight School" string="Flight School" name="fs_core" groups="fs_core.group_flight_school_admin">
+                <app data-string="Flight School" string="Flight School" name="fs_core" groups="fs_core.group_flight_school_manager">
                     
                     <!-- General Settings -->
                     <block title="General Settings" name="fs_general_settings">

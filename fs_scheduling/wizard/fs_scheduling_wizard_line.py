@@ -124,6 +124,14 @@ class FsSchedulingWizardLine(models.TransientModel):
         help="Computed list of allowed aircraft based on mission type (simulator vs regular).",
     )
     aircraft_id = fields.Many2one('fs.aircraft', string='Aircraft')
+    has_aircraft_operational_warning = fields.Boolean(
+        related='aircraft_id.has_operational_warning',
+        readonly=True,
+    )
+    aircraft_operational_warning = fields.Text(
+        related='aircraft_id.operational_warning',
+        readonly=True,
+    )
     mission_id = fields.Many2one('fs.flight.mission', string='Mission')
     activity_id = fields.Many2one(
         comodel_name='fs.flight.activity',

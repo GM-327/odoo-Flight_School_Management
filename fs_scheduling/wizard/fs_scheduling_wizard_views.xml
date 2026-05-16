@@ -386,6 +386,7 @@
                                 <field name="is_locked" column_invisible="1"/>
                                 <field name="flight_category" column_invisible="1"/>
                                 <field name="aircraft_assignment_warning" column_invisible="1"/>
+                                <field name="has_aircraft_operational_warning" column_invisible="1"/>
                                 <!-- Lock Toggle Button Group -->
                                 <button name="toggle_lock" type="object" icon="fa-lock" 
                                         class="text-warning fa-lg" invisible="not is_locked" 
@@ -416,6 +417,7 @@
                                 <field name="allowed_aircraft_ids" column_invisible="1"/>
                                 <field name="aircraft_id" options="{'no_create': True}"
                                        domain="[('id', 'in', allowed_aircraft_ids)]"/>
+                                <field name="aircraft_operational_warning" string="Aircraft Warning" readonly="1" optional="show"/>
                                 <field name="start_time" widget="float_time" string="ETD"/>
                                 <field name="end_time" widget="float_time" string="ETA"/>
                                 <field name="duration" widget="float_time" readonly="1"/>

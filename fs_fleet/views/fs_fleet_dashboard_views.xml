@@ -105,7 +105,7 @@
                                                 <div class="rounded-circle bg-warning-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
                                                     <i class="fa fa-hourglass-half text-warning" title="Due Soon"/>
                                                 </div>
-                                                <span class="text-muted">Due Within 100hrs/30d</span>
+                                                <span class="text-muted">Due Soon / Needs Review</span>
                                             </div>
                                             <span class="badge rounded-pill bg-warning text-dark shadow-sm"><field name="maintenance_due_soon"/></span>
                                         </button>

@@ -28,6 +28,13 @@ Dependencies
 * ``fs_core`` for shared settings, menus, and security.
 * ``mail`` for chatter and activity tracking on aircraft records.
 
+Installation notes
+==================
+
+* ``fs_fleet`` auto-installs alongside ``fs_core`` in this project.
+* ``data/aircraft_data.xml`` is intentionally loaded as baseline operational
+  data and is not treated as demo-only content in this iteration.
+
 Related Flight School modules
 =============================
 
@@ -100,9 +107,10 @@ Common workflow
 Exceptions and validation
 =========================
 
-* ``UserError`` is raised when a registration contains unsupported characters,
-  a manufactured year is not four digits, or a user attempts to delete an
-  aircraft with flight history.
+* ``ValidationError`` is raised when a registration contains unsupported
+  characters, or a manufactured year is not four digits.
+* ``UserError`` is raised when a user attempts to delete an aircraft with
+  flight history.
 * SQL constraints prevent duplicate aircraft registrations.
 
 Credits

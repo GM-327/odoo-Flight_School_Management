@@ -17,7 +17,7 @@ Related Modules:
 import json
 from datetime import datetime, timedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 # Import shared constants from mixin
@@ -216,6 +216,14 @@ class FsScheduledFlight(models.Model):
         string='Aircraft Domain',
         compute='_compute_aircraft_domain',
     )
+    has_aircraft_operational_warning = fields.Boolean(
+        related='aircraft_id.has_operational_warning',
+        readonly=True,
+    )
+    aircraft_operational_warning = fields.Text(
+        related='aircraft_id.operational_warning',
+        readonly=True,
+    )
 
     # === Mission Details ===
     mission_id = fields.Many2one(
@@ -358,7 +366,7 @@ class FsScheduledFlight(models.Model):
                 record.student_id = False
                 record.training_class_id = False
 
-    @api.depends('flight_category', 'pilot1_crew_id', 'pilot1_crew_id.enrollment_id')
+    @api.depends('flight_category', 'pilot1_crew_id', 'pilot1_crew_id.enrollment_id', 'is_sim')
     def _compute_aircraft_domain(self):
         """Compute dynamic domain for aircraft based on enrollment's allowed aircraft types.
 
@@ -366,6 +374,12 @@ class FsScheduledFlight(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
+            aircraft_domain = [('is_airworthy', '=', True)]
+            if record.is_sim:
+                aircraft_domain.append(('aircraft_type_id.is_simulator', '=', True))
+            else:
+                aircraft_domain.append(('aircraft_type_id.is_simulator', '=', False))
+
             if (
                 record.flight_category == 'student_training'
                 and record.pilot1_crew_id
@@ -377,14 +391,12 @@ class FsScheduledFlight(models.Model):
                     training_class = enrollment.training_class_id if enrollment else False  # type: ignore
                     if training_class and training_class.aircraft_type_ids:
                         aircraft_type_ids = training_class.aircraft_type_ids.ids
-                        record.aircraft_domain = json.dumps(
-                            [('aircraft_type_id', 'in', aircraft_type_ids)])
+                        aircraft_domain.append(('aircraft_type_id', 'in', aircraft_type_ids))
                     else:
-                        record.aircraft_domain = json.dumps([])
+                        aircraft_domain = []
                 else:
-                    record.aircraft_domain = json.dumps([])
-            else:
-                record.aircraft_domain = json.dumps([])
+                    aircraft_domain = []
+            record.aircraft_domain = json.dumps(aircraft_domain)
 
     @api.depends('flight_category', 'pilot1_crew_id', 'pilot1_crew_id.enrollment_id')
     def _compute_mission_domain(self):
@@ -606,6 +618,14 @@ class FsScheduledFlight(models.Model):
                     "Note: Routes are not required for simulator sessions.",
                     callsign=record.callsign,
                 ))
+
+    @api.constrains('aircraft_id', 'is_sim')
+    def _check_aircraft_assignment_rules(self):
+        """Ensure selected aircraft matches the mission type and hard blockers."""
+        for record in self:
+            if not record.aircraft_id:
+                continue
+            record.aircraft_id._check_schedulable_aircraft(expected_simulator=record.is_sim)
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):

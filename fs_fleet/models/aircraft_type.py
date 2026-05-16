@@ -15,7 +15,7 @@ Related Modules:
     Depends on: fs_core, mail.
     fs_training defines aircraft-type requirements.
 """
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -189,6 +189,16 @@ class AircraftType(models.Model):
             else:
                 record.full_name = record.name or ''
 
+    @api.depends('full_name', 'name')
+    def _compute_display_name(self):
+        """Compute display name values for the current recordset.
+
+        Returns:
+            None: Updates Odoo records, computed fields, or wizard state in place.
+        """
+        for record in self:
+            record.display_name = record.full_name or record.name or _('New Aircraft Type')
+
     @api.depends('aircraft_ids')
     def _compute_aircraft_count(self):
         """Compute aircraft count values for the current recordset.
@@ -198,14 +208,6 @@ class AircraftType(models.Model):
         """
         for record in self:
             record.aircraft_count = len(record.aircraft_ids)
-
-    def name_get(self):
-        """Display full name (manufacturer + model) in dropdowns.
-
-        Returns:
-            list: Matching record identifiers and display names in Odoo format.
-        """
-        return [(rec.id, rec.full_name or rec.name) for rec in self]
 
     def unlink(self):
         """Delete records after enforcing Flight School business safeguards.
@@ -219,8 +221,11 @@ class AircraftType(models.Model):
         for record in self:
             if record.aircraft_ids:
                 raise UserError(
-                    f"Cannot delete type '{record.full_name}' because it has "
-                    f"{len(record.aircraft_ids)} aircraft assigned. "
-                    "Archive it instead."
+                    _(
+                        "Cannot delete type '%(name)s' because it has %(count)s aircraft assigned. "
+                        "Archive it instead.",
+                        name=record.full_name,
+                        count=len(record.aircraft_ids),
+                    )
                 )
         return super().unlink()
