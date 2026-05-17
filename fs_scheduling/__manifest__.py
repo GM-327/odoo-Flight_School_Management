@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Scheduling',
-    'version': '19.0.3.1.0',
+    'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Flight mission scheduling and timeline management',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',

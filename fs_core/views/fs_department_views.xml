@@ -8,33 +8,36 @@
             <form>
                 <sheet>
                     <div class="oe_title">
-                        <label for="name"/>
-                        <h1><field name="name" placeholder="Management, Operations, Maintenance..."/></h1>
+                        <label for="name" />
+                        <h1>
+                            <field name="name" placeholder="Management, Operations, Maintenance..." />
+                        </h1>
                     </div>
                     <group>
                         <group>
-                            <field name="code"/>
-                            <field name="parent_id"/>
-                            <field name="manager_id"/>
+                            <field name="code" />
+                            <field name="parent_id" />
+                            <field name="manager_id" />
                         </group>
                         <group>
-                            <field name="active" widget="boolean_toggle"/>
+                            <field name="active" widget="boolean_toggle" />
                         </group>
                     </group>
                     <notebook>
                         <page string="Sub-Departments" name="sub_departments">
                             <field name="child_ids">
                                 <list editable="bottom">
-                                    <field name="sequence" widget="handle"/>
-                                    <field name="name"/>
-                                    <field name="code"/>
-                                    <field name="manager_id"/>
-                                    <field name="active" optional="hide"/>
+                                    <field name="sequence" widget="handle" />
+                                    <field name="name" />
+                                    <field name="code" />
+                                    <field name="manager_id" />
+                                    <field name="active" optional="hide" />
                                 </list>
                             </field>
                         </page>
                         <page string="Notes" name="notes">
-                            <field name="note" placeholder="Internal notes regarding this department..."/>
+                            <field name="note"
+                                placeholder="Internal notes regarding this department..." />
                         </page>
                     </notebook>
                 </sheet>
@@ -48,12 +51,12 @@
         <field name="model">fs.department</field>
         <field name="arch" type="xml">
             <list string="Departments">
-                <field name="sequence" widget="handle"/>
-                <field name="name"/>
-                <field name="code"/>
-                <field name="manager_id"/>
-                <field name="parent_id"/>
-                <field name="active" widget="boolean_toggle" optional="hide"/>
+                <field name="sequence" widget="handle" />
+                <field name="name" />
+                <field name="code" />
+                <field name="manager_id" />
+                <field name="parent_id" />
+                <field name="active" widget="boolean_toggle" optional="hide" />
             </list>
         </field>
     </record>
@@ -64,19 +67,33 @@
         <field name="model">fs.department</field>
         <field name="arch" type="xml">
             <search string="Departments">
-                <field name="name"/>
-                <field name="code"/>
-                <field name="manager_id"/>
-                <field name="parent_id"/>
-                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
-                <filter string="Archived" name="archived" domain="[('active', '=', False)]" context="{'active_test': False}"/>
-                <filter string="Root Departments" name="root_departments" domain="[('parent_id', '=', False)]"/>
-                <filter string="With Manager" name="with_manager" domain="[('manager_id', '!=', False)]"/>
-                <filter string="Without Manager" name="without_manager" domain="[('manager_id', '=', False)]"/>
-                <group expand="0" string="Group By">
-                    <filter string="Parent Department" name="group_parent" context="{'group_by': 'parent_id'}"/>
-                    <filter string="Manager" name="group_manager" context="{'group_by': 'manager_id'}"/>
-                </group>
+
+                <field name="name" />
+                <field name="code" />
+                <field name="manager_id" />
+                <field name="parent_id" />
+
+                <filter string="Active" name="active" domain="[('active', '=', True)]" />
+
+                <filter string="Archived" name="archived" domain="[('active', '=', False)]"
+                    context="{'active_test': False}" />
+
+                <filter string="Root Departments" name="root_departments"
+                    domain="[('parent_id', '=', False)]" />
+
+                <filter string="With Manager" name="with_manager"
+                    domain="[('manager_id', '!=', False)]" />
+
+                <filter string="Without Manager" name="without_manager"
+                    domain="[('manager_id', '=', False)]" />
+
+                <separator />
+
+                <filter string="Parent Department" name="group_parent"
+                    context="{'group_by': 'parent_id'}" />
+
+                <filter string="Manager" name="group_manager" context="{'group_by': 'manager_id'}" />
+
             </search>
         </field>
     </record>
@@ -86,7 +103,7 @@
         <field name="name">Departments</field>
         <field name="res_model">fs.department</field>
         <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="view_fs_department_search"/>
+        <field name="search_view_id" ref="view_fs_department_search" />
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Manage Departments

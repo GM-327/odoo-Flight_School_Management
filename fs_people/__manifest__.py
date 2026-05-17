@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School People',
-    'version': '19.0.1.0.1',
+    'version': '19.0.1.0.0',
     'category': 'Aviation/Flight School',
     'summary': 'Personnel management for flight schools',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
