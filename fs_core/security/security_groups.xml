@@ -53,9 +53,8 @@
     <!-- 
     Group 3: Flight School Manager
     - All Instructor permissions
-    - Create/edit/delete students, instructors, training classes
-    - Manage class assignments
-    - Cannot access configuration
+    - Manage operational records in dependent modules where explicitly granted
+    - Cannot administer users, roles, privileges, departments, or global settings
     -->
     <record id="group_flight_school_manager" model="res.groups">
         <field name="name">Manager</field>
@@ -67,9 +66,9 @@
     <!-- 
     Group 4: Flight School Administrator (Full Access)
     - All Manager permissions
-    - Access ALL configuration menus
-    - Create/edit/delete configuration data
-    - Full system access
+    - Access Flight School configuration menus
+    - Administer Flight School users, roles, privileges, departments, and settings
+    - Does not imply unrestricted Odoo system administrator access
     -->
     <record id="group_flight_school_admin" model="res.groups">
         <field name="name">Administrator</field>

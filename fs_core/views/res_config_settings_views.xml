@@ -14,10 +14,10 @@
         <field name="inherit_id" ref="base.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app data-string="Flight School" string="Flight School" name="fs_core" groups="fs_core.group_flight_school_manager">
+                <app data-string="Flight School" string="Flight School" name="fs_core" groups="fs_core.group_flight_school_admin">
                     
                     <!-- General Settings -->
-                    <block title="General Settings" name="fs_general_settings">
+                    <block title="Organization Defaults" name="fs_general_settings">
                         <setting string="Default Home Base" help="ICAO airport code for new aircraft">
                             <field name="fs_default_home_base"/>
                         </setting>

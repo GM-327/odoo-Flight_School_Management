@@ -17,7 +17,7 @@
 
     <!-- Root Menu: FS Settings (main app menu) -->
     <menuitem id="menu_flight_school_root"
-              name="Settings"
+              name="Flight School Settings"
               web_icon="fs_core,static/description/icon.png"
               sequence="100"/>
 
@@ -72,7 +72,7 @@
               parent="menu_flight_school_root"
               action="action_res_config_settings"
               sequence="1"
-              groups="group_flight_school_manager"/>
+              groups="group_flight_school_admin"/>
 
     <!-- Users Settings -->
     <menuitem id="menu_config_users"
@@ -80,7 +80,7 @@
               parent="menu_flight_school_root"
               action="action_fs_users"
               sequence="2"
-              groups="group_flight_school_manager"/>
+              groups="group_flight_school_admin"/>
 
     <!-- Departments Settings -->
     <menuitem id="menu_config_departments"
@@ -96,7 +96,7 @@
               parent="menu_flight_school_root"
               action="action_fs_groups"
               sequence="10"
-              groups="group_flight_school_manager"/>
+              groups="group_flight_school_admin"/>
 
     <!-- Privileges Settings -->
     <menuitem id="menu_config_privileges"
@@ -104,6 +104,6 @@
               parent="menu_flight_school_root"
               action="action_fs_privileges"
               sequence="4"
-              groups="group_flight_school_manager"/>
+              groups="group_flight_school_admin"/>
 
 </odoo>

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <delete model="ir.config_parameter" search="[('key', 'in', [
+        'flight_school.default_timezone',
+        'flight_school.minimum_rest_hours',
+        'flight_school.max_daily_flight_hours',
+    ])]"/>
+
     <data noupdate="1">
         <!-- Default Settings -->
         <function model="ir.config_parameter" name="set_param">
@@ -7,19 +13,5 @@
             <value>DTTI</value>
         </function>
 
-        <function model="ir.config_parameter" name="set_param">
-            <value>flight_school.default_timezone</value>
-            <value>UTC</value>
-        </function>
-
-        <function model="ir.config_parameter" name="set_param">
-            <value>flight_school.minimum_rest_hours</value>
-            <value>12.0</value>
-        </function>
-
-        <function model="ir.config_parameter" name="set_param">
-            <value>flight_school.max_daily_flight_hours</value>
-            <value>8.0</value>
-        </function>
     </data>
 </odoo>

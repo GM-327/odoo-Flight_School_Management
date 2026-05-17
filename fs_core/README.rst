@@ -20,6 +20,20 @@ Main functionality
   department.
 * Extends ``res.config.settings`` with global Flight School settings.
 
+Security model
+==============
+
+``fs_core`` defines a hierarchical Flight School role set: User, Instructor,
+Manager, and Administrator. User and role administration is intentionally
+restricted to Flight School Administrators. Managers retain only the access
+explicitly granted by the functional modules and cannot administer ``res.users``,
+``res.groups``, ``res.groups.privilege``, departments, or global settings from
+``fs_core``.
+
+The module is currently designed for a single-company/single-school deployment.
+Settings are stored globally through ``ir.config_parameter`` and departments are
+not company-specific.
+
 Dependencies
 ============
 
@@ -40,7 +54,8 @@ Public Python API
 
 ``fs.department``
     Stores department metadata used to classify organizational units. The model
-    relies on standard Odoo create, write, unlink, and search behavior.
+    enforces mandatory unique department codes, prevents recursive hierarchies,
+    and requires department managers to be active Flight School users.
 
 ``res.config.settings`` extension
     Exposes central settings through Odoo's Settings interface. Configuration
@@ -61,6 +76,9 @@ Create a department from an Odoo shell or server action::
         'code': 'OPS',
     })
 
+Department codes are normalized to uppercase and must contain 2 to 12
+characters using only uppercase letters, numbers, hyphens, or underscores.
+
 Open the Flight School settings form from Python::
 
     action = env['ir.actions.act_window']._for_xml_id(
@@ -78,9 +96,20 @@ Common workflow
 Exceptions and validation
 =========================
 
-This module primarily relies on standard Odoo ORM validation. Related modules
-may raise ``UserError`` or ``ValidationError`` when their business rules depend
-on settings defined here.
+This module uses Odoo ORM validation and raises ``ValidationError`` for invalid
+department codes, recursive department hierarchies, invalid department manager
+assignments, and invalid default home-base ICAO codes. Related modules may raise
+``UserError`` or ``ValidationError`` when their business rules depend on settings
+defined here.
+
+Known limitations
+=================
+
+* Settings and departments are global and are not scoped by company.
+* The default home base is stored as a validated ICAO-style text value rather
+  than a relation to an airport/base model.
+* Rest and daily-flight-hour policy parameters are not defined in ``fs_core``;
+  they should be implemented in the operational module that consumes them.
 
 Credits
 =======
