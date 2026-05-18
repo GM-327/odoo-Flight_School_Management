@@ -2,5 +2,8 @@
   "$schema": "https://app.kilo.ai/config.json",
   "indexing": {
     "enabled": true
+  },
+  "commit_message": {
+    "prompt": "Generate commit message following conventional format. Return ONLY the commit message."
   }
 }

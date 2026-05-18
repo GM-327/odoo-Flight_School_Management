@@ -37,6 +37,18 @@
         </field>
     </record>
 
+    <!-- Inherit Student List View -->
+    <record id="view_fs_student_list_inherit_training" model="ir.ui.view">
+        <field name="name">fs.student.list.inherit.training</field>
+        <field name="model">fs.student</field>
+        <field name="inherit_id" ref="fs_people.view_fs_student_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='name']" position="after">
+                <field name="callsign" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Inherit Student Kanban View -->
     <record id="view_fs_student_kanban_inherit_training" model="ir.ui.view">
         <field name="name">fs.student.kanban.inherit.training</field>

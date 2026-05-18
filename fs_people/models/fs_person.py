@@ -105,6 +105,13 @@ class FsPerson(models.AbstractModel):
         string='Rank',
         tracking=True,
     )
+    rank_code = fields.Char(
+        string='Rank',
+        related='rank_id.code',
+        store=True,
+        readonly=True,
+        help="Short code of the assigned rank for list displays.",
+    )
     service_number = fields.Char(
         string='Service Number',
         help="Military service/personnel number.",

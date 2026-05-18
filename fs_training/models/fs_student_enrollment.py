@@ -87,7 +87,7 @@ class FsStudentEnrollment(models.Model):
         store=True,
     )
     enrolled_person_name = fields.Char(
-        string='Enrolled Person',
+        string='Enrolled Person Name',
         compute='_compute_enrolled_person_name',
         store=True,
         help="Display name of the enrolled person (student, pilot, or instructor).",

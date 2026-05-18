@@ -27,6 +27,9 @@ patch(TimelineModel.prototype, {
 patch(TimelineRenderer.prototype, {
     setup() {
         super.setup();
+        if (this.model?.model_name === "fs.scheduled.flight") {
+            this.options.verticalScroll = true;
+        }
         this.hasScrolledToFirst = false;
         onMounted(() => this.scrollToFirstFlight());
         onPatched(() => this.scrollToFirstFlight());

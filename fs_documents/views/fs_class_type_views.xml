@@ -14,7 +14,9 @@
                 <field name="reference_document_id" options="{'no_create': True}"/>
                 <label for="ip_document_reference" invisible="not reference_document_id"/>
                 <div class="o_row" invisible="not reference_document_id">
-                    <field name="ip_document_reference"/>
+                    <field name="ip_document_reference" class="oe_inline"/>
+                    <label for="ip_document_issue_date" string="Issue Date" class="o_form_label"/>
+                    <field name="ip_document_issue_date" class="oe_inline"/>
                     <button name="action_open_ip_document" type="object" 
                             icon="fa-file-text-o" title="Preview IP Document"
                             class="btn-link"/>

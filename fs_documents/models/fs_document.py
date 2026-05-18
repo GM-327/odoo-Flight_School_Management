@@ -208,7 +208,10 @@ class FsDocument(models.Model):
         store=True,
     )
 
-    @api.depends('student_id', 'instructor_id', 'pilot_id', 'training_class_id', 'admin_task_id', 'class_type_id')
+    @api.depends(
+        'student_id', 'instructor_id', 'pilot_id', 'training_class_id',
+        'admin_task_id', 'class_type_id', 'class_type_id.name'
+    )
     def _compute_related_entity_info(self):
         """Compute the name and type of the related entity for unified display.
 

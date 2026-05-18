@@ -48,8 +48,9 @@ class FsStudent(models.Model):
 
     callsign = fields.Char(
         string='Callsign',
-        compute='_compute_enrollment_data',
-        help="The callsign assigned to the student in their most recent training class.",
+        compute='_compute_callsign',
+        store=True,
+        help="Current active enrollment callsign, or the latest valid callsign from enrollment history.",
     )
     current_class_code = fields.Char(
         string='Current Class',
@@ -96,30 +97,53 @@ class FsStudent(models.Model):
         for record in self:
             record.enrollment_count = len(record.enrollment_ids)
 
-    @api.depends('enrollment_ids', 'enrollment_ids.callsign', 'enrollment_ids.training_class_id.code', 'enrollment_ids.status', 'enrollment_ids.enrollment_date')
+    def _get_callsign_enrollment(self):
+        """Return the active enrollment, or latest past enrollment with a callsign."""
+        self.ensure_one()
+        fallback_date = fields.Date.from_string('1970-01-01')
+        active_enrollments = self.enrollment_ids.filtered(lambda e: e.status == 'active')
+        if active_enrollments:
+            candidates = active_enrollments
+        else:
+            candidates = self.enrollment_ids.filtered(
+                lambda e: e.status in ('graduated', 'dropped', 'cancelled') and e.callsign)
+        return candidates.sorted(
+            lambda e: (e.enrollment_date or fallback_date, e.id),
+            reverse=True,
+        )[:1]
+
+    @api.depends(
+        'enrollment_ids',
+        'enrollment_ids.callsign',
+        'enrollment_ids.status',
+        'enrollment_ids.enrollment_date',
+    )
+    def _compute_callsign(self):
+        """Store the current active callsign, falling back to latest past callsign."""
+        for record in self:
+            enrollment = record._get_callsign_enrollment()
+            record.callsign = enrollment.callsign if enrollment else False
+
+    @api.depends(
+        'enrollment_ids',
+        'enrollment_ids.callsign',
+        'enrollment_ids.training_class_id.code',
+        'enrollment_ids.training_class_id.expected_end_date',
+        'enrollment_ids.status',
+        'enrollment_ids.enrollment_date',
+        'enrollment_ids.progression',
+        'enrollment_ids.total_hours',
+        'enrollment_ids.remaining_hours',
+    )
     def _compute_enrollment_data(self):
-        """Find the callsign and class code from the most relevant enrollment (active first, then most recent).
+        """Find callsign and class data from active or latest valid enrollment.
 
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            enrollments = record.enrollment_ids
-            if enrollments:
-                # Prioritize active enrollments, then enrolled, then others
-                # Then sort by date DESC
-                sorted_enrollments = enrollments.sorted(
-                    lambda e: (
-                        1 if getattr(e, 'status', False) == 'active' else (
-                            0.5 if getattr(e, 'status', False) == 'enrolled' else 0),
-                        getattr(e, 'enrollment_date', fields.Date.from_string(
-                            '1970-01-01')) or fields.Date.from_string('1970-01-01'),
-                        e.id
-                    ),
-                    reverse=True
-                )
-                last_enrollment = sorted_enrollments[0]
-                record.callsign = getattr(last_enrollment, 'callsign', False)
+            last_enrollment = record._get_callsign_enrollment()
+            if last_enrollment:
                 class_rec = getattr(last_enrollment, 'training_class_id', False)
                 record.current_class_code = getattr(class_rec, 'code', False) if class_rec else False
                 record.enrollment_status = getattr(last_enrollment, 'status', False)
@@ -129,7 +153,6 @@ class FsStudent(models.Model):
                 record.enrollment_expected_end_date = getattr(
                     class_rec, 'expected_end_date', False) if class_rec else False
             else:
-                record.callsign = False
                 record.current_class_code = False
                 record.enrollment_status = False
                 record.enrollment_progression = 0.0

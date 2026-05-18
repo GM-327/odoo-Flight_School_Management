@@ -112,6 +112,22 @@ class TestFsDocuments(TransactionCase):
         document = self.env['fs.document'].browse(action['res_id'])
         self.assertEqual(self.class_type.reference_document_id, document)
 
+    def test_ip_document_entity_name_updates_on_class_type_rename(self):
+        class_type = self.env['fs.class.type'].create({
+            'name': 'Original IP Class Type',
+            'code': 'IP-REN',
+        })
+        document = self.env['fs.document'].create({
+            'document_type_id': self.ip_type.id,
+            'class_type_id': class_type.id,
+        })
+
+        self.assertEqual(document.related_entity_name, class_type.display_name)
+
+        class_type.name = 'Renamed IP Class Type'
+
+        self.assertEqual(document.related_entity_name, class_type.display_name)
+
     def test_invalid_warning_days_falls_back_safely(self):
         self.env['ir.config_parameter'].sudo().set_param(
             'flight_school.medical_warning_days', 'not-an-integer')

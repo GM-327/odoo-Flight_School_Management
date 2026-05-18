@@ -46,6 +46,11 @@ class FsClassType(models.Model):
         related='reference_document_id.reference',
         readonly=True,
     )
+    ip_document_issue_date = fields.Date(
+        string='IP Issue Date',
+        related='reference_document_id.issue_date',
+        readonly=True,
+    )
     document_count = fields.Integer(
         string='Document Count',
         compute='_compute_document_count',

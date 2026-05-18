@@ -11,9 +11,9 @@
                   sample="1">
                 <field name="has_expired_qualification" column_invisible="1"/>
                 <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle"/>
-                <field name="callsign" optional="show" decoration-bf="1"/>
+                <field name="rank_code"/>
                 <field name="name"/>
-                <field name="rank_id" optional="hide"/>
+                <field name="callsign" optional="show" decoration-bf="1"/>
                 <field name="qualification_badges" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show" 
                        decoration-danger="medical_status == 'expired'" 
@@ -41,9 +41,9 @@
                   sample="1">
                 <field name="has_expired_qualification" column_invisible="1"/>
                 <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle"/>
-                <field name="callsign" optional="show" decoration-bf="1"/>
+                <field name="rank_code"/>
                 <field name="name"/>
-                <field name="rank_id" optional="hide"/>
+                <field name="callsign" optional="show" decoration-bf="1"/>
                 <field name="qualification_badges" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show" 
                        decoration-danger="medical_status == 'expired'" 

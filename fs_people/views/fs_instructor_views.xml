@@ -8,9 +8,9 @@
             <list decoration-danger="has_expired_qualification" decoration-success="has_expired_qualification == False" sample="1" multi_edit="1">
                 <field name="has_expired_qualification" column_invisible="1"/>
                 <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle ml-0 mr-0"/>
+                <field name="rank_code"/>
                 <field name="name" decoration-bf="1"/>
                 <field name="callsign" optional="show"/>
-                <field name="rank_id" optional="show"/>
                 <field name="license_code" widget="badge" optional="hide"/>
                 <field name="qualification_badges" optional="show"/>
                 <field name="medical_status" widget="badge" optional="show" decoration-danger="medical_status == 'expired'" decoration-warning="medical_status == 'expiring'" decoration-success="medical_status == 'valid'" decoration-muted="medical_status == 'no_expiry'"/>
@@ -80,7 +80,7 @@
                                 <i class="fa fa-medkit fa-2x mb-1 text-success" title="Medical Valid" invisible="medical_status != 'valid'"/>
                                 <i class="fa fa-medkit fa-2x mb-1 text-muted" title="Medical No Info" invisible="medical_status != 'no_expiry'"/>
                                 <div class="h6 fw-bold mb-0">Medical</div>
-                                <div class="small text-muted"><field name="medical_expiry" nolabel="1"/></div>
+                                <div class="small text-muted text-center"><field name="medical_expiry" nolabel="1" class="oe_inline text-center"/></div>
                             </div>
                             <div class="text-center flex-fill border-start ps-4">
                                 <field name="english_status" invisible="1"/>
@@ -89,7 +89,7 @@
                                 <i class="fa fa-language fa-2x mb-1 text-success" title="English Valid" invisible="english_status != 'valid'"/>
                                 <i class="fa fa-language fa-2x mb-1 text-muted" title="English No Info" invisible="english_status != 'no_expiry'"/>
                                 <div class="h6 fw-bold mb-0">English</div>
-                                <div class="small text-muted"><field name="english_expiry" nolabel="1"/></div>
+                                <div class="small text-muted text-center"><field name="english_expiry" nolabel="1" class="oe_inline text-center"/></div>
                             </div>
                         </div>
                         <div class="mt-3 pt-3 border-top d-flex align-items-stretch text-center">
@@ -363,6 +363,12 @@
         <field name="name">Instructors</field>
         <field name="res_model">fs.instructor</field>
         <field name="view_mode">kanban,list,form,graph,pivot</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_fs_instructor_kanban')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_fs_instructor_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_fs_instructor_form')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_fs_instructor_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_fs_instructor_pivot')})]"/>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
