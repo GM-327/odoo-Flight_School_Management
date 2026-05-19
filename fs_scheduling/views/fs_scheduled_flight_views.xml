@@ -181,7 +181,7 @@
                                             <div class="p-3 bg-light rounded-3 mb-3 border">
                                                 <field name="pilot1_crew_id" options="{'no_create': True}" 
                                                        placeholder="Select Crew Member..."
-                                                       domain="flight_category == 'staff_training' and [('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('has_expired_qualification', '=', False)]"/>
+                                                       domain="flight_category == 'staff_training' and [('crew_selectable', '=', True), ('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('crew_selectable', '=', True), ('has_expired_qualification', '=', False)]"/>
                                             </div>
                                             
                                             <div class="d-flex align-items-center gap-2 mb-2">
@@ -200,7 +200,7 @@
                                             <div class="p-3 bg-light rounded-3 mb-3 border">
                                                 <field name="pilot2_crew_id" options="{'no_create': True}" 
                                                        placeholder="Select Crew Member..."
-                                                       domain="flight_category == 'staff_training' and [('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('has_expired_qualification', '=', False)]"/>
+                                                       domain="flight_category == 'staff_training' and [('crew_selectable', '=', True), ('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)] or [('crew_selectable', '=', True), ('has_expired_qualification', '=', False)]"/>
                                             </div>
                                             
                                             <div class="d-flex align-items-center gap-2 mt-2">

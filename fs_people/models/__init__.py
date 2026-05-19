@@ -19,6 +19,8 @@ from . import fs_license_type
 from . import fs_qualification_type
 from . import fs_english_level
 from . import fs_medical_class
+from . import fs_person_identity
+from . import fs_person_role_transition
 from . import fs_person
 from . import fs_person_qualification
 from . import fs_instructor

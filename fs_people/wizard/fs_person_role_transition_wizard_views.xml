@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_person_role_transition_wizard_form" model="ir.ui.view">
+        <field name="name">fs.person.role.transition.wizard.form</field>
+        <field name="model">fs.person.role.transition.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-info" role="status">
+                        <i class="fa fa-info-circle me-2" title="Info"/>
+                        This transfer creates a new target role and keeps the source role as historical data.
+                        Existing enrollments, hours, syllabus completion, flights, documents, and qualifications remain linked to their original role records.
+                    </div>
+                    <group>
+                        <group string="Source">
+                            <field name="source_model" invisible="1"/>
+                            <field name="source_res_id" invisible="1"/>
+                            <field name="source_display_name" readonly="1"/>
+                            <field name="transition_type"/>
+                            <field name="transition_date"/>
+                        </group>
+                        <group string="Options">
+                            <field name="copy_documents"/>
+                            <field name="copy_qualifications" invisible="transition_type != 'pilot_to_instructor'"/>
+                            <field name="reassign_future_assignments" invisible="transition_type != 'pilot_to_instructor'"/>
+                        </group>
+                    </group>
+                    <group string="Target Role Details">
+                        <group>
+                            <field name="target_license_id" required="1" options="{'no_create': True}"/>
+                            <field name="target_license_number" required="1"/>
+                            <field name="target_license_issue_date"/>
+                            <field name="target_callsign"/>
+                        </group>
+                        <group>
+                            <field name="target_department_id" options="{'no_create': True}"/>
+                            <field name="target_english_level_id" options="{'no_create': True}"/>
+                            <field name="target_english_expiry"/>
+                            <field name="target_total_instruction_hours" invisible="transition_type != 'pilot_to_instructor'" widget="float_time"/>
+                        </group>
+                    </group>
+                    <group string="Reason">
+                        <field name="reason" nolabel="1" placeholder="Explain why this person is being transferred to the new role..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirm Transfer" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

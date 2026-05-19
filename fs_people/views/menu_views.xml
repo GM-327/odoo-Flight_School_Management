@@ -44,6 +44,20 @@
               action="action_fs_admin_staff"
               sequence="40"/>
 
+    <menuitem id="menu_person_identities"
+              name="Person Identities"
+              parent="menu_people_root"
+              action="action_fs_person_identity"
+              sequence="50"
+              groups="fs_core.group_flight_school_manager,fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_role_transitions"
+              name="Role Transitions"
+              parent="menu_people_root"
+              action="action_fs_person_role_transition"
+              sequence="60"
+              groups="fs_core.group_flight_school_manager,fs_core.group_flight_school_admin"/>
+
     <!-- Configuration submenu -->
     <menuitem id="menu_config_people"
               name="Configuration"

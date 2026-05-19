@@ -25,6 +25,10 @@
         'data/fs_instructor_data.xml',
         'data/fs_pilot_data.xml',
         'data/fs_person_qualification_data.xml',
+        # Views - Identity & Role Lifecycle
+        'views/fs_person_identity_views.xml',
+        'views/fs_person_role_transition_views.xml',
+        'wizard/fs_person_role_transition_wizard_views.xml',
         # Views - Configuration
         'views/fs_rank_views.xml',
         'views/fs_license_type_views.xml',

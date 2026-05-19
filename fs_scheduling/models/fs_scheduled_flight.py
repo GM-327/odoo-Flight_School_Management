@@ -129,6 +129,7 @@ class FsScheduledFlight(models.Model):
         comodel_name='fs.crew.member',
         string='Pilot 1',
         ondelete='restrict',
+        domain=[('crew_selectable', '=', True)],
         tracking=True,
         help="Select crew member for Pilot 1 position (student, instructor, or pilot).",
     )
@@ -164,6 +165,7 @@ class FsScheduledFlight(models.Model):
         comodel_name='fs.crew.member',
         string='Pilot 2',
         ondelete='restrict',
+        domain=[('crew_selectable', '=', True)],
         tracking=True,
         help="Select crew member for Pilot 2 position (instructor or pilot).",
         group_expand='_read_group_crew_ids',
@@ -326,6 +328,7 @@ class FsScheduledFlight(models.Model):
         """
         return self.env['fs.crew.member'].search([
             ('member_type', 'in', ['instructor', 'pilot']),
+            ('crew_selectable', '=', True),
             ('has_expired_qualification', '=', False)
         ])
 
@@ -662,7 +665,8 @@ class FsScheduledFlight(models.Model):
 
         crew_member = self.env['fs.crew.member'].search([
             ('source_model', '=', 'fs.instructor'),
-            ('source_id', '=', instructor.id)
+            ('source_id', '=', instructor.id),
+            ('crew_selectable', '=', True),
         ], limit=1)
         if crew_member:
             self.pilot2_crew_id = crew_member
@@ -993,6 +997,7 @@ class FsScheduledFlight(models.Model):
         """
         records = self.env['fs.crew.member'].search([
             ('member_type', 'in', ['instructor', 'pilot']),
+            ('crew_selectable', '=', True),
         ])
         return [
             {

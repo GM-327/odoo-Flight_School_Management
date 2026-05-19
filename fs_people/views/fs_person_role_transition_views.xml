@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_person_role_transition_list" model="ir.ui.view">
+        <field name="name">fs.person.role.transition.list</field>
+        <field name="model">fs.person.role.transition</field>
+        <field name="arch" type="xml">
+            <list sample="1">
+                <field name="transition_date"/>
+                <field name="name"/>
+                <field name="person_identity_id"/>
+                <field name="transition_type"/>
+                <field name="state" widget="badge"/>
+                <field name="performed_by_id"/>
+                <field name="copy_documents" optional="hide"/>
+                <field name="copy_qualifications" optional="hide"/>
+                <field name="reassign_future_assignments" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_person_role_transition_form" model="ir.ui.view">
+        <field name="name">fs.person.role.transition.form</field>
+        <field name="model">fs.person.role.transition</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <header>
+                    <button name="action_open_source" type="object" string="Open Source" class="btn-secondary"/>
+                    <button name="action_open_target" type="object" string="Open Target" class="btn-primary" invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Transition">
+                            <field name="person_identity_id"/>
+                            <field name="transition_type"/>
+                            <field name="transition_date"/>
+                            <field name="performed_by_id"/>
+                        </group>
+                        <group string="Options Used">
+                            <field name="copy_documents"/>
+                            <field name="copy_qualifications"/>
+                            <field name="reassign_future_assignments"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Source Role">
+                            <field name="from_student_id" context="{'active_test': False}" invisible="transition_type != 'student_to_pilot'"/>
+                            <field name="from_pilot_id" context="{'active_test': False}" invisible="transition_type != 'pilot_to_instructor'"/>
+                            <field name="source_model"/>
+                            <field name="source_res_id"/>
+                        </group>
+                        <group string="Target Role">
+                            <field name="to_pilot_id" context="{'active_test': False}" invisible="transition_type != 'student_to_pilot'"/>
+                            <field name="to_instructor_id" context="{'active_test': False}" invisible="transition_type != 'pilot_to_instructor'"/>
+                            <field name="target_model"/>
+                            <field name="target_res_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Reason" name="reason">
+                            <field name="reason" nolabel="1"/>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_fs_person_role_transition_search" model="ir.ui.view">
+        <field name="name">fs.person.role.transition.search</field>
+        <field name="model">fs.person.role.transition</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="person_identity_id"/>
+                <filter name="filter_student_to_pilot" string="Student -> Pilot" domain="[('transition_type', '=', 'student_to_pilot')]"/>
+                <filter name="filter_pilot_to_instructor" string="Pilot -> Instructor" domain="[('transition_type', '=', 'pilot_to_instructor')]"/>
+                <filter name="filter_done" string="Done" domain="[('state', '=', 'done')]"/>
+                <separator/>
+                <filter name="group_transition_type" string="Transition Type" context="{'group_by': 'transition_type'}"/>
+                <filter name="group_transition_date" string="Transition Date" context="{'group_by': 'transition_date'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_fs_person_role_transition" model="ir.actions.act_window">
+        <field name="name">Role Transitions</field>
+        <field name="res_model">fs.person.role.transition</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No role transitions yet</p>
+            <p>Student to pilot and pilot to instructor transfers are recorded here.</p>
+        </field>
+    </record>
+</odoo>

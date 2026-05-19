@@ -64,6 +64,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     pilot1_crew_id = fields.Many2one(
         'fs.crew.member',  # type: ignore
         string='Pilot 1',
+        domain=[('crew_selectable', '=', True)],
         help="Select crew member for Pilot 1 position (student, instructor, or pilot).",
     )
     pilot1_function = fields.Selection(
@@ -83,6 +84,7 @@ class FsSchedulingWizardLine(models.TransientModel):
     pilot2_crew_id = fields.Many2one(
         'fs.crew.member',  # type: ignore
         string='Pilot 2',
+        domain=[('crew_selectable', '=', True)],
         help="Select crew member for Pilot 2 position (instructor or pilot).",
     )
     pilot2_function = fields.Selection(
@@ -460,7 +462,8 @@ class FsSchedulingWizardLine(models.TransientModel):
                             # Find the crew member for this instructor
                             crew_member = self.env['fs.crew.member'].search([
                                 ('source_model', '=', 'fs.instructor'),
-                                ('source_id', '=', instructor.id)  # type: ignore
+                                ('source_id', '=', instructor.id),  # type: ignore
+                                ('crew_selectable', '=', True),
                             ], limit=1)
                             if crew_member:
                                 self.pilot2_crew_id = crew_member

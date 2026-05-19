@@ -242,12 +242,12 @@
                                 <field name="pilot1_function" string="P1 Func" optional="hide"/>
                                 <field name="pilot1_crew_id" string="Pilot 1" 
                                        options="{'no_create': True}"
-                                       domain="[('has_expired_qualification', '=', False)]"/>
+                                       domain="[('crew_selectable', '=', True), ('has_expired_qualification', '=', False)]"/>
                                 <!-- Pilot 2 (Editable) -->
                                 <field name="pilot2_function" string="P2 Func" optional="hide"/>
                                 <field name="pilot2_crew_id" string="Pilot 2" 
                                        options="{'no_create': True}"
-                                       domain="[('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)]"/>
+                                       domain="[('crew_selectable', '=', True), ('member_type', 'in', ['instructor', 'pilot']), ('has_expired_qualification', '=', False)]"/>
                                 <field name="training_class_code" readonly="1" string="Class" optional="hide"/>
                                 <field name="class_type_id" column_invisible="1"/>
                                 <field name="aircraft_type_ids" string="A/C Types" widget="many2many_tags" optional="hide"/>

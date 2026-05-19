@@ -350,6 +350,7 @@ class FsFlightMixin(models.AbstractModel):
             crew_member = self.env['fs.crew.member'].search([
                 ('source_model', '=', 'fs.instructor'),
                 ('source_id', '=', instructor.id),
+                ('crew_selectable', '=', True),
             ], limit=1)
             return crew_member
         return False

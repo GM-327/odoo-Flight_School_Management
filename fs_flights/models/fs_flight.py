@@ -270,6 +270,7 @@ class FsFlight(models.Model):
     pilot1_crew_id = fields.Many2one(
         comodel_name='fs.crew.member',
         string='Pilot 1',
+        domain=[('crew_selectable', '=', True)],
         tracking=True,
     )
     pilot1_callsign = fields.Char(
@@ -285,6 +286,7 @@ class FsFlight(models.Model):
     pilot2_crew_id = fields.Many2one(
         comodel_name='fs.crew.member',
         string='Pilot 2',
+        domain=[('crew_selectable', '=', True)],
         tracking=True,
     )
     pilot2_callsign = fields.Char(
@@ -460,6 +462,7 @@ class FsFlight(models.Model):
                             crew_member = self.env['fs.crew.member'].search([
                                 ('source_model', '=', 'fs.instructor'),
                                 ('source_id', '=', instructor.id),
+                                ('crew_selectable', '=', True),
                             ], limit=1)
                             if crew_member:
                                 self.pilot2_crew_id = crew_member

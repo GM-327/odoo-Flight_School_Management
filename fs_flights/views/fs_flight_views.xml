@@ -172,7 +172,7 @@
                                         </span>
                                         <div class="p-2 bg-light rounded-3 border">
                                             <field name="pilot1_crew_id" options="{'no_create': True}" placeholder="Search..."
-                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                                   domain="[('crew_selectable', '=', True), ('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mt-1">
                                             <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
@@ -188,7 +188,7 @@
                                         </span>
                                         <div class="p-2 bg-light rounded-3 border">
                                             <field name="pilot2_crew_id" options="{'no_create': True}" placeholder="Search..."
-                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                                   domain="[('crew_selectable', '=', True), ('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mt-1">
                                             <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
@@ -521,7 +521,7 @@
                                         </span>
                                         <div class="p-2 bg-light rounded-3 border">
                                             <field name="pilot1_crew_id" options="{'no_create': True}" placeholder="Search..."
-                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                                   domain="[('crew_selectable', '=', True), ('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mt-1">
                                             <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
@@ -537,7 +537,7 @@
                                         </span>
                                         <div class="p-2 bg-light rounded-3 border">
                                             <field name="pilot2_crew_id" options="{'no_create': True}" placeholder="Search..."
-                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                                   domain="[('crew_selectable', '=', True), ('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mt-1">
                                             <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
@@ -747,7 +747,7 @@
                                         </span>
                                         <div class="p-2 bg-light rounded-3 border">
                                             <field name="pilot1_crew_id" options="{'no_create': True}" placeholder="Search..."
-                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                                   domain="[('crew_selectable', '=', True), ('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mt-1">
                                             <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>
@@ -763,7 +763,7 @@
                                         </span>
                                         <div class="p-2 bg-light rounded-3 border">
                                             <field name="pilot2_crew_id" options="{'no_create': True}" placeholder="Search..."
-                                                   domain="[('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
+                                                   domain="[('crew_selectable', '=', True), ('member_type', 'in', flight_category == 'staff_training' and ['instructor', 'pilot'] or ['student', 'instructor', 'pilot'])]"/>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 mt-1">
                                             <span class="text-muted fw-bold" style="font-size: 0.85rem;">Function:</span>

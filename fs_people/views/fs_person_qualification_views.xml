@@ -14,6 +14,8 @@
                 <field name="issue_date"/>
                 <field name="expiry_date"/>
                 <field name="expiry_status" column_invisible="True"/>
+                <field name="origin_qualification_id" optional="hide" readonly="1"/>
+                <field name="transition_id" optional="hide" readonly="1"/>
             </list>
         </field>
     </record>

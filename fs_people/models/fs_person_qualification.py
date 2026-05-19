@@ -92,6 +92,20 @@ class FsPersonQualification(models.Model):
     notes = fields.Text(
         string='Notes',
     )
+    origin_qualification_id = fields.Many2one(
+        comodel_name='fs.person.qualification',
+        string='Origin Qualification',
+        readonly=True,
+        ondelete='set null',
+        help='Source qualification copied during a role transition.',
+    )
+    transition_id = fields.Many2one(
+        comodel_name='fs.person.role.transition',
+        string='Role Transition',
+        readonly=True,
+        ondelete='set null',
+        help='Transition that created this copied qualification.',
+    )
 
     @api.constrains('instructor_id', 'pilot_id', 'qualification_id')
     def _check_single_owner(self):

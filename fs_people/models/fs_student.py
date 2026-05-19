@@ -222,3 +222,12 @@ class FsStudent(models.Model):
     )
 
     # Enrollment availability logic moved to fs_training module
+
+    def action_transfer_to_pilot(self):
+        """Open the transfer wizard to create a current pilot role.
+
+        Returns:
+            dict: Odoo action dictionary for the transition wizard.
+        """
+        self.ensure_one()
+        return self._action_open_role_transition_wizard('student_to_pilot')

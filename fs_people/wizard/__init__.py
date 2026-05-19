@@ -15,3 +15,4 @@ Related Modules:
     fs_training enrolls people in classes.
 """
 from . import fs_people_dashboard
+from . import fs_person_role_transition_wizard

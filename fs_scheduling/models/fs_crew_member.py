@@ -35,6 +35,11 @@ MEMBER_TYPE_SELECTION = [
     ('pilot', 'Pilot'),
 ]
 
+ROLE_STATE_SELECTION = [
+    ('current', 'Current'),
+    ('former', 'Former'),
+]
+
 ALLOWED_SOURCE_MODELS = frozenset({
     'fs.student',
     'fs.instructor',
@@ -90,6 +95,9 @@ class FsCrewMember(models.Model):
     member_type = fields.Selection(MEMBER_TYPE_SELECTION, string='Type', readonly=True)
     source_id = fields.Integer(string='Source ID', readonly=True)
     source_model = fields.Char(string='Source Model', readonly=True)
+    role_state = fields.Selection(ROLE_STATE_SELECTION, string='Role Status', readonly=True)
+    source_active = fields.Boolean(string='Source Active', readonly=True)
+    crew_selectable = fields.Boolean(string='Selectable', readonly=True)
     has_expired_qualification = fields.Boolean(string='Has Expired', readonly=True)
     department_id = fields.Many2one('fs.department', string='Department', readonly=True)
 
@@ -126,6 +134,13 @@ class FsCrewMember(models.Model):
                 'student' AS member_type,
                 s.id AS source_id,
                 'fs.student' AS source_model,
+                COALESCE(s.role_state, 'current') AS role_state,
+                s.active AS source_active,
+                (
+                    s.active = TRUE
+                    AND COALESCE(s.role_state, 'current') = 'current'
+                    AND e.status IN ('active', 'solo')
+                ) AS crew_selectable,
                 s.has_expired_status AS has_expired_qualification,
                 NULL::integer AS department_id,
                 s.medical_status AS medical_status,
@@ -137,8 +152,6 @@ class FsCrewMember(models.Model):
                 e.id AS enrollment_id
             FROM fs_student_enrollment e
             JOIN fs_student s ON s.id = e.student_id
-            WHERE e.status IN ('active', 'solo')
-              AND s.active = TRUE
 
             UNION ALL
 
@@ -151,6 +164,9 @@ class FsCrewMember(models.Model):
                 'instructor' AS member_type,
                 i.id AS source_id,
                 'fs.instructor' AS source_model,
+                COALESCE(i.role_state, 'current') AS role_state,
+                i.active AS source_active,
+                (i.active = TRUE AND COALESCE(i.role_state, 'current') = 'current') AS crew_selectable,
                 i.has_expired_qualification AS has_expired_qualification,
                 i.department_id AS department_id,
                 i.medical_status AS medical_status,
@@ -161,7 +177,6 @@ class FsCrewMember(models.Model):
                 i.earliest_expiry_date AS earliest_expiry_date,
                 NULL::integer AS enrollment_id
             FROM fs_instructor i
-            WHERE i.active = TRUE
 
             UNION ALL
 
@@ -174,6 +189,9 @@ class FsCrewMember(models.Model):
                 'pilot' AS member_type,
                 p.id AS source_id,
                 'fs.pilot' AS source_model,
+                COALESCE(p.role_state, 'current') AS role_state,
+                p.active AS source_active,
+                (p.active = TRUE AND COALESCE(p.role_state, 'current') = 'current') AS crew_selectable,
                 p.has_expired_qualification AS has_expired_qualification,
                 p.department_id AS department_id,
                 p.medical_status AS medical_status,
@@ -184,7 +202,6 @@ class FsCrewMember(models.Model):
                 p.earliest_expiry_date AS earliest_expiry_date,
                 NULL::integer AS enrollment_id
             FROM fs_pilot p
-            WHERE p.active = TRUE
         """
 
     def init(self):

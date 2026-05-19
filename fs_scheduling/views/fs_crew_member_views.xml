@@ -10,7 +10,9 @@
                   default_group_by="member_type">
                 <field name="has_expired_qualification" column_invisible="1"/>
                 <field name="enrollment_id" column_invisible="1"/>
+                <field name="crew_selectable" column_invisible="1"/>
                 <field name="member_type" optional="hide"/>
+                <field name="role_state" widget="badge" optional="hide"/>
                 <field name="name" string="Callsign" decoration-bf="1"/>
                 <field name="full_name" string="Name"/>
                 <field name="department_id" optional="hide"/>
@@ -52,6 +54,8 @@
                 <separator/>
                 <filter name="filter_valid" string="Valid (No Expiries)" domain="[('has_expired_qualification', '=', False)]"/>
                 <filter name="filter_expired" string="Has Expiries" domain="[('has_expired_qualification', '=', True)]"/>
+                <filter name="filter_selectable" string="Selectable" domain="[('crew_selectable', '=', True)]"/>
+                <filter name="filter_former" string="Former Roles" domain="[('role_state', '=', 'former')]"/>
                 <separator/>
                 <filter name="filter_students" string="Students" domain="[('member_type', '=', 'student')]"/>
                 <filter name="filter_instructors" string="Instructors" domain="[('member_type', '=', 'instructor')]"/>

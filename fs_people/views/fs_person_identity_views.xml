@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fs_person_identity_list" model="ir.ui.view">
+        <field name="name">fs.person.identity.list</field>
+        <field name="model">fs.person.identity</field>
+        <field name="arch" type="xml">
+            <list sample="1">
+                <field name="name"/>
+                <field name="current_role" widget="badge"/>
+                <field name="identification_number" optional="show"/>
+                <field name="service_number" optional="show"/>
+                <field name="birth_date" optional="hide"/>
+                <field name="nationality_id" optional="hide"/>
+                <field name="student_count" optional="show"/>
+                <field name="pilot_count" optional="show"/>
+                <field name="instructor_count" optional="show"/>
+                <field name="transition_count" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_person_identity_form" model="ir.ui.view">
+        <field name="name">fs.person.identity.form</field>
+        <field name="model">fs.person.identity</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_view_current_role" type="object" string="Open Current Role" class="btn-primary" invisible="not current_role"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_students" type="object" class="oe_stat_button" icon="fa-graduation-cap">
+                            <field name="student_count" widget="statinfo" string="Students"/>
+                        </button>
+                        <button name="action_view_pilots" type="object" class="oe_stat_button" icon="fa-plane">
+                            <field name="pilot_count" widget="statinfo" string="Pilots"/>
+                        </button>
+                        <button name="action_view_instructors" type="object" class="oe_stat_button" icon="fa-user-md">
+                            <field name="instructor_count" widget="statinfo" string="Instructors"/>
+                        </button>
+                        <button name="action_view_transitions" type="object" class="oe_stat_button" icon="fa-exchange">
+                            <field name="transition_count" widget="statinfo" string="Transitions"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Person identity"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Current Role">
+                            <field name="current_role" widget="badge"/>
+                            <field name="current_student_id" invisible="current_role != 'student'" context="{'active_test': False}"/>
+                            <field name="current_pilot_id" invisible="current_role != 'pilot'" context="{'active_test': False}"/>
+                            <field name="current_instructor_id" invisible="current_role != 'instructor'" context="{'active_test': False}"/>
+                            <field name="active" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Canonical Search Data">
+                            <field name="identification_number"/>
+                            <field name="service_number"/>
+                            <field name="birth_date"/>
+                            <field name="nationality_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Student Roles" name="student_roles">
+                            <field name="student_ids" context="{'active_test': False}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="role_state" widget="badge"/>
+                                    <field name="role_start_date"/>
+                                    <field name="role_end_date"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Pilot Roles" name="pilot_roles">
+                            <field name="pilot_ids" context="{'active_test': False}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="callsign"/>
+                                    <field name="role_state" widget="badge"/>
+                                    <field name="role_start_date"/>
+                                    <field name="role_end_date"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Instructor Roles" name="instructor_roles">
+                            <field name="instructor_ids" context="{'active_test': False}">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="callsign"/>
+                                    <field name="role_state" widget="badge"/>
+                                    <field name="role_start_date"/>
+                                    <field name="role_end_date"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Transitions" name="transitions">
+                            <field name="transition_ids">
+                                <list>
+                                    <field name="transition_date"/>
+                                    <field name="transition_type"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="from_student_id" context="{'active_test': False}"/>
+                                    <field name="from_pilot_id" context="{'active_test': False}"/>
+                                    <field name="to_pilot_id" context="{'active_test': False}"/>
+                                    <field name="to_instructor_id" context="{'active_test': False}"/>
+                                    <field name="performed_by_id"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_fs_person_identity_search" model="ir.ui.view">
+        <field name="name">fs.person.identity.search</field>
+        <field name="model">fs.person.identity</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="identification_number"/>
+                <field name="service_number"/>
+                <filter name="filter_current_student" string="Current Students" domain="[('current_role', '=', 'student')]"/>
+                <filter name="filter_current_pilot" string="Current Pilots" domain="[('current_role', '=', 'pilot')]"/>
+                <filter name="filter_current_instructor" string="Current Instructors" domain="[('current_role', '=', 'instructor')]"/>
+                <separator/>
+                <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="group_current_role" string="Current Role" context="{'group_by': 'current_role'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_fs_person_identity" model="ir.actions.act_window">
+        <field name="name">Person Identities</field>
+        <field name="res_model">fs.person.identity</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'active_test': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create or inspect person identities</p>
+            <p>Identities group student, pilot, and instructor role records for the same person.</p>
+        </field>
+    </record>
+</odoo>

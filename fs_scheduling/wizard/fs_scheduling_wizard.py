@@ -539,7 +539,8 @@ class FsSchedulingWizard(models.TransientModel):
             if instructor:
                 instructor_crew = self.env['fs.crew.member'].search([
                     ('source_model', '=', 'fs.instructor'),
-                    ('source_id', '=', instructor.id)
+                    ('source_id', '=', instructor.id),
+                    ('crew_selectable', '=', True),
                 ], limit=1)
                 pilot2_crew_id = instructor_crew.id if instructor_crew else False
 

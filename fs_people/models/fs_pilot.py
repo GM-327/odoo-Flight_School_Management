@@ -359,3 +359,12 @@ class FsPilot(models.Model):
         string='Last Flight Date',
         help="Date of the most recent flight.",
     )
+
+    def action_transfer_to_instructor(self):
+        """Open the transfer wizard to create a current instructor role.
+
+        Returns:
+            dict: Odoo action dictionary for the transition wizard.
+        """
+        self.ensure_one()
+        return self._action_open_role_transition_wizard('pilot_to_instructor')

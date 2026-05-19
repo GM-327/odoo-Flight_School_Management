@@ -10,6 +10,7 @@
                 <field name="image_128" widget="image" options="{'size': [32, 32]}" string=" " class="rounded-circle ml-0 mr-0"/>
                 <field name="rank_code"/>
                 <field name="name" decoration-bf="1"/>
+                <field name="role_state" widget="badge" optional="hide"/>
                 <field name="callsign" optional="show"/>
                 <field name="license_code" widget="badge" optional="hide"/>
                 <field name="qualification_badges" optional="show"/>
@@ -41,6 +42,10 @@
                 </header>
                 <sheet>
                     <field name="has_expired_qualification" invisible="1"/>
+                    <field name="role_state" invisible="1"/>
+                    <field name="is_current_role" invisible="1"/>
+                    <field name="person_identity_id" invisible="1"/>
+                    <field name="transition_count" invisible="1"/>
                     <div class="alert alert-danger text-center o_form_header shadow-sm mb-3" invisible="has_expired_qualification == False" role="alert">
                         <i class="fa fa-exclamation-triangle me-2" title="Warning"/> 
                         <strong>Attention Required:</strong> This instructor has expired or expiring qualifications or medical/compliance documents.
@@ -54,8 +59,17 @@
                                 <span class="o_stat_text">User Profile</span>
                             </div>
                         </button>
+                        <button name="action_view_person_identity" type="object" class="oe_stat_button" icon="fa-id-badge" invisible="not person_identity_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Identity</span>
+                            </div>
+                        </button>
+                        <button name="action_view_role_transitions" type="object" class="oe_stat_button" icon="fa-exchange" invisible="not person_identity_id">
+                            <field name="transition_count" widget="statinfo" string="Transitions"/>
+                        </button>
                     </div>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
+                    <widget name="web_ribbon" title="Former Instructor" bg_color="bg-secondary" invisible="role_state != 'former'"/>
                     
                     <field name="image" widget="image" class="oe_avatar" options="{'zoom': true, 'preview_image': 'image_128'}"/>
                     
@@ -238,6 +252,12 @@
                         <page string="Administration" name="system">
                             <group>
                                 <group string="Technical Linkage">
+                                    <field name="person_identity_id" context="{'active_test': False}" readonly="1"/>
+                                    <field name="role_state" readonly="1"/>
+                                    <field name="role_start_date" readonly="1"/>
+                                    <field name="role_end_date" readonly="1"/>
+                                    <field name="transition_in_id" readonly="1"/>
+                                    <field name="transition_out_id" readonly="1"/>
                                     <field name="user_id"/>
                                     <field name="has_user" invisible="1"/>
                                 </group>
@@ -267,6 +287,9 @@
                 <field name="department_id"/>
                 <filter name="filter_military" string="Military" domain="[('is_military', '=', True)]"/>
                 <filter name="filter_has_user" string="Has User Account" domain="[('has_user', '=', True)]"/>
+                <separator/>
+                <filter name="filter_current_roles" string="Current" domain="[('is_current_role', '=', True)]"/>
+                <filter name="filter_former_roles" string="Former" domain="[('role_state', '=', 'former')]"/>
                 <separator/>
                 <filter name="filter_archived" string="Archived" domain="[('active', '=', False)]"/>
                 <separator/>
@@ -369,7 +392,7 @@
             (0, 0, {'view_mode': 'form', 'view_id': ref('view_fs_instructor_form')}),
             (0, 0, {'view_mode': 'graph', 'view_id': ref('view_fs_instructor_graph')}),
             (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_fs_instructor_pivot')})]"/>
-        <field name="context">{}</field>
+        <field name="context">{'search_default_filter_current_roles': 1, 'active_test': False}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Create your first instructor
