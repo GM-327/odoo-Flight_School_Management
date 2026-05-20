@@ -12,6 +12,9 @@
                 <field name="mission_name" readonly="1"/>
                 <field name="is_completed" widget="boolean_toggle"/>
                 <field name="completion_date"/>
+                <field name="source" optional="show"/>
+                <field name="source_organization" optional="hide"/>
+                <field name="source_reference" optional="hide"/>
                 <field name="notes" optional="hide"/>
             </list>
         </field>
@@ -40,6 +43,18 @@
                             <field name="is_completed" widget="boolean_toggle"/>
                             <field name="completion_date" invisible="not is_completed"/>
                         </group>
+                        <group string="Source">
+                            <field name="source"/>
+                            <field name="is_prior_experience"/>
+                            <field name="source_date"/>
+                            <field name="source_organization"/>
+                            <field name="source_reference"/>
+                            <field name="source_record_model" groups="base.group_no_one"/>
+                            <field name="source_record_id" groups="base.group_no_one"/>
+                        </group>
+                    </group>
+                    <group string="Source Notes">
+                        <field name="source_notes" nolabel="1" placeholder="Evidence, source details, or migration comments..."/>
                     </group>
                     <group string="Notes">
                         <field name="notes" nolabel="1" placeholder="Additional notes about this mission completion..."/>
@@ -57,10 +72,12 @@
             <search>
                 <filter name="filter_completed" string="Completed" domain="[('is_completed', '=', True)]"/>
                 <filter name="filter_pending" string="Pending" domain="[('is_completed', '=', False)]"/>
+                <filter name="filter_prior_experience" string="Prior Experience" domain="[('is_prior_experience', '=', True)]"/>
                 <separator/>
                 <filter name="group_student" string="Student" context="{'group_by': 'student_id'}"/>
                 <filter name="group_class" string="Training Class" context="{'group_by': 'training_class_id'}"/>
                 <filter name="group_mission" string="Mission" context="{'group_by': 'mission_id'}"/>
+                <filter name="group_source" string="Source" context="{'group_by': 'source'}"/>
             </search>
         </field>
     </record>

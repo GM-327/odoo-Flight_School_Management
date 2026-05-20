@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Training',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.2.0',
     'category': 'Aviation/Flight School',
     'summary': 'Training classes, enrollments, and flight missions',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',

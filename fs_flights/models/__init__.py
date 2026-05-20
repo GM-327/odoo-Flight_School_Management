@@ -20,4 +20,8 @@ from . import fs_daily_operations
 from . import fs_simulator_operations
 from . import fs_scheduled_flight
 from . import fs_initial_experience
+from . import fs_initial_experience_line
+from . import fs_prior_syllabus_completion
+from . import fs_student_enrollment
+from . import fs_people_prior_experience
 from . import res_config_settings

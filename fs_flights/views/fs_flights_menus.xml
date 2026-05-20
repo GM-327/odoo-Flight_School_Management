@@ -35,9 +35,9 @@
               action="action_fs_sim_session"
               sequence="25"/>
 
-    <!-- Initial Experience Menu -->
+    <!-- Prior Experience Menu -->
     <menuitem id="menu_fs_initial_experience"
-              name="Initial Experience"
+              name="Prior Experience"
               parent="menu_fs_flights_root"
               action="action_fs_initial_experience"
               sequence="30"/>

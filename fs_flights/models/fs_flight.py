@@ -1207,7 +1207,14 @@ class FsFlight(models.Model):
         rec = EnrollmentHours.search([
             ('enrollment_id', '=', enrollment.id),
             ('activity_id', '=', activity.id),
+            ('is_extra', '=', False),
         ], limit=1)
+        if not rec:
+            rec = EnrollmentHours.search([
+                ('enrollment_id', '=', enrollment.id),
+                ('activity_id', '=', activity.id),
+                ('is_extra', '=', True),
+            ], limit=1)
 
         if rec:
             new_hours = max(0, rec.hours_logged + hours_delta)  # type: ignore

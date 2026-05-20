@@ -179,6 +179,20 @@
                                     <field name="remaining_breakdown_html" nolabel="1"/>
                                 </div>
                             </div>
+                            <group string="Alternative OR Requirements">
+                                <field name="requirement_group_ids" nolabel="1" readonly="1">
+                                    <list decoration-success="remaining_hours == 0" decoration-info="logged_hours > 0 and remaining_hours > 0">
+                                        <field name="sequence" widget="handle"/>
+                                        <field name="name"/>
+                                        <field name="alternative_activity_names"/>
+                                        <field name="minimum_hours" widget="float_time" string="Req."/>
+                                        <field name="logged_hours" widget="float_time" string="Logged"/>
+                                        <field name="remaining_hours" widget="float_time" string="Left"/>
+                                        <field name="count_as"/>
+                                        <field name="progress_percentage" widget="progressbar" string="Progress"/>
+                                    </list>
+                                </field>
+                            </group>
                             <group>
                                 <group string="Mandatory Syllabus Items">
                                     <field name="required_hour_ids" nolabel="1" options="{'no_open': True}">
@@ -186,8 +200,10 @@
                                               decoration-success="progress_percentage == 100"
                                               decoration-info="progress_percentage > 0 and progress_percentage &lt; 100"
                                               class="o_list_renderer_syllabus">
+                                            <field name="requirement_role" widget="badge" readonly="1"/>
                                             <field name="activity_id" options="{'no_open': True}"/>
-                                            <field name="minimum_hours" widget="float_time" string="Req." readonly="1"/>
+                                            <field name="requirement_group_names" readonly="1" optional="show"/>
+                                            <field name="minimum_hours" widget="float_time" string="Standalone Req." readonly="1"/>
                                             <field name="hours_logged" widget="float_time" string="Logged" sum="Total Syllabus"/>
                                             <field name="remaining_hours" widget="float_time" string="Left" 
                                                    decoration-danger="remaining_hours > 0" 
@@ -343,9 +359,11 @@
                     <group>
                             <field name="activity_id" readonly="not is_extra"/>
                             <field name="is_extra" invisible="1"/>
+                            <field name="requirement_role" readonly="1" invisible="is_extra"/>
+                            <field name="requirement_group_names" readonly="1" invisible="is_extra"/>
                         <group>
                             <field name="hours_logged" widget="float_time"/>
-                            <field name="minimum_hours" widget="float_time" invisible="is_extra"/>
+                            <field name="minimum_hours" widget="float_time" invisible="is_extra" readonly="1"/>
                         </group>
                     </group>
                     <group invisible="is_extra">

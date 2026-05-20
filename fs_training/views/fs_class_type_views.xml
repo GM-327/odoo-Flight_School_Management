@@ -16,6 +16,9 @@
                 <field name="for_licensed_personnel" widget="boolean_toggle"/>
                 <field name="duration_value"/>
                 <field name="duration_unit"/>
+                <field name="total_required_hours" widget="float_time"/>
+                <field name="total_required_aircraft_hours" widget="float_time"/>
+                <field name="total_required_simulator_hours" widget="float_time"/>
             </list>
         </field>
     </record>
@@ -52,14 +55,56 @@
                             <field name="requirement_ids" widget="many2many_tags" 
                                    domain="for_licensed_personnel and [(is_military and 'is_military' or 'is_civilian', '=', True)] or [(is_military and 'is_military' or 'is_civilian', '=', True), ('category', 'not in', ['english', 'qualification'])]"/>
                         </group>
+                        <group string="Required Hours">
+                            <field name="total_required_hours" widget="float_time"/>
+                            <field name="total_required_aircraft_hours" widget="float_time"/>
+                            <field name="total_required_simulator_hours" widget="float_time"/>
+                        </group>
                     </group>
                     <notebook>
                         <page string="Hour Requirements" name="hours">
-                            <field name="hour_requirement_ids">
+                            <field name="hour_requirement_ids" domain="[('requirement_group_id', '=', False)]" context="{'default_requirement_group_id': False}">
                                 <list editable="bottom">
+                                    <field name="requirement_group_id" column_invisible="1"/>
                                     <field name="activity_id"/>
                                     <field name="minimum_hours" widget="float_time"/>
                                 </list>
+                            </field>
+                            <separator string="Alternative OR Requirements"/>
+                            <field name="hour_requirement_group_ids">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="minimum_hours" widget="float_time"/>
+                                    <field name="count_as"/>
+                                    <field name="alternative_activity_names"/>
+                                </list>
+                                <form string="Alternative Hour Requirement">
+                                    <sheet>
+                                        <field name="class_type_id" invisible="1"/>
+                                        <group>
+                                            <group>
+                                                <field name="name"/>
+                                                <field name="sequence"/>
+                                                <field name="operator" readonly="1"/>
+                                            </group>
+                                            <group>
+                                                <field name="minimum_hours" widget="float_time"/>
+                                                <field name="count_as"/>
+                                            </group>
+                                        </group>
+                                        <group string="Accepted Alternative Activities">
+                                            <field name="hour_requirement_ids" context="{'default_class_type_id': class_type_id, 'default_minimum_hours': 0.0}">
+                                                <list editable="bottom">
+                                                    <field name="class_type_id" column_invisible="1"/>
+                                                    <field name="requirement_group_id" column_invisible="1"/>
+                                                    <field name="activity_id"/>
+                                                    <field name="minimum_hours" column_invisible="1"/>
+                                                </list>
+                                            </field>
+                                        </group>
+                                    </sheet>
+                                </form>
                             </field>
                         </page>
                         <page string="Flight Missions" name="missions">

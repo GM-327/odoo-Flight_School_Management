@@ -23,6 +23,10 @@ access_fs_class_requirement_user,fs.class.requirement.user,model_fs_class_requir
 access_fs_class_requirement_admin,fs.class.requirement.admin,model_fs_class_requirement,fs_core.group_flight_school_admin,1,1,1,1
 access_fs_class_type_hours_user,fs.class.type.hours.user,model_fs_class_type_hours,fs_core.group_flight_school_user,1,0,0,0
 access_fs_class_type_hours_admin,fs.class.type.hours.admin,model_fs_class_type_hours,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_class_type_hours_group_user,fs.class.type.hours.group.user,model_fs_class_type_hours_group,fs_core.group_flight_school_user,1,0,0,0
+access_fs_class_type_hours_group_admin,fs.class.type.hours.group.admin,model_fs_class_type_hours_group,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_enrollment_hours_group_user,fs.enrollment.hours.group.user,model_fs_enrollment_hours_group,fs_core.group_flight_school_user,1,0,0,0
+access_fs_enrollment_hours_group_manager,fs.enrollment.hours.group.manager,model_fs_enrollment_hours_group,fs_core.group_flight_school_manager,1,1,1,1
 access_fs_admin_task_template_user,fs.admin.task.template.user,model_fs_admin_task_template,fs_core.group_flight_school_user,1,0,0,0
 access_fs_admin_task_template_admin,fs.admin.task.template.admin,model_fs_admin_task_template,fs_core.group_flight_school_admin,1,1,1,1
 access_fs_class_type_admin_task_user,fs.class.type.admin.task.user,model_fs_class_type_admin_task,fs_core.group_flight_school_user,1,0,0,0

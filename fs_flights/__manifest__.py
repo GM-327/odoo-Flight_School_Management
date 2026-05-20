@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Flights',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Daily flight operations monitoring and execution logging',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
@@ -29,6 +29,8 @@
         'views/fs_simulator_operations_views.xml',
         'views/fs_scheduled_flight_views.xml',
         'views/fs_initial_experience_views.xml',
+        'views/fs_student_enrollment_prior_experience_views.xml',
+        'views/fs_people_prior_experience_views.xml',
         'views/fs_flights_menus.xml',
         'views/res_config_settings_views.xml',
     ],

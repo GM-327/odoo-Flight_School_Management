@@ -78,8 +78,45 @@ class FsMissionCompletion(models.Model):
     completion_date = fields.Date(
         string='Completion Date',
     )
-    # Note: flight_id is defined in fs_flights module via inheritance
-    # to avoid circular dependency between fs_training and fs_flights
+    source = fields.Selection(
+        selection=[
+            ('manual', 'Manual'),
+            ('operational_flight', 'Operational Flight'),
+            ('prior_experience', 'Prior Experience'),
+        ],
+        string='Source',
+        default='manual',
+        index=True,
+        help='Origin of this mission completion record.',
+    )
+    source_organization = fields.Char(
+        string='Source Organization',
+    )
+    source_reference = fields.Char(
+        string='Source Reference',
+    )
+    source_date = fields.Date(
+        string='Source Date',
+    )
+    source_notes = fields.Text(
+        string='Source Notes',
+    )
+    is_prior_experience = fields.Boolean(
+        string='Prior Experience',
+        default=False,
+        index=True,
+        help='Checked when this completion was recorded from prior/manual onboarding data.',
+    )
+    source_record_model = fields.Char(
+        string='Source Record Model',
+        readonly=True,
+        help='Technical model name for the source record when available.',
+    )
+    source_record_id = fields.Integer(
+        string='Source Record ID',
+        readonly=True,
+        help='Technical record ID for the source record when available.',
+    )
     notes = fields.Text(
         string='Notes',
     )
@@ -128,6 +165,7 @@ class FsMissionCompletion(models.Model):
             record.write({
                 'is_completed': True,
                 'completion_date': fields.Date.context_today(self),
+                'source': record.source or 'manual',
             })
 
     def action_mark_incomplete(self):

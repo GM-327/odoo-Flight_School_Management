@@ -1,124 +1,353 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Initial Experience List View -->
+    <!-- Prior Experience List View -->
     <record id="view_fs_initial_experience_list" model="ir.ui.view">
         <field name="name">fs.initial.experience.list</field>
         <field name="model">fs.initial.experience</field>
         <field name="arch" type="xml">
-            <list decoration-success="is_applied" decoration-muted="not is_applied">
+            <list decoration-success="state == 'applied'"
+                  decoration-info="state == 'approved'"
+                  decoration-warning="state == 'review'"
+                  decoration-muted="state in ('draft', 'cancelled')">
+                <field name="state" widget="badge"
+                       decoration-success="state == 'applied'"
+                       decoration-info="state == 'approved'"
+                       decoration-warning="state == 'review'"
+                       decoration-muted="state in ('draft', 'cancelled')"/>
                 <field name="person_type"/>
                 <field name="instructor_id" invisible="person_type != 'instructor'"/>
                 <field name="pilot_id" invisible="person_type != 'pilot'"/>
                 <field name="student_id" invisible="person_type != 'student'"/>
                 <field name="entry_date"/>
-                <field name="initial_flight_hours" widget="float_time"/>
-                <field name="initial_sim_hours" widget="float_time"/>
-                <field name="initial_solo_hours" widget="float_time"/>
-                <field name="initial_instruction_hours" widget="float_time" invisible="person_type != 'instructor'"/>
-                <field name="description"/>
-                <field name="is_applied" widget="boolean_toggle" readonly="1"/>
-                <button name="action_apply_hours" type="object" string="Apply" 
-                        class="btn-success" icon="fa-check" invisible="is_applied"/>
-                <button name="action_revert_hours" type="object" string="Revert" 
-                        class="btn-warning" icon="fa-undo" invisible="not is_applied"
-                        confirm="Are you sure you want to revert these hours?"/>
+                <field name="source_type"/>
+                <field name="source_organization" optional="show"/>
+                <field name="prior_flight_hours" widget="float_time" sum="Flight"/>
+                <field name="prior_sim_hours" widget="float_time" sum="Simulator"/>
+                <field name="prior_solo_hours" widget="float_time" optional="hide" sum="Solo"/>
+                <field name="prior_instruction_hours" widget="float_time" optional="hide" sum="Instruction"/>
+                <field name="line_count" optional="hide"/>
+                <field name="syllabus_completion_count" optional="hide"/>
+                <field name="is_applied" column_invisible="1"/>
+                <button name="action_submit_for_review" type="object" string="Submit"
+                        icon="fa-share" invisible="state != 'draft'"/>
+                <button name="action_approve" type="object" string="Approve"
+                        class="btn-primary" icon="fa-check" groups="fs_core.group_flight_school_manager"
+                        invisible="state not in ('draft', 'review')"/>
+                <button name="action_apply_hours" type="object" string="Apply"
+                        class="btn-success" icon="fa-check-circle" groups="fs_core.group_flight_school_manager"
+                        invisible="state != 'approved'"/>
+                <button name="action_revert_hours" type="object" string="Revert"
+                        class="btn-warning" icon="fa-undo" groups="fs_core.group_flight_school_manager"
+                        invisible="state != 'applied'"
+                        confirm="Revert the prior-experience deltas from person totals and progression?"/>
             </list>
         </field>
     </record>
 
-    <!-- Initial Experience Form View -->
+    <!-- Prior Experience Form View -->
     <record id="view_fs_initial_experience_form" model="ir.ui.view">
         <field name="name">fs.initial.experience.form</field>
         <field name="model">fs.initial.experience</field>
         <field name="arch" type="xml">
-            <form string="Initial Experience">
+            <form string="Prior Experience">
                 <header>
-                    <button name="action_apply_hours" type="object" string="Apply Hours" 
-                            class="btn-primary" invisible="is_applied"/>
-                    <button name="action_revert_hours" type="object" string="Revert Hours" 
-                            class="btn-warning" invisible="not is_applied"
-                            confirm="Are you sure you want to revert these hours from the person's totals?"/>
-                    <field name="is_applied" widget="badge" 
-                           decoration-success="is_applied" decoration-muted="not is_applied"/>
+                    <button name="action_submit_for_review" type="object" string="Submit for Review"
+                            class="btn-secondary" invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            class="btn-primary" groups="fs_core.group_flight_school_manager"
+                            invisible="state not in ('draft', 'review')"/>
+                    <button name="action_apply_hours" type="object" string="Apply Prior Data"
+                            class="btn-success" groups="fs_core.group_flight_school_manager"
+                            invisible="state != 'approved'"/>
+                    <button name="action_revert_hours" type="object" string="Revert Prior Data"
+                            class="btn-warning" groups="fs_core.group_flight_school_manager"
+                            invisible="state != 'applied'"
+                            confirm="Revert the prior-experience deltas from person totals and progression?"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            groups="fs_core.group_flight_school_manager"
+                            invisible="state not in ('review', 'approved', 'cancelled')"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            groups="fs_core.group_flight_school_manager"
+                            invisible="state in ('applied', 'cancelled')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,review,approved,applied"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-info" role="alert" invisible="is_applied">
-                        <span class="fa fa-info-circle me-2" title="Info"/> 
-                        Enter the initial hours and click <strong>Apply Hours</strong> to add them to the person's totals.
+                    <field name="is_applied" invisible="1"/>
+                    <field name="line_count" invisible="1"/>
+                    <field name="syllabus_completion_count" invisible="1"/>
+                    <widget name="web_ribbon" title="Applied" bg_color="bg-success" invisible="state != 'applied'"/>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="bg-secondary" invisible="state != 'cancelled'"/>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_apply_hours" type="object" class="oe_stat_button" icon="fa-check-circle"
+                                groups="fs_core.group_flight_school_manager" invisible="state != 'approved'">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Apply</span>
+                            </div>
+                        </button>
                     </div>
-                    <div class="alert alert-success" role="alert" invisible="not is_applied">
-                        <span class="fa fa-check-circle me-2" title="Success"/> 
-                        These hours have been applied to the person's totals.
+
+                    <div class="oe_title">
+                        <label for="description" class="oe_edit_only"/>
+                        <h1>
+                            <field name="description" placeholder="Prior experience source or migration batch" readonly="state in ('applied', 'cancelled')"/>
+                        </h1>
                     </div>
+
                     <group>
                         <group string="Person">
-                            <field name="person_type" widget="radio" options="{'horizontal': true}"/>
-                            <field name="instructor_id" invisible="person_type != 'instructor'" 
-                                   required="person_type == 'instructor'"/>
+                            <field name="person_type" widget="radio" options="{'horizontal': true}" readonly="state in ('applied', 'cancelled')"/>
+                            <field name="instructor_id" invisible="person_type != 'instructor'"
+                                   required="person_type == 'instructor'" readonly="state in ('applied', 'cancelled')"/>
                             <field name="pilot_id" invisible="person_type != 'pilot'"
-                                   required="person_type == 'pilot'"/>
+                                   required="person_type == 'pilot'" readonly="state in ('applied', 'cancelled')"/>
                             <field name="student_id" invisible="person_type != 'student'"
-                                   required="person_type == 'student'"/>
+                                   required="person_type == 'student'" readonly="state in ('applied', 'cancelled')"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state in ('applied', 'cancelled')"/>
                         </group>
-                        <group string="Entry Details">
-                            <field name="entry_date"/>
-                            <field name="description" placeholder="e.g., Previous employer, Other flight school"/>
+                        <group string="Summary Totals">
+                            <field name="entry_date" readonly="state in ('applied', 'cancelled')"/>
+                            <field name="prior_flight_hours" widget="float_time" readonly="1"/>
+                            <field name="prior_sim_hours" widget="float_time" readonly="1"/>
+                            <field name="prior_solo_hours" widget="float_time" readonly="1"/>
+                            <field name="prior_instruction_hours" widget="float_time" readonly="1" invisible="person_type != 'instructor'"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Hour Details" name="hour_details">
+                            <field name="line_ids" readonly="state in ('applied', 'cancelled')">
+                                <list editable="bottom" decoration-muted="hours == 0">
+                                    <field name="hour_kind" required="1"/>
+                                    <field name="hours" widget="float_time" required="1" sum="Total"/>
+                                    <field name="enrollment_id" optional="show"/>
+                                    <field name="activity_id" optional="show"/>
+                                    <field name="count_toward_enrollment" optional="show"/>
+                                    <field name="aircraft_category_id" optional="hide"/>
+                                    <field name="aircraft_type_id" optional="hide"/>
+                                    <field name="date_start" optional="hide"/>
+                                    <field name="date_end" optional="show"/>
+                                    <field name="source_note" optional="show"/>
+                                    <field name="applied_enrollment_hour_id" optional="hide" readonly="1"/>
+                                    <field name="applied_enrollment_hours_delta" widget="float_time" optional="hide" readonly="1"/>
+                                </list>
+                            </field>
+                            <group string="Legacy Aggregate Hours" invisible="line_count != 0">
+                                <group>
+                                    <field name="initial_flight_hours" widget="float_time" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="initial_sim_hours" widget="float_time" readonly="state in ('applied', 'cancelled')"/>
+                                </group>
+                                <group>
+                                    <field name="initial_solo_hours" widget="float_time" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="initial_instruction_hours" widget="float_time" invisible="person_type != 'instructor'" readonly="state in ('applied', 'cancelled')"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Syllabus Progression" name="syllabus_progression">
+                            <field name="syllabus_completion_ids" readonly="state in ('applied', 'cancelled')">
+                                <list editable="bottom" decoration-success="generated_completion_id">
+                                    <field name="enrollment_id" required="1"/>
+                                    <field name="mission_id" required="1"/>
+                                    <field name="completion_date" required="1"/>
+                                    <field name="instructor_id" optional="hide"/>
+                                    <field name="source_organization" optional="hide"/>
+                                    <field name="source_reference" optional="hide"/>
+                                    <field name="generated_completion_id" optional="show" readonly="1"/>
+                                    <field name="notes" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Source &amp; Verification" name="source_verification">
+                            <group>
+                                <group string="Source">
+                                    <field name="source_type" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="source_organization" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="source_reference" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="date_start" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="date_end" readonly="state in ('applied', 'cancelled')"/>
+                                </group>
+                                <group string="Verification">
+                                    <field name="verified_by" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="verified_date" readonly="state in ('applied', 'cancelled')"/>
+                                    <field name="applied_date" readonly="1" invisible="state != 'applied'"/>
+                                    <field name="applied_by" readonly="1" invisible="state != 'applied'"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Prior experience review notes..." readonly="state in ('applied', 'cancelled')"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Prior Experience Search View -->
+    <record id="view_fs_initial_experience_search" model="ir.ui.view">
+        <field name="name">fs.initial.experience.search</field>
+        <field name="model">fs.initial.experience</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="display_name"/>
+                <field name="source_organization"/>
+                <field name="source_reference"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_review" string="In Review" domain="[('state', '=', 'review')]"/>
+                <filter name="filter_approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_applied" string="Applied" domain="[('state', '=', 'applied')]"/>
+                <filter name="filter_cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="filter_instructors" string="Instructors" domain="[('person_type', '=', 'instructor')]"/>
+                <filter name="filter_pilots" string="Pilots" domain="[('person_type', '=', 'pilot')]"/>
+                <filter name="filter_students" string="Students" domain="[('person_type', '=', 'student')]"/>
+                <separator/>
+                <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                <filter name="group_person_type" string="Person Type" context="{'group_by': 'person_type'}"/>
+                <filter name="group_source_type" string="Source Type" context="{'group_by': 'source_type'}"/>
+                <filter name="group_entry_date" string="Entry Date" context="{'group_by': 'entry_date'}"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Prior Hour Line Views -->
+    <record id="view_fs_initial_experience_line_list" model="ir.ui.view">
+        <field name="name">fs.initial.experience.line.list</field>
+        <field name="model">fs.initial.experience.line</field>
+        <field name="arch" type="xml">
+            <list decoration-success="state == 'applied'" decoration-muted="hours == 0">
+                <field name="experience_id"/>
+                <field name="person_type"/>
+                <field name="student_id" optional="hide"/>
+                <field name="pilot_id" optional="hide"/>
+                <field name="instructor_id" optional="hide"/>
+                <field name="hour_kind"/>
+                <field name="hours" widget="float_time" sum="Total"/>
+                <field name="enrollment_id" optional="show"/>
+                <field name="activity_id" optional="show"/>
+                <field name="count_toward_enrollment" optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_initial_experience_line_form" model="ir.ui.view">
+        <field name="name">fs.initial.experience.line.form</field>
+        <field name="model">fs.initial.experience.line</field>
+        <field name="arch" type="xml">
+            <form string="Prior Hour Line">
+                <sheet>
+                    <group>
+                        <group string="Source">
+                            <field name="experience_id" readonly="state == 'applied'"/>
+                            <field name="state" readonly="1"/>
+                            <field name="person_type" readonly="1"/>
+                        </group>
+                        <group string="Hours">
+                            <field name="hour_kind" readonly="state == 'applied'"/>
+                            <field name="hours" widget="float_time" readonly="state == 'applied'"/>
+                            <field name="date_start" readonly="state == 'applied'"/>
+                            <field name="date_end" readonly="state == 'applied'"/>
                         </group>
                     </group>
                     <group>
-                        <group string="Flight Hours">
-                            <field name="initial_flight_hours" widget="float_time"/>
-                            <field name="initial_sim_hours" widget="float_time"/>
-                            <field name="initial_solo_hours" widget="float_time"/>
+                        <group string="Progression">
+                            <field name="enrollment_id" readonly="state == 'applied'"/>
+                            <field name="activity_id" readonly="state == 'applied'"/>
+                            <field name="count_toward_enrollment" readonly="state == 'applied'"/>
                         </group>
-                        <group string="Instruction Hours" invisible="person_type != 'instructor'">
-                            <field name="initial_instruction_hours" widget="float_time"/>
+                        <group string="Aircraft Context">
+                            <field name="aircraft_category_id" readonly="state == 'applied'"/>
+                            <field name="aircraft_type_id" readonly="state == 'applied'"/>
                         </group>
                     </group>
-                    <group string="Application Status" invisible="not is_applied">
-                        <field name="applied_date" readonly="1"/>
-                        <field name="applied_by" readonly="1"/>
+                    <group string="Applied Deltas" invisible="state != 'applied'">
+                        <field name="applied_flight_hours_delta" widget="float_time" readonly="1"/>
+                        <field name="applied_sim_hours_delta" widget="float_time" readonly="1"/>
+                        <field name="applied_solo_hours_delta" widget="float_time" readonly="1"/>
+                        <field name="applied_instruction_hours_delta" widget="float_time" readonly="1"/>
+                        <field name="applied_enrollment_hour_id" readonly="1"/>
+                        <field name="applied_enrollment_hours_delta" widget="float_time" readonly="1"/>
                     </group>
                     <group string="Notes">
-                        <field name="notes" nolabel="1" placeholder="Additional notes..."/>
+                        <field name="source_note" nolabel="1" readonly="state == 'applied'"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <!-- Initial Experience Search View -->
-    <record id="view_fs_initial_experience_search" model="ir.ui.view">
-        <field name="name">fs.initial.experience.search</field>
-        <field name="model">fs.initial.experience</field>
+    <!-- Prior Syllabus Completion Views -->
+    <record id="view_fs_prior_syllabus_completion_list" model="ir.ui.view">
+        <field name="name">fs.prior.syllabus.completion.list</field>
+        <field name="model">fs.prior.syllabus.completion</field>
         <field name="arch" type="xml">
-            <search>
-                <filter name="filter_applied" string="Applied" domain="[('is_applied', '=', True)]"/>
-                <filter name="filter_pending" string="Pending" domain="[('is_applied', '=', False)]"/>
-                <separator/>
-                <filter name="filter_instructors" string="Instructors" domain="[('person_type', '=', 'instructor')]"/>
-                <filter name="filter_pilots" string="Pilots" domain="[('person_type', '=', 'pilot')]"/>
-                <filter name="filter_students" string="Students" domain="[('person_type', '=', 'student')]"/>
-                <separator/>
-                <filter name="group_person_type" string="Person Type" context="{'group_by': 'person_type'}"/>
-                <filter name="group_applied" string="Applied Status" context="{'group_by': 'is_applied'}"/>
-            </search>
+            <list decoration-success="generated_completion_id" decoration-muted="state == 'cancelled'">
+                <field name="experience_id"/>
+                <field name="enrollment_id"/>
+                <field name="mission_id"/>
+                <field name="completion_date"/>
+                <field name="instructor_id" optional="hide"/>
+                <field name="source_organization" optional="hide"/>
+                <field name="source_reference" optional="hide"/>
+                <field name="generated_completion_id" optional="show"/>
+                <field name="state" widget="badge"/>
+            </list>
         </field>
     </record>
 
-    <!-- Initial Experience Action -->
+    <record id="view_fs_prior_syllabus_completion_form" model="ir.ui.view">
+        <field name="name">fs.prior.syllabus.completion.form</field>
+        <field name="model">fs.prior.syllabus.completion</field>
+        <field name="arch" type="xml">
+            <form string="Prior Syllabus Completion">
+                <sheet>
+                    <group>
+                        <group string="Prior Record">
+                            <field name="experience_id" readonly="state == 'applied'"/>
+                            <field name="state" readonly="1"/>
+                            <field name="person_type" readonly="1"/>
+                        </group>
+                        <group string="Completion">
+                            <field name="enrollment_id" readonly="state == 'applied'"/>
+                            <field name="mission_id" readonly="state == 'applied'"/>
+                            <field name="completion_date" readonly="state == 'applied'"/>
+                            <field name="instructor_id" readonly="state == 'applied'"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Source">
+                            <field name="source_organization" readonly="state == 'applied'"/>
+                            <field name="source_reference" readonly="state == 'applied'"/>
+                        </group>
+                        <group string="Generated Completion">
+                            <field name="generated_completion_id" readonly="1"/>
+                            <field name="completion_was_created" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes" nolabel="1" readonly="state == 'applied'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Prior Experience Action -->
     <record id="action_fs_initial_experience" model="ir.actions.act_window">
-        <field name="name">Initial Experience</field>
+        <field name="name">Prior Experience &amp; Migration</field>
         <field name="res_model">fs.initial.experience</field>
         <field name="view_mode">list,form</field>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Record initial flight experience
+                Record prior experience and progression
             </p>
             <p>
-                Enter hours accumulated before the system was implemented, 
-                or from other flight schools/organizations.
+                Enter manual onboarding hours and syllabus progress without creating operational flights.
             </p>
         </field>
     </record>

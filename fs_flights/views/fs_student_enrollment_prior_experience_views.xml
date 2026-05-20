@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_student_enrollment_form_prior_experience" model="ir.ui.view">
+        <field name="name">fs.student.enrollment.form.prior.experience</field>
+        <field name="model">fs.student.enrollment</field>
+        <field name="inherit_id" ref="fs_training.view_student_enrollment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_prior_experience_lines" type="object"
+                        class="oe_stat_button" icon="fa-history">
+                    <field name="prior_experience_line_count" widget="statinfo" string="Prior Hours"/>
+                </button>
+                <button name="action_view_prior_syllabus_completions" type="object"
+                        class="oe_stat_button" icon="fa-check-square-o">
+                    <field name="prior_syllabus_completion_count" widget="statinfo" string="Prior Missions"/>
+                </button>
+            </xpath>
+            <xpath expr="//page[@name='hours']" position="after">
+                <page string="Prior Progression" name="prior_progression">
+                    <group>
+                        <group string="Prior Hour Lines">
+                            <field name="prior_experience_line_ids" nolabel="1" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="experience_id"/>
+                                    <field name="hour_kind"/>
+                                    <field name="hours" widget="float_time" sum="Total"/>
+                                    <field name="activity_id"/>
+                                    <field name="count_toward_enrollment"/>
+                                    <field name="date_end" optional="hide"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </group>
+                        <group string="Prior Syllabus Completions">
+                            <field name="prior_syllabus_completion_ids" nolabel="1" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="experience_id"/>
+                                    <field name="mission_id"/>
+                                    <field name="completion_date"/>
+                                    <field name="generated_completion_id" optional="show"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

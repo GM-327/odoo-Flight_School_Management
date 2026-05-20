@@ -19,6 +19,18 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError, UserError
 
 
+ENROLLMENT_REQUIREMENT_GROUP_COUNT_AS_SELECTION = [
+    ('aircraft', 'Aircraft'),
+    ('simulator', 'Simulator'),
+    ('unallocated', 'Unallocated'),
+]
+
+ENROLLMENT_REQUIREMENT_ROLE_SELECTION = [
+    ('standalone', 'Mandatory'),
+    ('alternative', 'OR Alternative'),
+]
+
+
 class FsStudentEnrollment(models.Model):
     """Student enrollment in a training class.
 
@@ -273,6 +285,60 @@ class FsStudentEnrollment(models.Model):
         tracking=True,
     )
 
+    def _prepare_requirement_commands(self, class_type):
+        """Prepare enrollment hour and OR-group snapshot commands from a class type."""
+        hour_commands = [(5, 0, 0)]
+        group_commands = [(5, 0, 0)]
+        if not class_type:
+            return hour_commands, group_commands
+
+        activity_values = {}
+        standalone_requirements = class_type.hour_requirement_ids.filtered(
+            lambda requirement: not requirement.requirement_group_id
+        )
+        for requirement in standalone_requirements:
+            activity_values[requirement.activity_id.id] = {
+                'activity_id': requirement.activity_id.id,
+                'hours_logged': 0.0,
+                'is_extra': False,
+                'minimum_hours': requirement.minimum_hours,
+                'class_type_hour_id': requirement.id,
+                'requirement_role': 'standalone',
+            }
+
+        for requirement_group in class_type.hour_requirement_group_ids:
+            alternatives = requirement_group.hour_requirement_ids.filtered(
+                lambda requirement: requirement.activity_id
+            )
+            alternative_activity_ids = alternatives.mapped('activity_id').ids
+            if not alternative_activity_ids:
+                continue
+
+            group_commands.append((0, 0, {
+                'source_group_id': requirement_group.id,
+                'requirement_group_key': f'class_type_hours_group_{requirement_group.id}',
+                'name': requirement_group.name,
+                'sequence': requirement_group.sequence,
+                'minimum_hours': requirement_group.minimum_hours,
+                'count_as': requirement_group.count_as,
+                'alternative_activity_ids': [(6, 0, alternative_activity_ids)],
+            }))
+            for requirement in alternatives:
+                activity_values.setdefault(requirement.activity_id.id, {
+                    'activity_id': requirement.activity_id.id,
+                    'hours_logged': 0.0,
+                    'is_extra': False,
+                    'minimum_hours': 0.0,
+                    'class_type_hour_id': requirement.id,
+                    'requirement_role': 'alternative',
+                })
+
+        hour_commands.extend(
+            (0, 0, activity_values[activity_id])
+            for activity_id in sorted(activity_values)
+        )
+        return hour_commands, group_commands
+
     @api.onchange('training_class_id')
     def _onchange_training_class_id_set_status(self):
         """Set enrollment status based on class status and populate hour requirements.
@@ -289,22 +355,11 @@ class FsStudentEnrollment(models.Model):
             elif class_status == 'draft':
                 self.status = 'enrolled'
 
-            # Auto-populate hour records from class type requirements
             class_type = class_rec.class_type_id  # type: ignore
-            if class_type and class_type.hour_requirement_ids:  # type: ignore
-                # Build commands: first clear, then create new records
-                commands = [(5, 0, 0)]  # Clear all existing
-                for req in class_type.hour_requirement_ids:  # type: ignore
-                    commands.append((0, 0, {  # type: ignore
-                        'activity_id': req.activity_id.id,
-                        'hours_logged': 0.0,
-                        'is_extra': False,
-                    }))
-                self.required_hour_ids = commands  # type: ignore
-                self.total_hours = 0.0
-            else:
-                self.required_hour_ids = [(5, 0, 0)]  # Clear if no requirements found
-                self.total_hours = 0.0
+            hour_commands, group_commands = self._prepare_requirement_commands(class_type)
+            self.required_hour_ids = hour_commands  # type: ignore
+            self.requirement_group_ids = group_commands  # type: ignore
+            self.total_hours = 0.0
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -327,18 +382,14 @@ class FsStudentEnrollment(models.Model):
                             is_valid = True
                             break
 
-            if not is_valid and vals.get('training_class_id'):
+            if vals.get('training_class_id'):
                 training_class = self.env['fs.training.class'].browse(vals['training_class_id'])
                 class_type = training_class.class_type_id  # type: ignore
-                if class_type and class_type.hour_requirement_ids:
-                    commands = [(5, 0, 0)]
-                    for req in class_type.hour_requirement_ids:
-                        commands.append((0, 0, {  # type: ignore
-                            'activity_id': req.activity_id.id,
-                            'hours_logged': 0.0,
-                            'is_extra': False,
-                        }))
-                    vals['required_hour_ids'] = commands
+                hour_commands, group_commands = self._prepare_requirement_commands(class_type)
+                if not is_valid:
+                    vals['required_hour_ids'] = hour_commands
+                if not vals.get('requirement_group_ids') and class_type.hour_requirement_group_ids:
+                    vals['requirement_group_ids'] = group_commands
         return super().create(vals_list)
 
     @api.onchange('required_hour_ids', 'extra_hour_ids')
@@ -352,20 +403,8 @@ class FsStudentEnrollment(models.Model):
             sum(self.extra_hour_ids.mapped('hours_logged'))
         self.total_hours = total
 
-        if self.training_class_id and self.training_class_id.class_type_id:  # type: ignore
-            reqs = self.training_class_id.class_type_id.hour_requirement_ids  # type: ignore
-            total_req = sum(reqs.mapped('minimum_hours'))
-            if total_req > 0:
-                total_progress = 0.0
-                for req in reqs:
-                    logged = sum(self.required_hour_ids.filtered(
-                        lambda h: h.activity_id == req.activity_id
-                    ).mapped('hours_logged'))
-                    # Cap progression per activity at 100%
-                    total_progress += min(logged, req.minimum_hours)
-                self.progression = (total_progress / total_req) * 100.0
-            else:
-                self.progression = 100.0 if total > 0 else 0.0
+        progress_values = self._get_requirement_progress_values()
+        self.progression = progress_values['progression']
 
     is_active = fields.Boolean(
         string='Is Active',
@@ -401,6 +440,12 @@ class FsStudentEnrollment(models.Model):
         inverse_name='enrollment_id',
         string='Extra Hours',
         domain=[('is_extra', '=', True)],
+    )
+    requirement_group_ids = fields.One2many(
+        comodel_name='fs.enrollment.hours.group',
+        inverse_name='enrollment_id',
+        string='Alternative Requirement Groups',
+        help='Snapshot of OR hour requirements generated when this enrollment was created.',
     )
 
     total_hours = fields.Float(
@@ -597,8 +642,85 @@ class FsStudentEnrollment(models.Model):
             record.total_hours = sum(record.required_hour_ids.mapped('hours_logged')) + \
                 sum(record.extra_hour_ids.mapped('hours_logged'))
 
-    @api.depends('required_hour_ids.hours_logged', 'extra_hour_ids.hours_logged',
-                 'training_class_id.class_type_id.hour_requirement_ids')
+    def _get_requirement_progress_values(self):
+        """Return OR-aware syllabus progress values for a single enrollment."""
+        self.ensure_one()
+        total_required = 0.0
+        total_progress = 0.0
+        remaining = 0.0
+        breakdown_items = []
+
+        standalone_requirements = self.required_hour_ids.filtered(
+            lambda hour: not hour.is_extra and hour.minimum_hours > 0.0
+        )
+        for requirement in standalone_requirements:
+            required_hours = requirement.minimum_hours
+            logged_hours = requirement.hours_logged
+            completed_hours = min(logged_hours, required_hours)
+            remaining_hours = max(0.0, required_hours - logged_hours)
+
+            total_required += required_hours
+            total_progress += completed_hours
+            remaining += remaining_hours
+            if remaining_hours > 0.0:
+                progress = (completed_hours / required_hours) * 100.0 if required_hours else 0.0
+                breakdown_items.append({
+                    'name': requirement.activity_id.display_name,
+                    'remaining_hours': remaining_hours,
+                    'progress': progress,
+                    'is_group': False,
+                })
+
+        for requirement_group in self.requirement_group_ids:
+            required_hours = requirement_group.minimum_hours
+            if required_hours <= 0.0:
+                continue
+
+            logged_hours = requirement_group._get_logged_hours()
+            completed_hours = min(logged_hours, required_hours)
+            remaining_hours = max(0.0, required_hours - logged_hours)
+
+            total_required += required_hours
+            total_progress += completed_hours
+            remaining += remaining_hours
+            if remaining_hours > 0.0:
+                progress = (completed_hours / required_hours) * 100.0
+                breakdown_items.append({
+                    'name': requirement_group.name,
+                    'remaining_hours': remaining_hours,
+                    'progress': progress,
+                    'is_group': True,
+                    'activities': requirement_group.alternative_activity_names,
+                })
+
+        if total_required > 0.0:
+            progression = (total_progress / total_required) * 100.0
+        else:
+            progression = 100.0 if self.total_hours > 0.0 else 0.0
+
+        return {
+            'total_required': total_required,
+            'total_progress': total_progress,
+            'remaining': remaining,
+            'progression': progression,
+            'breakdown_items': breakdown_items,
+        }
+
+    @staticmethod
+    def _format_hours_for_display(hours):
+        """Format decimal hours similarly to Odoo's float_time widget."""
+        hours_value, minutes_value = divmod(abs(hours) * 60, 60)
+        return f"{int(hours_value)}:{int(minutes_value):02d}"
+
+    @api.depends(
+        'required_hour_ids.hours_logged',
+        'required_hour_ids.minimum_hours',
+        'required_hour_ids.activity_id',
+        'extra_hour_ids.hours_logged',
+        'extra_hour_ids.activity_id',
+        'requirement_group_ids.minimum_hours',
+        'requirement_group_ids.alternative_activity_ids',
+    )
     def _compute_progression(self):
         """Compute progression values for the current recordset.
 
@@ -606,33 +728,16 @@ class FsStudentEnrollment(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            if not record.training_class_id or not record.training_class_id.class_type_id:  # type: ignore
-                record.progression = 0.0
-                continue
+            record.progression = record._get_requirement_progress_values()['progression']
 
-            requirements = record.training_class_id.class_type_id.hour_requirement_ids  # type: ignore
-            if not requirements:
-                record.progression = 100.0 if record.total_hours > 0 else 0.0
-                continue
-
-            total_required = sum(requirements.mapped('minimum_hours'))  # type: ignore
-            if total_required <= 0:
-                record.progression = 100.0
-                continue
-
-            # Calculate actual vs required per activity (Core Syllabus Only - Capped at 100%)
-            total_progress = 0.0
-            for req in requirements:
-                logged = sum(record.required_hour_ids.filtered(
-                    lambda h: h.activity_id == req.activity_id
-                ).mapped('hours_logged'))  # type: ignore
-                if req.minimum_hours > 0:
-                    # Cap each mandatory activity at its required minimum for the syllabus progression
-                    total_progress += min(logged, req.minimum_hours)
-
-            record.progression = (total_progress / total_required) * 100.0
-
-    @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours')
+    @api.depends(
+        'required_hour_ids.hours_logged',
+        'required_hour_ids.minimum_hours',
+        'extra_hour_ids.hours_logged',
+        'extra_hour_ids.activity_id',
+        'requirement_group_ids.minimum_hours',
+        'requirement_group_ids.alternative_activity_ids',
+    )
     def _compute_remaining_hours(self):
         """Calculate the sum of hours still required for mandatory activities.
 
@@ -640,13 +745,18 @@ class FsStudentEnrollment(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            remaining = 0.0
-            for req in record.required_hour_ids:
-                if req.minimum_hours > req.hours_logged:  # type: ignore
-                    remaining += (req.minimum_hours - req.hours_logged)  # type: ignore
-            record.remaining_hours = remaining
+            record.remaining_hours = record._get_requirement_progress_values()['remaining']
 
-    @api.depends('required_hour_ids.hours_logged', 'required_hour_ids.minimum_hours', 'required_hour_ids.activity_id')
+    @api.depends(
+        'required_hour_ids.hours_logged',
+        'required_hour_ids.minimum_hours',
+        'required_hour_ids.activity_id',
+        'extra_hour_ids.hours_logged',
+        'extra_hour_ids.activity_id',
+        'requirement_group_ids.name',
+        'requirement_group_ids.minimum_hours',
+        'requirement_group_ids.alternative_activity_ids',
+    )
     def _compute_remaining_breakdown_html(self):
         """Generate a pretty HTML summary of remaining hours per activity.
 
@@ -654,38 +764,36 @@ class FsStudentEnrollment(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            # Filter for incomplete mandatory items
-            incomplete = record.required_hour_ids.filtered(lambda x: x.remaining_hours > 0)  # type: ignore
-            if not incomplete:
+            breakdown_items = record._get_requirement_progress_values()['breakdown_items']
+            if not breakdown_items:
                 record.remaining_breakdown_html = '<span class="text-success small"><i class="fa fa-check-circle"/> Syllabus Fully Completed</span>'
                 continue
 
-            # Sort by most hours remaining (most critical)
-            incomplete = sorted(incomplete, key=lambda x: x.remaining_hours, reverse=True)  # type: ignore
+            breakdown_items = sorted(
+                breakdown_items,
+                key=lambda item: item['remaining_hours'],
+                reverse=True,
+            )
 
             html = '<div class="d-flex flex-column gap-1">'
-            # Show top 3 most critical activities
-            for req in incomplete[:3]:
-                # Extract values and format as float_time (HH:MM)
-                act_name = req.activity_id.name  # type: ignore
-                rem_h = req.remaining_hours  # type: ignore
-                hours, minutes = divmod(abs(rem_h) * 60, 60)
-                rem_h_fmt = f"{int(hours)}:{int(minutes):02d}"
-
-                # Determine color based on completion
-                progress = req.progress_percentage  # type: ignore
+            for item in breakdown_items[:3]:
+                rem_h_fmt = self._format_hours_for_display(item['remaining_hours'])
+                progress = item['progress']
                 color = "text-danger" if progress < 50 else "text-warning"
+                if item['is_group']:
+                    item_name = f"{item['name']}: {item.get('activities') or ''}"
+                else:
+                    item_name = item['name']
 
                 html += f'''
                     <div class="d-flex justify-content-between align-items-center small" style="min-width: 220px;">
-                        <span class="text-muted text-truncate me-2" style="max-width: 170px;" title="{act_name}">{act_name}</span>
+                        <span class="text-muted text-truncate me-2" style="max-width: 170px;" title="{item_name}">{item_name}</span>
                         <strong class="{color}">{rem_h_fmt} left</strong>
                     </div>
                 '''
 
-            # Add and more if needed
-            if len(incomplete) > 3:
-                html += f'<div class="text-muted x-small italic text-center text-decoration-underline mt-1">+{len(incomplete)-3} more activities...</div>'
+            if len(breakdown_items) > 3:
+                html += f'<div class="text-muted x-small italic text-center text-decoration-underline mt-1">+{len(breakdown_items)-3} more activities...</div>'
 
             html += '</div>'
             record.remaining_breakdown_html = html
@@ -914,6 +1022,142 @@ class FsStudentEnrollment(models.Model):
         }
 
 
+class FsEnrollmentHoursGroup(models.Model):
+    """Enrollment-level snapshot of an OR hour requirement group."""
+
+    _name = 'fs.enrollment.hours.group'
+    _description = 'Enrollment Alternative Hour Requirement Group'
+    _order = 'enrollment_id, sequence, name'
+
+    enrollment_id = fields.Many2one(
+        comodel_name='fs.student.enrollment',
+        string='Enrollment',
+        required=True,
+        ondelete='cascade',
+    )
+    source_group_id = fields.Many2one(
+        comodel_name='fs.class.type.hours.group',
+        string='Source Class Type Group',
+        ondelete='set null',
+        readonly=True,
+    )
+    requirement_group_key = fields.Char(
+        string='Requirement Group Key',
+        required=True,
+        readonly=True,
+        help='Stable snapshot key used to evaluate this enrollment independently of template changes.',
+    )
+    name = fields.Char(
+        string='Name',
+        required=True,
+    )
+    sequence = fields.Integer(
+        string='Sequence',
+        default=10,
+    )
+    minimum_hours = fields.Float(
+        string='Required Hours',
+        required=True,
+        default=0.0,
+    )
+    count_as = fields.Selection(
+        selection=ENROLLMENT_REQUIREMENT_GROUP_COUNT_AS_SELECTION,
+        string='Count As',
+        required=True,
+        default='unallocated',
+    )
+    alternative_activity_ids = fields.Many2many(
+        comodel_name='fs.flight.activity',
+        relation='fs_enrollment_hours_group_activity_rel',
+        column1='group_id',
+        column2='activity_id',
+        string='Alternative Activities',
+    )
+    alternative_activity_names = fields.Char(
+        string='Alternative Activity Names',
+        compute='_compute_alternative_activity_names',
+    )
+    logged_hours = fields.Float(
+        string='Logged Hours',
+        compute='_compute_progress_fields',
+    )
+    remaining_hours = fields.Float(
+        string='Remaining',
+        compute='_compute_progress_fields',
+    )
+    progress_percentage = fields.Float(
+        string='Progress',
+        compute='_compute_progress_fields',
+    )
+
+    _unique_group_key = models.Constraint(
+        'UNIQUE(enrollment_id, requirement_group_key)',
+        'This alternative requirement group already exists for this enrollment.',
+    )
+
+    @api.depends('alternative_activity_ids.name')
+    def _compute_alternative_activity_names(self):
+        """Display alternative activity names in list views."""
+        for record in self:
+            record.alternative_activity_names = ' / '.join(
+                record.alternative_activity_ids.mapped('display_name')
+            )
+
+    def _get_logged_hours(self):
+        """Return required and extra logged hours matching this group's alternatives."""
+        self.ensure_one()
+        activity_ids = set(self.alternative_activity_ids.ids)
+        if not activity_ids or not self.enrollment_id:
+            return 0.0
+
+        matching_required_hours = self.enrollment_id.required_hour_ids.filtered(
+            lambda hour: hour.activity_id.id in activity_ids
+        )
+        matching_extra_hours = self.enrollment_id.extra_hour_ids.filtered(
+            lambda hour: hour.activity_id.id in activity_ids
+        )
+        return sum(matching_required_hours.mapped('hours_logged')) + \
+            sum(matching_extra_hours.mapped('hours_logged'))
+
+    @api.depends(
+        'minimum_hours',
+        'alternative_activity_ids',
+        'enrollment_id.required_hour_ids.hours_logged',
+        'enrollment_id.required_hour_ids.activity_id',
+        'enrollment_id.extra_hour_ids.hours_logged',
+        'enrollment_id.extra_hour_ids.activity_id',
+    )
+    def _compute_progress_fields(self):
+        """Compute OR-group logged, remaining, and percentage values."""
+        for record in self:
+            logged_hours = record._get_logged_hours()
+            record.logged_hours = logged_hours
+            record.remaining_hours = max(0.0, record.minimum_hours - logged_hours)
+            if record.minimum_hours > 0.0:
+                record.progress_percentage = min(
+                    (logged_hours / record.minimum_hours) * 100.0,
+                    100.0,
+                )
+            else:
+                record.progress_percentage = 0.0
+
+    @api.constrains('minimum_hours')
+    def _check_minimum_hours(self):
+        """Require positive snapshot group hours."""
+        for record in self:
+            if record.minimum_hours <= 0.0:
+                raise ValidationError('Alternative requirement groups must require positive hours.')
+
+    @api.constrains('alternative_activity_ids')
+    def _check_alternative_count(self):
+        """Require at least two alternatives in every enrollment OR group."""
+        for record in self:
+            if len(record.alternative_activity_ids) < 2:
+                raise ValidationError(
+                    'Alternative requirement groups must contain at least two activities.'
+                )
+
+
 class FsEnrollmentHours(models.Model):
     """Flight hours logged per activity for an enrollment.
 
@@ -944,6 +1188,19 @@ class FsEnrollmentHours(models.Model):
         default=False,
         help="True if these are extra hours added specifically for this student.",
     )
+    class_type_hour_id = fields.Many2one(
+        comodel_name='fs.class.type.hours',
+        string='Class Type Requirement',
+        ondelete='set null',
+        readonly=True,
+    )
+    requirement_role = fields.Selection(
+        selection=ENROLLMENT_REQUIREMENT_ROLE_SELECTION,
+        string='Requirement Type',
+        default='standalone',
+        required=True,
+        help='Identifies standalone requirements and activities accepted by OR groups.',
+    )
     activity_id = fields.Many2one(
         comodel_name='fs.flight.activity',
         string='Activity',
@@ -970,8 +1227,8 @@ class FsEnrollmentHours(models.Model):
     )
     minimum_hours = fields.Float(
         string='Required Hours',
-        compute='_compute_minimum_hours',
-        store=True,
+        default=0.0,
+        help='Snapshot of standalone required hours at enrollment creation time.',
     )
     hours_logged = fields.Float(
         string='Hours Logged',
@@ -986,6 +1243,28 @@ class FsEnrollmentHours(models.Model):
         string='Remaining',
         compute='_compute_remaining_hours_line',
     )
+    requirement_group_names = fields.Char(
+        string='OR Groups',
+        compute='_compute_requirement_group_names',
+        help='Alternative requirement groups that accept this activity.',
+    )
+
+    @api.depends(
+        'activity_id',
+        'enrollment_id.requirement_group_ids.name',
+        'enrollment_id.requirement_group_ids.alternative_activity_ids',
+    )
+    def _compute_requirement_group_names(self):
+        """Show the OR groups that accept this activity."""
+        for record in self:
+            if not record.enrollment_id or not record.activity_id:
+                record.requirement_group_names = False
+                continue
+
+            matching_groups = record.enrollment_id.requirement_group_ids.filtered(
+                lambda group: record.activity_id in group.alternative_activity_ids
+            )
+            record.requirement_group_names = ' / '.join(matching_groups.mapped('name'))
 
     @api.depends('hours_logged', 'minimum_hours')
     def _compute_remaining_hours_line(self):
@@ -1006,29 +1285,12 @@ class FsEnrollmentHours(models.Model):
         """
         for record in self:
             if record.minimum_hours > 0:
-                record.progress_percentage = (record.hours_logged / record.minimum_hours) * 100.0
+                record.progress_percentage = min(
+                    (record.hours_logged / record.minimum_hours) * 100.0,
+                    100.0,
+                )
             else:
-                record.progress_percentage = 100.0 if record.hours_logged > 0 else 0.0
-
-    @api.depends('enrollment_id.training_class_id.class_type_id.hour_requirement_ids',
-                 'activity_id')
-    def _compute_minimum_hours(self):
-        """Get minimum hours from class type requirements.
-
-        Returns:
-            None: Updates Odoo records, computed fields, or wizard state in place.
-        """
-        for record in self:
-            min_hours = 0.0
-            if record.enrollment_id and record.enrollment_id.training_class_id:  # type: ignore
-                class_type = record.enrollment_id.training_class_id.class_type_id  # type: ignore
-                if class_type:
-                    requirement = class_type.hour_requirement_ids.filtered(  # type: ignore
-                        lambda r: r.activity_id == record.activity_id
-                    )
-                    if requirement:
-                        min_hours = requirement[0].minimum_hours  # type: ignore
-            record.minimum_hours = min_hours
+                record.progress_percentage = 0.0
 
     _unique_activity = models.Constraint(
         'UNIQUE(enrollment_id, activity_id, is_extra)',
