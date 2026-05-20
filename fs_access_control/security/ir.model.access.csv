@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_fs_access_level_admin,fs.access.level.admin,model_fs_access_level,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_role_admin,fs.access.role.admin,model_fs_access_role,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_assignment_admin,fs.access.assignment.admin,model_fs_access_assignment,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_policy_admin,fs.access.policy.admin,model_fs_access_policy,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_grant_admin,fs.access.grant.admin,model_fs_access_grant,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_audit_log_admin,fs.access.audit.log.admin,model_fs_access_audit_log,fs_core.group_flight_school_admin,1,0,0,0
+access_fs_access_conflict_issue_admin,fs.access.conflict.issue.admin,model_fs_access_conflict_issue,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_dashboard_admin,fs.access.dashboard.admin,model_fs_access_dashboard,fs_core.group_flight_school_admin,1,1,1,1
+access_fs_access_simulator_admin,fs.access.simulator.admin,model_fs_access_simulator,fs_core.group_flight_school_admin,1,1,1,1

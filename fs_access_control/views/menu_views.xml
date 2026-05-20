@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_access_control_root"
+              name="Access Control"
+              parent="fs_core.menu_flight_school_root"
+              sequence="20"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_control_dashboard"
+              name="Access Control Dashboard"
+              parent="menu_access_control_root"
+              action="action_fs_access_dashboard"
+              sequence="1"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_levels"
+              name="Levels"
+              parent="menu_access_control_root"
+              action="action_fs_access_level"
+              sequence="10"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_roles"
+              name="Roles"
+              parent="menu_access_control_root"
+              action="action_fs_access_role"
+              sequence="20"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_assignments"
+              name="User Assignments"
+              parent="menu_access_control_root"
+              action="action_fs_access_assignment"
+              sequence="30"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_department_assignments"
+              name="Department Assignments"
+              parent="menu_access_control_root"
+              action="action_fs_access_department_assignment"
+              sequence="40"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_model_policies"
+              name="Model Policies"
+              parent="menu_access_control_root"
+              action="action_fs_access_model_policy"
+              sequence="50"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_record_policies"
+              name="Record Policies"
+              parent="menu_access_control_root"
+              action="action_fs_access_record_policy"
+              sequence="60"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_field_policies"
+              name="Field Policies"
+              parent="menu_access_control_root"
+              action="action_fs_access_field_policy"
+              sequence="70"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_action_policies"
+              name="Action Policies"
+              parent="menu_access_control_root"
+              action="action_fs_access_action_policy"
+              sequence="80"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_menu_policies"
+              name="Menu Policies"
+              parent="menu_access_control_root"
+              action="action_fs_access_menu_policy"
+              sequence="90"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_button_policies"
+              name="Button Policies"
+              parent="menu_access_control_root"
+              action="action_fs_access_button_policy"
+              sequence="100"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_temporary_grants"
+              name="Temporary Grants"
+              parent="menu_access_control_root"
+              action="action_fs_access_grant"
+              sequence="110"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_simulator"
+              name="Access Simulator"
+              parent="menu_access_control_root"
+              action="action_fs_access_simulator"
+              sequence="120"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_audit_log"
+              name="Audit Log"
+              parent="menu_access_control_root"
+              action="action_fs_access_audit_log"
+              sequence="130"
+              groups="fs_core.group_flight_school_admin"/>
+
+    <menuitem id="menu_access_conflict_review"
+              name="Conflict Review"
+              parent="menu_access_control_root"
+              action="action_fs_access_conflict_issue"
+              sequence="140"
+              groups="fs_core.group_flight_school_admin"/>
+</odoo>

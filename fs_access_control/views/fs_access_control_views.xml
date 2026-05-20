@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard -->
+    <record id="view_fs_access_dashboard_form" model="ir.ui.view">
+        <field name="name">fs.access.dashboard.form</field>
+        <field name="model">fs.access.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Access Control Dashboard">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Access Control</h1>
+                    </div>
+                    <group>
+                        <group string="Active Configuration">
+                            <field name="active_assignment_count" readonly="1"/>
+                            <field name="active_policy_count" readonly="1"/>
+                            <field name="active_grant_count" readonly="1"/>
+                        </group>
+                        <group string="Review">
+                            <field name="conflict_issue_count" readonly="1"/>
+                            <field name="denied_event_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_open_assignments" string="Assignments" type="object" class="btn-primary"/>
+                        <button name="action_open_policies" string="Policies" type="object"/>
+                        <button name="action_open_grants" string="Temporary Grants" type="object"/>
+                        <button name="action_open_conflicts" string="Conflict Review" type="object"/>
+                        <button name="action_open_audit" string="Audit Log" type="object"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_dashboard" model="ir.actions.act_window">
+        <field name="name">Access Control Dashboard</field>
+        <field name="res_model">fs.access.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Levels -->
+    <record id="view_fs_access_level_list" model="ir.ui.view">
+        <field name="name">fs.access.level.list</field>
+        <field name="model">fs.access.level</field>
+        <field name="arch" type="xml">
+            <list string="Access Levels">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="rank"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_level_form" model="ir.ui.view">
+        <field name="name">fs.access.level.form</field>
+        <field name="model">fs.access.level</field>
+        <field name="arch" type="xml">
+            <form string="Access Level">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="rank"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Describe this access level."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_level" model="ir.actions.act_window">
+        <field name="name">Levels</field>
+        <field name="res_model">fs.access.level</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Roles -->
+    <record id="view_fs_access_role_list" model="ir.ui.view">
+        <field name="name">fs.access.role.list</field>
+        <field name="model">fs.access.role</field>
+        <field name="arch" type="xml">
+            <list string="Access Roles">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="level_id"/>
+                <field name="implied_role_ids" widget="many2many_tags"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_role_form" model="ir.ui.view">
+        <field name="name">fs.access.role.form</field>
+        <field name="model">fs.access.role</field>
+        <field name="arch" type="xml">
+            <form string="Access Role">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="level_id"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                            <field name="implied_role_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <field name="description" placeholder="Describe this business role."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_role" model="ir.actions.act_window">
+        <field name="name">Roles</field>
+        <field name="res_model">fs.access.role</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Assignments -->
+    <record id="view_fs_access_assignment_list" model="ir.ui.view">
+        <field name="name">fs.access.assignment.list</field>
+        <field name="model">fs.access.assignment</field>
+        <field name="arch" type="xml">
+            <list string="Access Assignments">
+                <field name="user_id"/>
+                <field name="role_id"/>
+                <field name="level_id"/>
+                <field name="department_id"/>
+                <field name="scope"/>
+                <field name="include_child_departments"/>
+                <field name="valid_from" optional="hide"/>
+                <field name="valid_to" optional="show"/>
+                <field name="assignment_type"/>
+                <field name="state"/>
+                <field name="active" widget="boolean_toggle" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_assignment_form" model="ir.ui.view">
+        <field name="name">fs.access.assignment.form</field>
+        <field name="model">fs.access.assignment</field>
+        <field name="arch" type="xml">
+            <form string="Access Assignment">
+                <header>
+                    <button name="action_activate" string="Activate" type="object" class="btn-primary" invisible="state == 'active'"/>
+                    <button name="action_revoke" string="Revoke" type="object" invisible="state != 'active'"/>
+                    <button name="action_expire" string="Expire" type="object" invisible="state not in ('active', 'draft')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,expired,revoked"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="role_id"/>
+                            <field name="level_id" readonly="1"/>
+                            <field name="assignment_type"/>
+                        </group>
+                        <group>
+                            <field name="scope"/>
+                            <field name="department_id" invisible="scope == 'global'" required="scope != 'global'"/>
+                            <field name="include_child_departments" invisible="scope == 'global'"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Validity">
+                        <field name="valid_from"/>
+                        <field name="valid_to"/>
+                        <field name="assigned_by_id" readonly="1"/>
+                    </group>
+                    <field name="reason" placeholder="Reason for this access assignment."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_assignment" model="ir.actions.act_window">
+        <field name="name">User Assignments</field>
+        <field name="res_model">fs.access.assignment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_fs_access_department_assignment" model="ir.actions.act_window">
+        <field name="name">Department Assignments</field>
+        <field name="res_model">fs.access.assignment</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'group_by': 'department_id'}</field>
+    </record>
+
+    <!-- Policies -->
+    <record id="view_fs_access_policy_list" model="ir.ui.view">
+        <field name="name">fs.access.policy.list</field>
+        <field name="model">fs.access.policy</field>
+        <field name="arch" type="xml">
+            <list string="Access Policies">
+                <field name="name"/>
+                <field name="policy_type"/>
+                <field name="model_id" optional="show"/>
+                <field name="operation"/>
+                <field name="effect"/>
+                <field name="min_level_id"/>
+                <field name="role_id" optional="hide"/>
+                <field name="department_scope"/>
+                <field name="priority"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_policy_form" model="ir.ui.view">
+        <field name="name">fs.access.policy.form</field>
+        <field name="model">fs.access.policy</field>
+        <field name="arch" type="xml">
+            <form string="Access Policy">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="policy_type"/>
+                            <field name="model_id" invisible="policy_type == 'menu'" required="policy_type in ('model', 'record', 'field', 'action', 'button')"/>
+                            <field name="operation"/>
+                            <field name="effect"/>
+                        </group>
+                        <group>
+                            <field name="min_level_id"/>
+                            <field name="role_id"/>
+                            <field name="department_scope"/>
+                            <field name="department_field" invisible="department_scope in ('none', 'global', 'own')"/>
+                            <field name="priority"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Target Details">
+                        <field name="field_name" invisible="policy_type != 'field'" required="policy_type == 'field'"/>
+                        <field name="menu_id" invisible="policy_type != 'menu'" required="policy_type == 'menu'"/>
+                        <field name="button_name" invisible="policy_type != 'button'"/>
+                        <field name="button_method" invisible="policy_type != 'button'"/>
+                        <field name="view_id" invisible="policy_type != 'button'"/>
+                        <field name="action_id" invisible="policy_type != 'action'"/>
+                        <field name="report_id" invisible="policy_type != 'report'" required="policy_type == 'report'"/>
+                    </group>
+                    <group string="Validity and Audit">
+                        <field name="valid_from"/>
+                        <field name="valid_to"/>
+                        <field name="reason_required"/>
+                        <field name="audit_level"/>
+                    </group>
+                    <field name="custom_domain" placeholder="Optional Odoo domain list, for example [('state', '=', 'open')]."/>
+                    <field name="description" placeholder="Policy purpose and review notes."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_model_policy" model="ir.actions.act_window">
+        <field name="name">Model Policies</field>
+        <field name="res_model">fs.access.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('policy_type', '=', 'model')]</field>
+        <field name="context">{'default_policy_type': 'model'}</field>
+    </record>
+
+    <record id="action_fs_access_record_policy" model="ir.actions.act_window">
+        <field name="name">Record Policies</field>
+        <field name="res_model">fs.access.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('policy_type', '=', 'record')]</field>
+        <field name="context">{'default_policy_type': 'record'}</field>
+    </record>
+
+    <record id="action_fs_access_field_policy" model="ir.actions.act_window">
+        <field name="name">Field Policies</field>
+        <field name="res_model">fs.access.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('policy_type', '=', 'field')]</field>
+        <field name="context">{'default_policy_type': 'field', 'default_operation': 'write_field'}</field>
+    </record>
+
+    <record id="action_fs_access_action_policy" model="ir.actions.act_window">
+        <field name="name">Action Policies</field>
+        <field name="res_model">fs.access.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('policy_type', '=', 'action')]</field>
+        <field name="context">{'default_policy_type': 'action'}</field>
+    </record>
+
+    <record id="action_fs_access_menu_policy" model="ir.actions.act_window">
+        <field name="name">Menu Policies</field>
+        <field name="res_model">fs.access.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('policy_type', '=', 'menu')]</field>
+        <field name="context">{'default_policy_type': 'menu', 'default_operation': 'show_menu'}</field>
+    </record>
+
+    <record id="action_fs_access_button_policy" model="ir.actions.act_window">
+        <field name="name">Button Policies</field>
+        <field name="res_model">fs.access.policy</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('policy_type', '=', 'button')]</field>
+        <field name="context">{'default_policy_type': 'button', 'default_operation': 'show_button'}</field>
+    </record>
+
+    <!-- Grants -->
+    <record id="view_fs_access_grant_list" model="ir.ui.view">
+        <field name="name">fs.access.grant.list</field>
+        <field name="model">fs.access.grant</field>
+        <field name="arch" type="xml">
+            <list string="Temporary Grants">
+                <field name="user_id"/>
+                <field name="model_id"/>
+                <field name="res_id" optional="hide"/>
+                <field name="department_id" optional="show"/>
+                <field name="operation"/>
+                <field name="level_id"/>
+                <field name="valid_from" optional="hide"/>
+                <field name="valid_to"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_grant_form" model="ir.ui.view">
+        <field name="name">fs.access.grant.form</field>
+        <field name="model">fs.access.grant</field>
+        <field name="arch" type="xml">
+            <form string="Temporary Grant">
+                <header>
+                    <button name="action_revoke" string="Revoke" type="object" invisible="state != 'active'"/>
+                    <button name="action_expire" string="Expire" type="object" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="active,expired,revoked"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="model_id"/>
+                            <field name="res_id"/>
+                            <field name="department_id"/>
+                            <field name="operation"/>
+                        </group>
+                        <group>
+                            <field name="level_id"/>
+                            <field name="valid_from"/>
+                            <field name="valid_to"/>
+                            <field name="granted_by_id" readonly="1"/>
+                            <field name="approved_by_id"/>
+                            <field name="ticket_reference"/>
+                        </group>
+                    </group>
+                    <field name="reason" placeholder="Reason and approval context."/>
+                    <group string="Revocation" invisible="state != 'revoked'">
+                        <field name="revoked_by_id" readonly="1"/>
+                        <field name="revoked_at" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_grant" model="ir.actions.act_window">
+        <field name="name">Temporary Grants</field>
+        <field name="res_model">fs.access.grant</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Audit -->
+    <record id="view_fs_access_audit_log_list" model="ir.ui.view">
+        <field name="name">fs.access.audit.log.list</field>
+        <field name="model">fs.access.audit.log</field>
+        <field name="arch" type="xml">
+            <list string="Access Audit Log" create="0" edit="0" delete="0">
+                <field name="create_date"/>
+                <field name="event_type"/>
+                <field name="user_id"/>
+                <field name="target_model"/>
+                <field name="target_res_id"/>
+                <field name="operation"/>
+                <field name="decision"/>
+                <field name="policy_id" optional="hide"/>
+                <field name="grant_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_audit_log_form" model="ir.ui.view">
+        <field name="name">fs.access.audit.log.form</field>
+        <field name="model">fs.access.audit.log</field>
+        <field name="arch" type="xml">
+            <form string="Access Audit Log" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="event_type" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="target_model" readonly="1"/>
+                            <field name="target_res_id" readonly="1"/>
+                            <field name="operation" readonly="1"/>
+                            <field name="decision" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="policy_id" readonly="1"/>
+                            <field name="grant_id" readonly="1"/>
+                            <field name="department_id" readonly="1"/>
+                            <field name="level_id" readonly="1"/>
+                            <field name="ip_address" readonly="1"/>
+                            <field name="user_agent" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="reason" readonly="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_audit_log" model="ir.actions.act_window">
+        <field name="name">Audit Log</field>
+        <field name="res_model">fs.access.audit.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Simulator -->
+    <record id="view_fs_access_simulator_form" model="ir.ui.view">
+        <field name="name">fs.access.simulator.form</field>
+        <field name="model">fs.access.simulator</field>
+        <field name="arch" type="xml">
+            <form string="Access Simulator">
+                <header>
+                    <button name="action_simulate" string="Simulate" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="model_id"/>
+                            <field name="operation"/>
+                            <field name="res_id"/>
+                            <field name="field_name" invisible="operation not in ('read_field', 'write_field', 'mask_field')"/>
+                        </group>
+                        <group>
+                            <field name="menu_id" invisible="operation != 'show_menu'"/>
+                            <field name="button_name" invisible="operation != 'show_button'"/>
+                            <field name="button_method" invisible="operation != 'show_button'"/>
+                            <field name="decision" readonly="1"/>
+                        </group>
+                    </group>
+                    <field name="explanation" readonly="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_simulator" model="ir.actions.act_window">
+        <field name="name">Access Simulator</field>
+        <field name="res_model">fs.access.simulator</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Conflicts -->
+    <record id="view_fs_access_conflict_issue_list" model="ir.ui.view">
+        <field name="name">fs.access.conflict.issue.list</field>
+        <field name="model">fs.access.conflict.issue</field>
+        <field name="arch" type="xml">
+            <list string="Conflict Review">
+                <field name="severity"/>
+                <field name="issue_type"/>
+                <field name="name"/>
+                <field name="model_id" optional="show"/>
+                <field name="menu_id" optional="hide"/>
+                <field name="user_id" optional="hide"/>
+                <field name="policy_ids" widget="many2many_tags" optional="show"/>
+                <field name="grant_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_fs_access_conflict_issue_form" model="ir.ui.view">
+        <field name="name">fs.access.conflict.issue.form</field>
+        <field name="model">fs.access.conflict.issue</field>
+        <field name="arch" type="xml">
+            <form string="Conflict Issue">
+                <header>
+                    <button name="action_refresh_conflicts" string="Refresh Conflicts" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="issue_type"/>
+                            <field name="severity"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="model_id"/>
+                            <field name="menu_id"/>
+                            <field name="user_id"/>
+                            <field name="grant_id"/>
+                        </group>
+                    </group>
+                    <field name="policy_ids" widget="many2many_tags"/>
+                    <field name="description"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fs_access_conflict_issue" model="ir.actions.act_window">
+        <field name="name">Conflict Review</field>
+        <field name="res_model">fs.access.conflict.issue</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

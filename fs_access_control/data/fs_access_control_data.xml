@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Default hierarchy. Rank 30 is intentionally Operator, not Instructor. -->
+    <record id="level_viewer" model="fs.access.level">
+        <field name="name">Viewer</field>
+        <field name="code">VIEWER</field>
+        <field name="rank">10</field>
+        <field name="sequence">10</field>
+        <field name="description">Read-only visibility where policies allow it.</field>
+    </record>
+
+    <record id="level_user" model="fs.access.level">
+        <field name="name">User</field>
+        <field name="code">USER</field>
+        <field name="rank">20</field>
+        <field name="sequence">20</field>
+        <field name="description">Standard department-scoped user access.</field>
+    </record>
+
+    <record id="level_operator" model="fs.access.level">
+        <field name="name">Operator</field>
+        <field name="code">OPERATOR</field>
+        <field name="rank">30</field>
+        <field name="sequence">30</field>
+        <field name="description">Operational access within assigned departments.</field>
+    </record>
+
+    <record id="level_department_manager" model="fs.access.level">
+        <field name="name">Department Manager</field>
+        <field name="code">DEPARTMENT_MANAGER</field>
+        <field name="rank">40</field>
+        <field name="sequence">40</field>
+        <field name="description">Management authority in assigned departments.</field>
+    </record>
+
+    <record id="level_director" model="fs.access.level">
+        <field name="name">Director</field>
+        <field name="code">DIRECTOR</field>
+        <field name="rank">50</field>
+        <field name="sequence">50</field>
+        <field name="description">Multi-department or functional-domain authority when assigned.</field>
+    </record>
+
+    <record id="level_security_administrator" model="fs.access.level">
+        <field name="name">Security Administrator</field>
+        <field name="code">SECURITY_ADMINISTRATOR</field>
+        <field name="rank">90</field>
+        <field name="sequence">90</field>
+        <field name="description">Access Control configuration authority. Business data access still requires explicit policies.</field>
+    </record>
+
+    <record id="role_viewer" model="fs.access.role">
+        <field name="name">Viewer</field>
+        <field name="code">VIEWER</field>
+        <field name="level_id" ref="level_viewer"/>
+        <field name="description">Default read-only role.</field>
+    </record>
+
+    <record id="role_user" model="fs.access.role">
+        <field name="name">User</field>
+        <field name="code">USER</field>
+        <field name="level_id" ref="level_user"/>
+        <field name="implied_role_ids" eval="[(4, ref('role_viewer'))]"/>
+        <field name="description">Default department user role.</field>
+    </record>
+
+    <record id="role_operator" model="fs.access.role">
+        <field name="name">Operator</field>
+        <field name="code">OPERATOR</field>
+        <field name="level_id" ref="level_operator"/>
+        <field name="implied_role_ids" eval="[(4, ref('role_user'))]"/>
+        <field name="description">Operational role for day-to-day workflows.</field>
+    </record>
+
+    <record id="role_department_manager" model="fs.access.role">
+        <field name="name">Department Manager</field>
+        <field name="code">DEPARTMENT_MANAGER</field>
+        <field name="level_id" ref="level_department_manager"/>
+        <field name="implied_role_ids" eval="[(4, ref('role_operator'))]"/>
+        <field name="description">Department management role. Child departments require explicit assignment configuration.</field>
+    </record>
+
+    <record id="role_director" model="fs.access.role">
+        <field name="name">Director</field>
+        <field name="code">DIRECTOR</field>
+        <field name="level_id" ref="level_director"/>
+        <field name="implied_role_ids" eval="[(4, ref('role_department_manager'))]"/>
+        <field name="description">Director-level role for configured departments or functional domains.</field>
+    </record>
+
+    <record id="role_security_administrator" model="fs.access.role">
+        <field name="name">Security Administrator</field>
+        <field name="code">SECURITY_ADMINISTRATOR</field>
+        <field name="level_id" ref="level_security_administrator"/>
+        <field name="description">Access Control administration role.</field>
+    </record>
+
+    <record id="ir_cron_expire_access_grants" model="ir.cron">
+        <field name="name">Access Control: Expire Temporary Grants</field>
+        <field name="model_id" ref="model_fs_access_grant"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_grants()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="priority">5</field>
+    </record>
+</odoo>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_users_form_fs_access_control" model="ir.ui.view">
+        <field name="name">res.users.form.fs.access.control</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="fs_core.view_res_users_form_fs"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_fs_access_assignments"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-shield"
+                            groups="fs_core.group_flight_school_admin">
+                        <field name="fs_access_assignment_count" widget="statinfo" string="Assignments"/>
+                    </button>
+                    <button name="action_view_fs_access_grants"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-clock-o"
+                            groups="fs_core.group_flight_school_admin">
+                        <field name="fs_access_active_grant_count" widget="statinfo" string="Active Grants"/>
+                    </button>
+                </div>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Access Control" name="fs_access_control" groups="fs_core.group_flight_school_admin">
+                    <group>
+                        <field name="fs_access_highest_level_id" readonly="1"/>
+                        <field name="fs_access_department_summary" readonly="1"/>
+                    </group>
+                    <group string="Assignments">
+                        <field name="fs_access_assignment_ids" readonly="1">
+                            <list>
+                                <field name="role_id"/>
+                                <field name="level_id"/>
+                                <field name="department_id"/>
+                                <field name="scope"/>
+                                <field name="include_child_departments"/>
+                                <field name="valid_to"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </group>
+                    <group string="Temporary Grants">
+                        <field name="fs_access_grant_ids" readonly="1">
+                            <list>
+                                <field name="model_id"/>
+                                <field name="operation"/>
+                                <field name="department_id"/>
+                                <field name="valid_to"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

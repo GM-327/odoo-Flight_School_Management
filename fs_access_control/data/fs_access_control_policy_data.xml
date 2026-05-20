@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Access Control menu visibility. Existing fs_core Administrator group remains the technical bootstrap gate. -->
+    <record id="policy_show_menu_access_control_root" model="fs.access.policy">
+        <field name="name">Show Access Control Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_control_root"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_dashboard" model="fs.access.policy">
+        <field name="name">Show Access Control Dashboard Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_control_dashboard"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_levels" model="fs.access.policy">
+        <field name="name">Show Access Levels Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_levels"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_roles" model="fs.access.policy">
+        <field name="name">Show Access Roles Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_roles"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_assignments" model="fs.access.policy">
+        <field name="name">Show User Assignments Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_assignments"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_department_assignments" model="fs.access.policy">
+        <field name="name">Show Department Assignments Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_department_assignments"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_model_policies" model="fs.access.policy">
+        <field name="name">Show Model Policies Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_model_policies"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_record_policies" model="fs.access.policy">
+        <field name="name">Show Record Policies Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_record_policies"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_field_policies" model="fs.access.policy">
+        <field name="name">Show Field Policies Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_field_policies"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_action_policies" model="fs.access.policy">
+        <field name="name">Show Action Policies Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_action_policies"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_menu_policies" model="fs.access.policy">
+        <field name="name">Show Menu Policies Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_menu_policies"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_button_policies" model="fs.access.policy">
+        <field name="name">Show Button Policies Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_button_policies"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_temporary_grants" model="fs.access.policy">
+        <field name="name">Show Temporary Grants Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_temporary_grants"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_simulator" model="fs.access.policy">
+        <field name="name">Show Access Simulator Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_simulator"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_audit_log" model="fs.access.policy">
+        <field name="name">Show Audit Log Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_audit_log"/>
+        <field name="priority">90</field>
+    </record>
+
+    <record id="policy_show_menu_access_conflict_review" model="fs.access.policy">
+        <field name="name">Show Conflict Review Menu</field>
+        <field name="policy_type">menu</field>
+        <field name="operation">show_menu</field>
+        <field name="effect">allow</field>
+        <field name="min_level_id" ref="level_security_administrator"/>
+        <field name="department_scope">global</field>
+        <field name="menu_id" ref="menu_access_conflict_review"/>
+        <field name="priority">90</field>
+    </record>
+</odoo>
