@@ -14,8 +14,10 @@ Related Modules:
     Depends on: fs_scheduling, fs_fleet, fs_training, fs_people, mail, bus.
     fs_scheduling provides planned flights.
 """
+from typing import Any
+
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import CacheMiss, UserError, ValidationError
 
 # Import shared constants through the Odoo addon namespace so module loading
 # works reliably during registry initialization.
@@ -694,6 +696,14 @@ class FsFlight(models.Model):
         for record in self:
             record.eta = record.scheduled_start + (record.scheduled_duration or 0)
 
+    def _is_time_set(self, field_name, val_in_context=None, has_context_val=False):
+        """Check if a time field is set (not NULL/False/0.0)."""
+        if has_context_val:
+            return bool(val_in_context)
+
+        self.ensure_one()
+        return bool(getattr(self, field_name))
+
     @api.depends('atd', 'ata')
     def _compute_actual_duration(self):
         """Compute actual duration values for the current recordset.
@@ -702,7 +712,7 @@ class FsFlight(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            if record.atd is not False and record.ata is not False:
+            if record._is_time_set('atd') and record._is_time_set('ata'):
                 if record.ata >= record.atd:
                     record.actual_duration = record.ata - record.atd
                 else:
@@ -743,9 +753,11 @@ class FsFlight(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        if self.atd is not False and self.ata is not False:
+        atd_set = self._is_time_set('atd')
+        ata_set = self._is_time_set('ata')
+        if atd_set and ata_set:
             return 'done'
-        if self.atd is not False:
+        if atd_set:
             return 'in_progress'
         # Respect 'cancelled' if no execution times are present
         return self.status if self.status == 'cancelled' else 'scheduled'
@@ -761,6 +773,7 @@ class FsFlight(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        self.ensure_one()
         new_status = self._compute_status_from_times()
         was_cancelled = self.status == 'cancelled'
 
@@ -773,11 +786,17 @@ class FsFlight(models.Model):
         if self._origin:
             # We use a dict to capture whatever is in the virtual record
             # We don't use 'if self.atd' because 0.0 (midnight) is a valid value
-            vals = {
-                'atd': self.atd,
-                'ata': self.ata,
-                'status': new_status,
-            }
+            vals = {'status': new_status}
+            if self._is_time_set('atd'):
+                vals['atd'] = self.atd
+            else:
+                vals['atd'] = False
+
+            if self._is_time_set('ata'):
+                vals['ata'] = self.ata
+            else:
+                vals['ata'] = False
+
             if was_cancelled and new_status != 'cancelled':
                 vals['cancellation_reason_id'] = False
 
@@ -877,11 +896,12 @@ class FsFlight(models.Model):
             # Instead, we'll handle it during the loop if needed, but for common
             # single-record writes, we can optimize.
             if len(self) == 1:
-                new_atd = vals.get('atd', self.atd)
-                new_ata = vals.get('ata', self.ata)
-                computed_status = self.with_context(
-                    status=self.status, atd=new_atd, ata=new_ata,
-                )._compute_status_from_times_batch()
+                ctx = {'status': self.status}
+                if 'atd' in vals:
+                    ctx['atd'] = vals['atd']
+                if 'ata' in vals:
+                    ctx['ata'] = vals['ata']
+                computed_status = self.with_context(**ctx)._compute_status_from_times_batch()
                 if computed_status != self.status:
                     vals['status'] = computed_status
                     if self.status == 'cancelled' and computed_status != 'cancelled':
@@ -895,7 +915,7 @@ class FsFlight(models.Model):
             for record in self:
                 computed_status = record._compute_status_from_times()
                 if computed_status != record.status:
-                    status_vals = {'status': computed_status}
+                    status_vals: dict[str, Any] = {'status': computed_status}
                     if record.status == 'cancelled' and computed_status != 'cancelled':
                         status_vals['cancellation_reason_id'] = False
                     record.write(status_vals)
@@ -967,13 +987,18 @@ class FsFlight(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        atd = self.env.context.get('atd', self.atd)
-        ata = self.env.context.get('ata', self.ata)
+        has_atd_ctx = 'atd' in self.env.context
+        atd_ctx = self.env.context.get('atd')
+        has_ata_ctx = 'ata' in self.env.context
+        ata_ctx = self.env.context.get('ata')
         status = self.env.context.get('status', self.status)
 
-        if atd is not False and ata is not False:
+        atd_set = self._is_time_set('atd', atd_ctx, has_atd_ctx)
+        ata_set = self._is_time_set('ata', ata_ctx, has_ata_ctx)
+
+        if atd_set and ata_set:
             return 'done'
-        if atd is not False:
+        if atd_set:
             return 'in_progress'
         return status if status == 'cancelled' else 'scheduled'
 
