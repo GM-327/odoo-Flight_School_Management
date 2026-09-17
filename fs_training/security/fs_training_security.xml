@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_fs_mission_completion_instructor_assigned" model="ir.rule">
+        <field name="name">Mission completions: assigned instructor only</field>
+        <field name="model_id" ref="model_fs_mission_completion"/>
+        <field name="groups" eval="[(4, ref('fs_core.group_flight_school_instructor'))]"/>
+        <field name="domain_force">[('enrollment_id.instructor_id.user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="0"/>
+        <field name="perm_unlink" eval="0"/>
+    </record>
+
+    <!-- Managers inherit the instructor group, so this rule restores their operational scope. -->
+    <record id="rule_fs_mission_completion_manager_all" model="ir.rule">
+        <field name="name">Mission completions: manager all</field>
+        <field name="model_id" ref="model_fs_mission_completion"/>
+        <field name="groups" eval="[(4, ref('fs_core.group_flight_school_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="perm_read" eval="1"/>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+</odoo>

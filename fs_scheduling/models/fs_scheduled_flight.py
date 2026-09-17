@@ -24,6 +24,7 @@ from odoo.exceptions import ValidationError
 from .fs_flight_mixin import (
     FLIGHT_CATEGORY_SELECTION,
     PILOT_FUNCTION_SELECTION,
+    get_scheduling_config,
 )
 
 
@@ -508,14 +509,76 @@ class FsScheduledFlight(models.Model):
         Returns:
             Any: Value required by the Odoo ORM, action system, or calling workflow.
         """
-        buffer_min = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.scheduling_buffer_minutes', '15'
-        ))
-        return timedelta(minutes=buffer_min)
+        return timedelta(minutes=get_scheduling_config(self.env)['buffer_minutes'])
 
-    @api.depends('pilot2_crew_id', 'start_datetime', 'end_datetime')
+    @staticmethod
+    def _float_time_to_datetime(flight_date, float_time):
+        """Normalize float hours to the same minute precision as scheduled flights."""
+        return datetime.combine(flight_date, datetime.min.time()) + timedelta(
+            minutes=round((float_time or 0.0) * 60)
+        )
+
+    def _find_operational_crew_conflict(self, crew_members, start_datetime, end_datetime):
+        """Find an overlapping non-cancelled operational flight for either pilot slot."""
+        flight_model = self.env.get('fs.flight')
+        if flight_model is None or not crew_members:
+            return False
+
+        domain = [
+            ('date', '>=', (start_datetime - self._get_buffer_timedelta()).date()),
+            ('date', '<=', (end_datetime + self._get_buffer_timedelta()).date()),
+            '|',
+            ('pilot1_crew_id', 'in', crew_members.ids),
+            ('pilot2_crew_id', 'in', crew_members.ids),
+        ]
+        if 'status' in flight_model._fields:
+            domain.append(('status', '!=', 'cancelled'))
+        if self._origin.id and 'scheduled_flight_id' in flight_model._fields:
+            domain.append(('scheduled_flight_id', '!=', self._origin.id))
+
+        buffer = self._get_buffer_timedelta()
+        for flight in flight_model.search(domain):
+            flight_start = self._float_time_to_datetime(
+                flight.date, flight.scheduled_start
+            )
+            flight_end = flight_start + timedelta(
+                minutes=round((flight.scheduled_duration or 0.0) * 60)
+            )
+            if flight_start < end_datetime + buffer and flight_end > start_datetime - buffer:
+                return flight
+        return False
+
+    def _find_operational_aircraft_conflict(self, start_datetime, end_datetime):
+        """Find an overlapping non-cancelled operational aircraft reservation."""
+        flight_model = self.env.get('fs.flight')
+        if flight_model is None or not self.aircraft_id:
+            return False
+
+        domain = [
+            ('date', '>=', (start_datetime - self._get_buffer_timedelta()).date()),
+            ('date', '<=', (end_datetime + self._get_buffer_timedelta()).date()),
+            ('aircraft_id', '=', self.aircraft_id.id),
+        ]
+        if 'status' in flight_model._fields:
+            domain.append(('status', '!=', 'cancelled'))
+        if self._origin.id and 'scheduled_flight_id' in flight_model._fields:
+            domain.append(('scheduled_flight_id', '!=', self._origin.id))
+
+        buffer = self._get_buffer_timedelta()
+        for flight in flight_model.search(domain):
+            flight_start = self._float_time_to_datetime(
+                flight.date, flight.scheduled_start
+            )
+            flight_end = flight_start + timedelta(
+                minutes=round((flight.scheduled_duration or 0.0) * 60)
+            )
+            if flight_start < end_datetime + buffer and flight_end > start_datetime - buffer:
+                return flight
+        return False
+
+    @api.depends('pilot1_crew_id', 'pilot2_crew_id', 'start_datetime', 'end_datetime')
     def _compute_instructor_conflict(self):
-        """Compute instructor conflict (checking Schedule Only).
+        """Compute crew conflict across scheduled and operational flights.
 
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
@@ -526,17 +589,19 @@ class FsScheduledFlight(models.Model):
             record.has_instructor_conflict = False
             record.instructor_conflict_details = False
 
-            if not record.pilot2_crew_id:
-                continue
-            if record.pilot2_crew_id.member_type != 'instructor':  # type: ignore
+            crew_members = record.pilot1_crew_id | record.pilot2_crew_id
+            if not crew_members:
                 continue
             if not record.start_datetime or not record.end_datetime:
                 continue
 
-            # 1. Check Schedule Conflicts
+            # Both pilot slots are resources: an instructor can be assigned as P1
+            # for a staff flight and as P2 for a student flight.
             conflict = self.search([
                 ('id', '!=', record.id),
-                ('pilot2_crew_id', '=', record.pilot2_crew_id.id),
+                '|',
+                ('pilot1_crew_id', 'in', crew_members.ids),
+                ('pilot2_crew_id', 'in', crew_members.ids),
                 ('start_datetime', '<', record.end_datetime + buffer),
                 ('end_datetime', '>', record.start_datetime - buffer),
             ], limit=1)
@@ -545,17 +610,29 @@ class FsScheduledFlight(models.Model):
                 record.has_instructor_conflict = True
                 record.instructor_conflict_details = record.env._(
                     "%(instructor)s: conflict with PLAN '%(callsign)s' (%(start)s-%(end)s)",
-                    instructor=record.pilot2_crew_id.name,  # type: ignore
+                    instructor=', '.join(crew_members.mapped('name')),
                     callsign=conflict.callsign,  # type: ignore
                     start=conflict.start_datetime.strftime(
                         '%H:%M') if conflict.start_datetime else '',
                     end=conflict.end_datetime.strftime(
                         '%H:%M') if conflict.end_datetime else '',
                 )
+                continue
+
+            conflict = record._find_operational_crew_conflict(
+                crew_members, record.start_datetime, record.end_datetime
+            )
+            if conflict:
+                record.has_instructor_conflict = True
+                record.instructor_conflict_details = record.env._(
+                    "%(crew)s: conflict with OPERATIONAL FLIGHT '%(callsign)s'",
+                    crew=', '.join(crew_members.mapped('name')),
+                    callsign=conflict.callsign,
+                )
 
     @api.depends('aircraft_id', 'start_datetime', 'end_datetime')
     def _compute_aircraft_conflict(self):
-        """Compute aircraft conflict (checking Schedule Only).
+        """Compute aircraft conflict across scheduled and operational flights.
 
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
@@ -589,6 +666,18 @@ class FsScheduledFlight(models.Model):
                         '%H:%M') if conflict.start_datetime else '',
                     end=conflict.end_datetime.strftime(
                         '%H:%M') if conflict.end_datetime else '',
+                )
+                continue
+
+            conflict = record._find_operational_aircraft_conflict(
+                record.start_datetime, record.end_datetime
+            )
+            if conflict:
+                record.has_aircraft_conflict = True
+                record.aircraft_conflict_details = record.env._(
+                    "%(aircraft)s: conflict with OPERATIONAL FLIGHT '%(callsign)s'",
+                    aircraft=record.aircraft_id.registration,
+                    callsign=conflict.callsign,
                 )
 
     @api.depends('has_instructor_conflict', 'has_aircraft_conflict')
@@ -629,6 +718,40 @@ class FsScheduledFlight(models.Model):
             if not record.aircraft_id:
                 continue
             record.aircraft_id._check_schedulable_aircraft(expected_simulator=record.is_sim)
+
+    @api.constrains('date', 'pilot1_crew_id', 'pilot2_crew_id')
+    def _check_instructor_declared_availability(self):
+        """Reject assignments on dates instructors have explicitly marked unavailable."""
+        instructor_crews = (
+            self.mapped('pilot1_crew_id') | self.mapped('pilot2_crew_id')
+        ).filtered(lambda crew: (
+            crew.source_model == 'fs.instructor' and crew.source_id
+        ))
+        if not instructor_crews:
+            return
+
+        unavailable = self.env['fs.instructor.availability'].search([
+            ('instructor_id', 'in', instructor_crews.mapped('source_id')),
+            ('date', 'in', self.mapped('date')),
+            ('is_available', '=', False),
+        ])
+        unavailable_pairs = {
+            (availability.instructor_id.id, availability.date)
+            for availability in unavailable
+        }
+        for record in self:
+            unavailable_crews = (record.pilot1_crew_id | record.pilot2_crew_id).filtered(
+                lambda crew: (
+                    crew.source_model == 'fs.instructor'
+                    and (crew.source_id, record.date) in unavailable_pairs
+                )
+            )
+            if unavailable_crews:
+                raise ValidationError(record.env._(
+                    "Instructor %(instructors)s is unavailable on %(date)s.",
+                    instructors=', '.join(unavailable_crews.mapped('name')),
+                    date=record.date,
+                ))
 
     @api.onchange('pilot1_crew_id')
     def _onchange_pilot1_crew(self):
@@ -1165,7 +1288,7 @@ class FsScheduledFlight(models.Model):
         return get_next_callsign(is_sim=is_sim, date=reference_date)
 
     def check_conflicts(self):
-        """Check for resource conflicts with 15-min buffer (Schedule Only).
+        """Check scheduled and operational resource conflicts using configured buffers.
 
         Returns:
             Any: Value required by the Odoo ORM, action system, or calling workflow.
@@ -1174,8 +1297,7 @@ class FsScheduledFlight(models.Model):
         if not self.start_datetime or not self.end_datetime:
             return []
 
-        buffer_min = int(self.env['ir.config_parameter'].sudo().get_param(
-            'flight_school.scheduling_buffer_minutes', '15'))  # type: ignore
+        buffer_min = get_scheduling_config(self.env)['buffer_minutes']
         buffer = timedelta(minutes=buffer_min)
 
         start_with_buffer = self.start_datetime - buffer
@@ -1185,10 +1307,13 @@ class FsScheduledFlight(models.Model):
 
         current_id = self._origin.id
 
-        # Crew member conflict (instructor/pilot)
-        if self.pilot2_crew_id:
+        # Both pilot slots reserve their assigned crew members.
+        crew_members = self.pilot1_crew_id | self.pilot2_crew_id
+        if crew_members:
             domain = [
-                ('pilot2_crew_id', '=', self.pilot2_crew_id.id),
+                '|',
+                ('pilot1_crew_id', 'in', crew_members.ids),
+                ('pilot2_crew_id', 'in', crew_members.ids),
                 ('start_datetime', '<', end_with_buffer),
                 ('end_datetime', '>', start_with_buffer),
             ]
@@ -1200,7 +1325,18 @@ class FsScheduledFlight(models.Model):
                 conflicts.append(self.env._(
                     "Crew member %(crew_member)s has another flight overlap "
                     "(with %(buffer_min)d min buffer).",
-                    crew_member=self.pilot2_crew_id.name,  # type: ignore
+                    crew_member=', '.join(crew_members.mapped('name')),
+                    buffer_min=buffer_min,
+                ))
+
+            operational_conflict = self._find_operational_crew_conflict(
+                crew_members, self.start_datetime, self.end_datetime
+            )
+            if operational_conflict:
+                conflicts.append(self.env._(
+                    "Crew member %(crew_member)s has an operational flight overlap "
+                    "(with %(buffer_min)d min buffer).",
+                    crew_member=', '.join(crew_members.mapped('name')),
                     buffer_min=buffer_min,
                 ))
 
@@ -1218,6 +1354,17 @@ class FsScheduledFlight(models.Model):
             if a_conflict:
                 conflicts.append(self.env._(
                     "Aircraft %(aircraft)s has another flight overlap "
+                    "(with %(buffer_min)d min buffer).",
+                    aircraft=self.aircraft_id.registration,  # type: ignore
+                    buffer_min=buffer_min,
+                ))
+
+            operational_conflict = self._find_operational_aircraft_conflict(
+                self.start_datetime, self.end_datetime
+            )
+            if operational_conflict:
+                conflicts.append(self.env._(
+                    "Aircraft %(aircraft)s has an operational flight overlap "
                     "(with %(buffer_min)d min buffer).",
                     aircraft=self.aircraft_id.registration,  # type: ignore
                     buffer_min=buffer_min,

@@ -30,6 +30,9 @@ ENROLLMENT_REQUIREMENT_ROLE_SELECTION = [
     ('alternative', 'OR Alternative'),
 ]
 
+_SNAPSHOT_GENERATION_TOKEN = object()
+_ENROLLMENT_LIFECYCLE_TOKEN = object()
+
 
 class FsStudentEnrollment(models.Model):
     """Student enrollment in a training class.
@@ -363,34 +366,155 @@ class FsStudentEnrollment(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Final safety net: Populate flight hours if the UI failed to do so.
-
-        Args:
-            vals_list: List of value dictionaries passed to the multi-record create method.
-
-        Returns:
-            models.Model: Odoo recordset returned by the ORM.
-        """
-        for vals in vals_list:
-            # We check if the required_hour_ids commands sent by the UI are valid.
-            hour_commands = vals.get('required_hour_ids', [])
-            is_valid = False
-            if hour_commands:
-                for cmd in hour_commands:
-                    if isinstance(cmd, (list, tuple)) and cmd[0] == 0:
-                        if cmd[2] and cmd[2].get('activity_id'):
-                            is_valid = True
-                            break
-
-            if vals.get('training_class_id'):
-                training_class = self.env['fs.training.class'].browse(vals['training_class_id'])
-                class_type = training_class.class_type_id  # type: ignore
+        """Create canonical requirement snapshots for every enrollment."""
+        snapshot_vals_list = []
+        for input_vals in vals_list:
+            vals = dict(input_vals)
+            training_class = self.env['fs.training.class'].browse(
+                vals['training_class_id']
+            ).exists()
+            if training_class:
+                if training_class.status in ('completed', 'cancelled'):
+                    raise ValidationError('New enrollments cannot be created for a completed or cancelled class.')
+                class_type = training_class.class_type_id
+                self._check_class_type_hour_requirement_configuration(class_type)
                 hour_commands, group_commands = self._prepare_requirement_commands(class_type)
+                # Completion criteria must always match the class type, never UI input.
+                vals['required_hour_ids'] = hour_commands
+                vals['requirement_group_ids'] = group_commands
+                vals['status'] = (
+                    'active' if training_class.status == 'in_progress' else 'enrolled'
+                )
+            snapshot_vals_list.append(vals)
+
+        records = super(
+            FsStudentEnrollment,
+            self.with_context(_fs_training_snapshot_token=_SNAPSHOT_GENERATION_TOKEN),
+        ).create(snapshot_vals_list)
+        records.filtered(lambda enrollment: enrollment.status == 'active')._check_eligibility()
+        return records
+
+    def write(self, vals):
+        """Protect generated snapshots and require lifecycle action methods."""
+        if 'training_class_id' in vals and any(
+            vals['training_class_id'] != record.training_class_id.id for record in self
+        ):
+            raise ValidationError('An enrollment cannot be moved after its requirement snapshot is created.')
+        if {'required_hour_ids', 'requirement_group_ids'} & vals.keys():
+            raise ValidationError('Enrollment requirement snapshots cannot be edited after creation.')
+        if 'status' in vals and any(
+            vals['status'] != record.status for record in self
+        ) and self.env.context.get('_fs_training_lifecycle_token') is not _ENROLLMENT_LIFECYCLE_TOKEN:
+            raise ValidationError('Use the enrollment lifecycle actions to change enrollment status.')
+        return super().write(vals)
+
+    @staticmethod
+    def _check_class_type_hour_requirement_configuration(class_type):
+        """Reject hour configurations that would count one activity twice."""
+        activity_ids = [
+            requirement.activity_id.id
+            for requirement in class_type.hour_requirement_ids
+        ]
+        if len(activity_ids) != len(set(activity_ids)):
+            raise ValidationError(
+                'An activity may only be used by one mandatory or alternative hour requirement.'
+            )
+
+    def _get_enrolled_person(self):
+        """Return the concrete student, pilot, or instructor for this enrollment."""
+        self.ensure_one()
+        return self.student_id or self.pilot_id or self.enrolled_instructor_id
+
+    def _get_eligibility_errors(self):
+        """Return server-side compliance failures for the enrolled person."""
+        self.ensure_one()
+        person = self._get_enrolled_person()
+        training_class = self.training_class_id
+        if not person or not training_class:
+            return ['An enrolled person and training class are required.']
+
+        errors = []
+        if training_class.is_military and not person.is_military:
+            errors.append('This class is restricted to military personnel.')
+
+        status_fields = {
+            'medical': 'medical_status',
+            'security_clearance': 'security_clearance_status',
+            'insurance': 'insurance_status',
+        }
+        requirements = training_class.class_type_id.requirement_ids.filtered('active')
+        for requirement in requirements:
+            applies_to_person = (
+                (person.is_military and requirement.is_military)
+                or (not person.is_military and requirement.is_civilian)
+            )
+            if not applies_to_person:
+                continue
+            if requirement.category in status_fields:
+                if getattr(person, status_fields[requirement.category], False) != 'valid':
+                    errors.append(f"{requirement.name} must be valid.")
+            elif requirement.category == 'license':
+                license_status = getattr(person, 'license_expiry_status', False)
+                is_valid = (
+                    license_status == 'valid'
+                    if license_status
+                    else bool(getattr(person, 'license_id', False))
+                )
                 if not is_valid:
-                    vals['required_hour_ids'] = hour_commands
-                if not vals.get('requirement_group_ids') and class_type.hour_requirement_group_ids:
-                    vals['requirement_group_ids'] = group_commands
-        return super().create(vals_list)
+                    errors.append(f"{requirement.name} requires a valid license.")
+            elif requirement.category == 'qualification':
+                qualifications = getattr(person, 'qualification_ids', self.env['fs.person.qualification'])
+                if not qualifications.filtered(lambda qualification: qualification.expiry_status != 'expired'):
+                    errors.append(f"{requirement.name} requires a current qualification.")
+            elif requirement.category == 'english':
+                english_status = getattr(person, 'english_status', False)
+                if not getattr(person, 'english_level_id', False) or english_status == 'expired':
+                    errors.append(f"{requirement.name} requires current English proficiency.")
+        return errors
+
+    def _check_eligibility(self):
+        """Raise one actionable error when an enrollment cannot become active."""
+        for record in self:
+            errors = record._get_eligibility_errors()
+            if errors:
+                raise ValidationError('\n'.join(errors))
+
+    def _get_incomplete_mandatory_missions(self):
+        """Return active syllabus missions without a completed enrollment record."""
+        self.ensure_one()
+        mandatory_missions = self.training_class_id.class_type_id.flight_mission_ids.filtered(
+            lambda mission: mission.active and not mission.is_extra
+        )
+        completed_mission_ids = self.env['fs.mission.completion'].search([
+            ('enrollment_id', '=', self.id),
+            ('mission_id', 'in', mandatory_missions.ids),
+            ('is_completed', '=', True),
+        ]).mapped('mission_id')
+        return mandatory_missions - completed_mission_ids
+
+    def _check_graduation_eligibility(self):
+        """Ensure mandatory hours and missions are complete before graduation."""
+        self.ensure_one()
+        if self.remaining_hours > 0.00001:
+            person_name = self.enrolled_person_name or self.display_name
+            raise UserError(
+                f"'{person_name}' cannot graduate yet. "
+                f"{self.remaining_hours:.2f} syllabus hours remain."
+            )
+        incomplete_missions = self._get_incomplete_mandatory_missions()
+        if incomplete_missions:
+            raise UserError(
+                'Cannot graduate until mandatory missions are complete: %s.' %
+                ', '.join(incomplete_missions.mapped('name'))
+            )
+
+    def _write_lifecycle_status(self, status, values=None):
+        """Write a status only from a server-side lifecycle action."""
+        values = dict(values or {})
+        values['status'] = status
+        return self.with_context(
+            _fs_training_lifecycle_token=_ENROLLMENT_LIFECYCLE_TOKEN,
+        ).write(values)
 
     @api.onchange('required_hour_ids', 'extra_hour_ids')
     def _onchange_hours_recompute_totals(self):
@@ -933,15 +1057,9 @@ class FsStudentEnrollment(models.Model):
         """
         today = fields.Date.context_today(self)
         for record in self:
-            if record.progression < 100.0:
-                person_name = record.enrolled_person_name or record.display_name
-                raise UserError(
-                    f"'{person_name}' cannot graduate yet. "
-                    f"Syllabus completion is only {record.progression:.1f}%."
-                )
             if record.status in ('enrolled', 'active'):
-                record.status = 'graduated'
-                record.graduation_date = today
+                record._check_graduation_eligibility()
+                record._write_lifecycle_status('graduated', {'graduation_date': today})
 
     def action_drop(self):
         """Mark enrollment as dropped.
@@ -952,8 +1070,7 @@ class FsStudentEnrollment(models.Model):
         today = fields.Date.context_today(self)
         for record in self:
             if record.status in ('enrolled', 'active'):
-                record.status = 'dropped'
-                record.drop_date = today
+                record._write_lifecycle_status('dropped', {'drop_date': today})
 
     def action_reinstate(self):
         """Reinstate a dropped or graduated student back to appropriate status.
@@ -963,18 +1080,26 @@ class FsStudentEnrollment(models.Model):
         """
         for record in self:
             if record.status in ('dropped', 'graduated'):
-                # Set status based on class status
                 class_status = record.training_class_id.status  # type: ignore
                 if class_status == 'in_progress':
-                    record.status = 'active'
+                    record._check_eligibility()
+                    new_status = 'active'
                 elif class_status == 'draft':
-                    record.status = 'enrolled'
+                    new_status = 'enrolled'
                 else:
-                    # For completed/cancelled classes, set to enrolled
-                    record.status = 'enrolled'
-                # Clear relevant dates
-                record.drop_date = False
-                record.graduation_date = False
+                    raise ValidationError(
+                        'Enrollments cannot be reinstated after a class is completed or cancelled.'
+                    )
+                record._write_lifecycle_status(new_status, {
+                    'drop_date': False,
+                    'graduation_date': False,
+                })
+
+    def action_activate(self):
+        """Activate eligible pre-class enrollments when their class starts."""
+        for record in self.filtered(lambda enrollment: enrollment.status == 'enrolled'):
+            record._check_eligibility()
+            record._write_lifecycle_status('active')
 
     def action_view_student(self):
         """Open the enrolled person's form view.
@@ -1094,6 +1219,23 @@ class FsEnrollmentHoursGroup(models.Model):
         'UNIQUE(enrollment_id, requirement_group_key)',
         'This alternative requirement group already exists for this enrollment.',
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Allow OR snapshot creation only from enrollment generation."""
+        if self.env.context.get('_fs_training_snapshot_token') is not _SNAPSHOT_GENERATION_TOKEN:
+            raise ValidationError('Enrollment alternative requirement groups are generated from the class type.')
+        return super().create(vals_list)
+
+    def write(self, vals):
+        """Keep generated OR snapshots immutable."""
+        snapshot_fields = {
+            'enrollment_id', 'source_group_id', 'requirement_group_key', 'name',
+            'sequence', 'minimum_hours', 'count_as', 'alternative_activity_ids',
+        }
+        if snapshot_fields & vals.keys():
+            raise ValidationError('Enrollment alternative requirement groups cannot be edited.')
+        return super().write(vals)
 
     @api.depends('alternative_activity_ids.name')
     def _compute_alternative_activity_names(self):
@@ -1296,3 +1438,26 @@ class FsEnrollmentHours(models.Model):
         'UNIQUE(enrollment_id, activity_id, is_extra)',
         'This activity already exists in this section (Mandatory or Additional).',
     )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Restrict mandatory hour rows to canonical enrollment snapshots.
+
+        Extra rows remain public to preserve operational and prior-experience
+        hour posting from ``fs_flights``.
+        """
+        if any(not vals.get('is_extra', False) for vals in vals_list) and (
+            self.env.context.get('_fs_training_snapshot_token') is not _SNAPSHOT_GENERATION_TOKEN
+        ):
+            raise ValidationError('Mandatory hour rows are generated from the class type.')
+        return super().create(vals_list)
+
+    def write(self, vals):
+        """Permit logging against mandatory rows without changing their criteria."""
+        snapshot_fields = {
+            'enrollment_id', 'is_extra', 'class_type_hour_id', 'requirement_role',
+            'activity_id', 'minimum_hours',
+        }
+        if snapshot_fields & vals.keys() and self.filtered(lambda line: not line.is_extra):
+            raise ValidationError('Mandatory hour requirement details cannot be edited.')
+        return super().write(vals)

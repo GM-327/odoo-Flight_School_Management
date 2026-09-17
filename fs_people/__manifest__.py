@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School People',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.0.1',
     'category': 'Aviation/Flight School',
     'summary': 'Personnel management for flight schools',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',
@@ -22,9 +22,6 @@
         'data/fs_qualification_type_data.xml',
         'data/fs_english_level_data.xml',
         'data/fs_medical_class_data.xml',
-        'data/fs_instructor_data.xml',
-        'data/fs_pilot_data.xml',
-        'data/fs_person_qualification_data.xml',
         # Views - Identity & Role Lifecycle
         'views/fs_person_identity_views.xml',
         'views/fs_person_role_transition_views.xml',
@@ -46,13 +43,16 @@
         'views/res_config_settings_views.xml',
         'views/menu_views.xml',
     ],
-    # 'demo': [
-    #     'demo/fs_instructor_demo.xml',
-    #     'demo/fs_pilot_demo.xml',
-    #     'demo/fs_student_demo.xml',
-    #     'demo/fs_admin_staff_demo.xml',
-    #     'demo/fs_personal_new_demo.xml',
-    # ],
+    'demo': [
+        'demo/fs_instructor_demo.xml',
+        'demo/fs_pilot_demo.xml',
+        'demo/fs_student_demo.xml',
+        'demo/fs_admin_staff_demo.xml',
+        'demo/fs_personal_new_demo.xml',
+        'demo/fs_instructor_data.xml',
+        'demo/fs_pilot_data.xml',
+        'demo/fs_person_qualification_data.xml',
+    ],
     'application': True,
     'auto_install': True,
     'sequence': 20,

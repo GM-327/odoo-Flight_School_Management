@@ -72,6 +72,26 @@ class TestFleetAircraft(TransactionCase):
         with self.assertRaises(ValidationError):
             aircraft._check_dispatchable_aircraft(expected_simulator=False)
 
+    def test_archived_aircraft_cannot_be_scheduled_or_dispatched(self):
+        aircraft = self._create_aircraft('TS-TEST-05A', active=False)
+        self.assertFalse(aircraft.is_available_for_assignment)
+        with self.assertRaises(ValidationError):
+            aircraft._check_schedulable_aircraft(expected_simulator=False)
+        with self.assertRaises(ValidationError):
+            aircraft._check_dispatchable_aircraft(expected_simulator=False)
+
+    def test_manager_cannot_access_global_settings(self):
+        manager_group = self.env.ref('fs_core.group_flight_school_manager')
+        manager_user = self.env['res.users'].create({
+            'name': 'Fleet Settings Manager',
+            'login': 'fleet.settings.manager@example.com',
+            'group_ids': [(6, 0, [manager_group.id])],
+        })
+
+        self.assertFalse(
+            self.env['res.config.settings'].with_user(manager_user).has_access('create')
+        )
+
     def test_operational_warning_lists_missing_and_expired_documents(self):
         aircraft = self._create_aircraft(
             'TS-TEST-06',

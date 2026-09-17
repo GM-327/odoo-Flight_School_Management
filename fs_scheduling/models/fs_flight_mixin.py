@@ -44,6 +44,36 @@ DEFAULT_SLOT_INCREMENT_MINUTES = 15   # flight_school.scheduling_time_slot_minut
 DEFAULT_BUFFER_MINUTES = 15           # flight_school.scheduling_buffer_minutes
 
 
+def get_scheduling_config(env):
+    """Return validated scheduling parameters, falling back for legacy values."""
+    parameters = env['ir.config_parameter'].sudo()
+    try:
+        slot_minutes = int(parameters.get_param(
+            'flight_school.scheduling_time_slot_minutes',
+            str(DEFAULT_SLOT_INCREMENT_MINUTES),
+        ))
+    except (TypeError, ValueError):
+        slot_minutes = DEFAULT_SLOT_INCREMENT_MINUTES
+    try:
+        buffer_minutes = int(parameters.get_param(
+            'flight_school.scheduling_buffer_minutes',
+            str(DEFAULT_BUFFER_MINUTES),
+        ))
+    except (TypeError, ValueError):
+        buffer_minutes = DEFAULT_BUFFER_MINUTES
+
+    if slot_minutes < 1 or slot_minutes > 60 or 60 % slot_minutes:
+        slot_minutes = DEFAULT_SLOT_INCREMENT_MINUTES
+    if buffer_minutes < 0 or buffer_minutes > 720:
+        buffer_minutes = DEFAULT_BUFFER_MINUTES
+
+    return {
+        'slot_minutes': slot_minutes,
+        'slot_increment': slot_minutes / 60.0,
+        'buffer_minutes': buffer_minutes,
+    }
+
+
 class FsFlightMixin(models.AbstractModel):
     """Mixin providing common flight fields, methods, and utilities.
 
@@ -87,19 +117,7 @@ class FsFlightMixin(models.AbstractModel):
         Returns:
             dict: Structured data or an Odoo action dictionary produced by the workflow.
         """
-        ICP = self.env['ir.config_parameter'].sudo()
-        slot_minutes = int(ICP.get_param(  # type: ignore
-            'flight_school.scheduling_time_slot_minutes',
-            str(DEFAULT_SLOT_INCREMENT_MINUTES),
-        ))
-        buffer_minutes = int(ICP.get_param(  # type: ignore
-            'flight_school.scheduling_buffer_minutes',
-            str(DEFAULT_BUFFER_MINUTES),
-        ))
-        return {
-            'slot_increment': slot_minutes / 60.0,  # Convert to hours
-            'buffer_minutes': buffer_minutes,
-        }
+        return get_scheduling_config(self.env)
 
     @api.model
     def _get_next_callsign(self, is_sim=False, exclude_id=None, date=None):

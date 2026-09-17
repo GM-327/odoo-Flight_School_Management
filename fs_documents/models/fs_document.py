@@ -207,6 +207,14 @@ class FsDocument(models.Model):
         compute='_compute_related_entity_info',
         store=True,
     )
+    access_department_id = fields.Many2one(
+        comodel_name='fs.department',
+        string='Access Department',
+        compute='_compute_access_department_id',
+        store=True,
+        index=True,
+        help="Department inherited from the related instructor or pilot for access rules.",
+    )
 
     @api.depends(
         'student_id', 'instructor_id', 'pilot_id', 'training_class_id',
@@ -229,6 +237,15 @@ class FsDocument(models.Model):
 
             record.related_entity_name = name
             record.related_entity_type = etype
+
+    @api.depends('instructor_id.department_id', 'pilot_id.department_id')
+    def _compute_access_department_id(self):
+        """Expose the directly supported entity department for native rules."""
+        for record in self:
+            record.access_department_id = (
+                record.instructor_id.department_id
+                or record.pilot_id.department_id
+            )
 
     # === Constraints ===
     _unique_document_student = models.Constraint(

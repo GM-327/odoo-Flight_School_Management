@@ -128,6 +128,11 @@ class TestFsAccessControl(TransactionCase):
         self.assertTrue(self.service.can(self.admin_user, False, 'show_menu', menu=menu))
         self.assertFalse(self.service.can(self.user, False, 'show_menu', menu=menu))
 
+    def test_context_cannot_enable_system_bypass(self):
+        bypassed_service = self.service.with_context(fs_access_trusted_system=True)
+
+        self.assertFalse(bypassed_service._is_system_bypass(self.user))
+
     def test_button_policy_decision(self):
         self.env['fs.access.policy'].create({
             'name': 'Show department test button to security admins',

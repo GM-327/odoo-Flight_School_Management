@@ -60,7 +60,7 @@
                     <button name="action_reinstate" string="Reinstate" type="object"
                             class="btn-warning" invisible="status not in ('dropped', 'graduated')"
                             confirm="Reinstate this student back to active/enrolled status?"/>
-                    <field name="status" widget="statusbar" statusbar_visible="enrolled,active,graduated,dropped,cancelled"/>
+                    <field name="status" widget="statusbar" statusbar_visible="enrolled,active,graduated,dropped,cancelled" readonly="1"/>
                 </header>
                 <sheet>
                     <field name="has_expired_status" invisible="1"/>
@@ -227,7 +227,7 @@
                             <group>
                                 <group string="Enrollment Details">
                                     <field name="enrollment_date"/>
-                                    <field name="status" widget="badge"/>
+                                    <field name="status" widget="badge" readonly="1"/>
                                 </group>
                                 <group string="Completion &amp; Exit" invisible="status not in ('graduated', 'dropped')">
                                     <field name="graduation_date" invisible="status != 'graduated'"/>

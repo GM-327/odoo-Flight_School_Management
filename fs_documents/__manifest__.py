@@ -19,6 +19,7 @@
     'data': [
         # Security
         'security/ir.model.access.csv',
+        'security/fs_document_rules.xml',
         # Data
         'data/fs_document_entity_type_data.xml',
         'data/fs_document_type_data.xml',

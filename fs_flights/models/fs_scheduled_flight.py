@@ -56,19 +56,26 @@ class FsScheduledFlight(models.Model):
             ('date', '=', date),
         ])
 
-        created_count = 0
         Flight = self.env['fs.flight']
 
+        existing_flights = Flight.search([('scheduled_flight_id', 'in', flights.ids)])
+        existing_by_schedule = {
+            flight.scheduled_flight_id.id: flight
+            for flight in existing_flights
+            if flight.scheduled_flight_id
+        }
+        schedules_to_publish = self.browse()
+        flight_vals_list = []
+
         for schedule in flights:
-            # Check if already published
-            existing = Flight.search([('scheduled_flight_id', '=', schedule.id)], limit=1)
+            existing = existing_by_schedule.get(schedule.id)
             if existing:
                 if not schedule.linked_flight_id:
                     schedule.linked_flight_id = existing.id
                 continue
 
-            # Create Flight Record
-            vals = {
+            schedules_to_publish |= schedule
+            flight_vals_list.append({
                 'scheduled_flight_id': schedule.id,
                 'date': schedule.date,  # type: ignore
                 'callsign': schedule.callsign,  # type: ignore
@@ -86,12 +93,13 @@ class FsScheduledFlight(models.Model):
                 'scheduled_start': schedule.start_time,  # type: ignore
                 'scheduled_duration': schedule.duration,  # type: ignore
                 'status': 'scheduled',
-            }
-            flight = Flight.create(vals)
-            schedule.linked_flight_id = flight.id
-            created_count += 1
+            })
 
-        return created_count
+        published_flights = Flight.create(flight_vals_list) if flight_vals_list else self.env['fs.flight']
+        for schedule, flight in zip(schedules_to_publish, published_flights):
+            schedule.linked_flight_id = flight.id
+
+        return len(published_flights)
 
     @api.model
     def cron_publish_today(self):

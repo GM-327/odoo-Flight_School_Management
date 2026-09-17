@@ -430,10 +430,10 @@ class FsClassTypeHours(models.Model):
 
     @api.constrains('class_type_id', 'activity_id', 'requirement_group_id')
     def _check_duplicate_activity_scope(self):
-        """Prevent duplicate standalone or duplicate in-group activities.
+        """Prevent activity reuse across mandatory and alternative buckets.
 
-        The same activity can appear in multiple OR groups for the same class
-        type, but not twice in one group and not twice as a standalone line.
+        One logged hour cannot safely satisfy more than one requirement without
+        an allocation ledger. Rejecting reuse is the smallest auditable policy.
         """
         records = self.filtered(lambda record: record.class_type_id and record.activity_id)
         if not records:
@@ -445,12 +445,9 @@ class FsClassTypeHours(models.Model):
         ])
         seen_keys = set()
         for line in candidate_lines:
-            if line.requirement_group_id:
-                scope_key = ('group', line.requirement_group_id.id, line.activity_id.id)
-            else:
-                scope_key = ('standalone', line.class_type_id.id, line.activity_id.id)
+            scope_key = (line.class_type_id.id, line.activity_id.id)
             if scope_key in seen_keys:
                 raise ValidationError(
-                    'This activity is already defined in the same requirement scope.'
+                    'An activity can only be used by one mandatory or alternative hour requirement.'
                 )
             seen_keys.add(scope_key)

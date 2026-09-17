@@ -61,6 +61,34 @@ class FsFlight(models.Model):
         help="Link to the original plan. Changes here do not affect the plan unless synced.",
     )
 
+    _scheduled_flight_unique = models.Constraint(
+        'UNIQUE(scheduled_flight_id)',
+        'A scheduled flight can have only one execution record.',
+    )
+
+    mission_completion_id = fields.Many2one(
+        comodel_name='fs.mission.completion',
+        string='Generated Mission Completion',
+        copy=False,
+        readonly=True,
+        ondelete='set null',
+    )
+    mission_completion_was_created = fields.Boolean(
+        string='Mission Completion Was Created',
+        copy=False,
+        readonly=True,
+    )
+    previous_completion_is_completed = fields.Boolean(copy=False, readonly=True)
+    previous_completion_date = fields.Date(copy=False, readonly=True)
+    previous_completion_source = fields.Char(copy=False, readonly=True)
+    previous_completion_source_organization = fields.Char(copy=False, readonly=True)
+    previous_completion_source_reference = fields.Char(copy=False, readonly=True)
+    previous_completion_source_date = fields.Date(copy=False, readonly=True)
+    previous_completion_source_notes = fields.Text(copy=False, readonly=True)
+    previous_completion_is_prior_experience = fields.Boolean(copy=False, readonly=True)
+    previous_completion_source_record_model = fields.Char(copy=False, readonly=True)
+    previous_completion_source_record_id = fields.Integer(copy=False, readonly=True)
+
     # === Constraints ===
     @api.constrains('callsign', 'date')
     def _check_unique_callsign(self):
@@ -562,6 +590,20 @@ class FsFlight(models.Model):
     atd = fields.Float(string='ATD', tracking=True, aggregator=None)
     eta = fields.Float(string='ETA', compute='_compute_eta', store=True, aggregator=None)
     ata = fields.Float(string='ATA', tracking=True, aggregator=None)
+    atd_present = fields.Boolean(
+        string='ATD Recorded',
+        default=False,
+        copy=False,
+        readonly=True,
+        help="Tracks whether ATD was entered so 00:00 remains a valid time.",
+    )
+    ata_present = fields.Boolean(
+        string='ATA Recorded',
+        default=False,
+        copy=False,
+        readonly=True,
+        help="Tracks whether ATA was entered so 00:00 remains a valid time.",
+    )
     actual_duration = fields.Float(string='Actual Duration', compute='_compute_actual_duration', store=True)
     distributed_hours = fields.Float(
         string='Distributed Hours',
@@ -696,15 +738,36 @@ class FsFlight(models.Model):
         for record in self:
             record.eta = record.scheduled_start + (record.scheduled_duration or 0)
 
-    def _is_time_set(self, field_name, val_in_context=None, has_context_val=False):
-        """Check if a time field is set (not NULL/False/0.0)."""
-        if has_context_val:
-            return bool(val_in_context)
+    @api.model
+    def _is_time_value_set(self, value):
+        """Return whether an incoming execution-time value is present.
 
+        Float fields represent both an unset value and midnight as ``0.0``.
+        Presence flags preserve that distinction for all new writes.
+        """
+        return value is not False and value is not None
+
+    def _is_time_set(self, field_name, vals=None):
+        """Return whether an execution time is recorded, including midnight."""
         self.ensure_one()
-        return bool(getattr(self, field_name))
+        present_field = f'{field_name}_present'
+        if vals and present_field in vals:
+            return bool(vals[present_field])
+        if vals and field_name in vals:
+            return self._is_time_value_set(vals[field_name])
 
-    @api.depends('atd', 'ata')
+        # Status fallbacks retain correct semantics for records created before
+        # explicit time-presence tracking was introduced.
+        if getattr(self, present_field):
+            return True
+        if getattr(self, field_name):
+            return True
+        return (
+            (field_name == 'atd' and self.status in ('in_progress', 'done'))
+            or (field_name == 'ata' and self.status == 'done')
+        )
+
+    @api.depends('atd', 'ata', 'atd_present', 'ata_present', 'status')
     def _compute_actual_duration(self):
         """Compute actual duration values for the current recordset.
 
@@ -747,14 +810,14 @@ class FsFlight(models.Model):
 
     # === Actions ===
 
-    def _compute_status_from_times(self):
+    def _compute_status_from_times(self, vals=None):
         """Determine status based on presence of ATD/ATA. Entering times overrides cancellation.
 
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        atd_set = self._is_time_set('atd')
-        ata_set = self._is_time_set('ata')
+        atd_set = self._is_time_set('atd', vals=vals)
+        ata_set = self._is_time_set('ata', vals=vals)
         if atd_set and ata_set:
             return 'done'
         if atd_set:
@@ -762,7 +825,22 @@ class FsFlight(models.Model):
         # Respect 'cancelled' if no execution times are present
         return self.status if self.status == 'cancelled' else 'scheduled'
 
-    @api.onchange('atd', 'ata')
+    @api.onchange('atd')
+    def _onchange_atd(self):
+        """Mark ATD present before reconciling the form status.
+
+        Odoo Float converts an empty value and midnight to the same cache value,
+        so the onchange trigger itself is the authoritative presence signal.
+        """
+        self.atd_present = True
+        self._onchange_execution_times()
+
+    @api.onchange('ata')
+    def _onchange_ata(self):
+        """Mark ATA present before reconciling the form status."""
+        self.ata_present = True
+        self._onchange_execution_times()
+
     def _onchange_execution_times(self):
         """Update status preview and force persistence for inline edits.
 
@@ -857,9 +935,25 @@ class FsFlight(models.Model):
         Returns:
             models.Model: Odoo recordset returned by the ORM.
         """
-        records = super().create(vals_list)
+        normalized_vals_list = [self._normalize_execution_time_vals(vals) for vals in vals_list]
+        active_aircraft_ids = []
+        for vals in normalized_vals_list:
+            self._validate_new_flight_lifecycle(vals)
+            if vals.get('status', 'scheduled') == 'in_progress':
+                active_aircraft_ids.append(vals.get('aircraft_id'))
+
+        if len(active_aircraft_ids) != len(set(active_aircraft_ids)):
+            raise ValidationError(_('An aircraft cannot start more than one flight at a time.'))
+
+        for aircraft_id in active_aircraft_ids:
+            self.env['fs.aircraft'].browse(aircraft_id)._check_dispatchable_aircraft()
+
+        records = super().create(normalized_vals_list)
         records._ensure_operations_board()
         records._sync_linked_aircraft_statuses()
+        records._sync_operational_mission_completions(
+            set(records._get_operational_completion_keys().values()),
+        )
         return records
 
     def write(self, vals):
@@ -873,10 +967,19 @@ class FsFlight(models.Model):
         Returns:
             bool: True when Odoo successfully writes the requested values.
         """
+        vals = self._normalize_execution_time_vals(vals)
+        self._validate_flight_lifecycle(vals)
+        old_completion_keys = set(self._get_operational_completion_keys().values())
+
         # 1. Handle cross-field status automation
         # Clear times when explicit cancellation occurs
         if vals.get('status') == 'cancelled':
-            vals.update({'atd': False, 'ata': False})
+            vals.update({
+                'atd': False,
+                'ata': False,
+                'atd_present': False,
+                'ata_present': False,
+            })
 
         # 2. Capture pre-write state for all records in the set
         old_data = {
@@ -889,40 +992,20 @@ class FsFlight(models.Model):
             } for r in self
         }
 
-        # 3. Handle automatic status updates from ATD/ATA changes
-        if ('atd' in vals or 'ata' in vals) and 'status' not in vals:
-            # Note: We don't update vals directly here for the whole set because
-            # different records might need different statuses in a batch write.
-            # Instead, we'll handle it during the loop if needed, but for common
-            # single-record writes, we can optimize.
-            if len(self) == 1:
-                ctx = {'status': self.status}
-                if 'atd' in vals:
-                    ctx['atd'] = vals['atd']
-                if 'ata' in vals:
-                    ctx['ata'] = vals['ata']
-                computed_status = self.with_context(**ctx)._compute_status_from_times_batch()
-                if computed_status != self.status:
-                    vals['status'] = computed_status
-                    if self.status == 'cancelled' and computed_status != 'cancelled':
-                        vals['cancellation_reason_id'] = False
-
-        # 4. Perform the actual write
+        # 3. Perform the actual write. Status is reconciled per record below
+        # because a batch can contain different existing execution times.
+        time_changed_without_status = ('atd' in vals or 'ata' in vals) and 'status' not in vals
         res = super().write(vals)
 
-        # 4b. Multi-record time updates need a per-record status reconciliation.
-        if len(self) > 1 and ('atd' in vals or 'ata' in vals) and 'status' not in vals:
-            for record in self:
-                computed_status = record._compute_status_from_times()
-                if computed_status != record.status:
-                    status_vals: dict[str, Any] = {'status': computed_status}
-                    if record.status == 'cancelled' and computed_status != 'cancelled':
-                        status_vals['cancellation_reason_id'] = False
-                    record.write(status_vals)
+        # 4. Reconcile time-driven statuses in grouped writes. The inner writes
+        # also distribute hours for status transitions, so exclude them below.
+        reconciled_records = self.browse()
+        if time_changed_without_status:
+            reconciled_records = self._reconcile_status_from_execution_times()
 
         # 5. Post-write adjustments (Hour distribution)
         if not self.env.context.get('skip_distribution'):
-            for record in self:
+            for record in self - reconciled_records:
                 old = old_data.get(record.id, {})
                 old_status = old.get('status')
                 old_distributed = old.get('distributed_hours', 0.0)
@@ -944,12 +1027,9 @@ class FsFlight(models.Model):
 
                 if delta != 0:
                     record._distribute_hours(delta)
-                    # Update distributed_hours directly in DB to avoid recursion
-                    self.env.cr.execute(
-                        "UPDATE fs_flight SET distributed_hours = %s WHERE id = %s",
-                        (record.distributed_hours + delta, record.id),
-                    )
-                    record.invalidate_recordset(['distributed_hours'])
+                    record.with_context(skip_distribution=True).write({
+                        'distributed_hours': old_distributed + delta,
+                    })
 
         # 6. Maintenance: Ensure operations boards exist
         if 'date' in vals or 'aircraft_id' in vals:
@@ -965,7 +1045,117 @@ class FsFlight(models.Model):
                     self.env['fs.aircraft'].browse(list(impacted_aircraft_ids)),
                 )
 
+        if not self.env.context.get('skip_mission_completion_sync'):
+            completion_keys = old_completion_keys | set(
+                self._get_operational_completion_keys().values(),
+            )
+            self._sync_operational_mission_completions(completion_keys)
+
         return res
+
+    @api.model
+    def _normalize_execution_time_vals(self, vals):
+        """Copy write values and maintain explicit execution-time presence."""
+        normalized = dict(vals)
+        for field_name in ('atd', 'ata'):
+            present_field = f'{field_name}_present'
+            if field_name in normalized:
+                normalized[present_field] = self._is_time_value_set(normalized[field_name])
+            else:
+                # Presence is internal state derived from the time value. Do not
+                # accept independent RPC writes that could corrupt accounting.
+                normalized.pop(present_field, None)
+        return normalized
+
+    @api.model
+    def _validate_new_flight_lifecycle(self, vals):
+        """Validate lifecycle state supplied during record creation."""
+        status = vals.get('status', 'scheduled')
+        atd_present = bool(vals.get('atd_present', False))
+        ata_present = bool(vals.get('ata_present', False))
+        self._validate_lifecycle_state(status, atd_present, ata_present)
+
+    def _validate_flight_lifecycle(self, vals):
+        """Prevent invalid state changes and completed-flight reassignment."""
+        protected_completed_fields = {
+            'aircraft_id', 'pilot1_crew_id', 'pilot1_function',
+            'pilot2_crew_id', 'pilot2_function', 'flight_category',
+            'mission_id', 'activity_id', 'custom_activity_id', 'training_class_id',
+        }
+        dispatch_aircraft_ids = []
+        for record in self:
+            if 'status' in vals:
+                status = vals['status']
+            elif 'atd' in vals or 'ata' in vals:
+                status = record._compute_status_from_times(vals)
+            else:
+                status = record.status
+            if status == 'in_progress' and (
+                record.status != 'in_progress' or 'aircraft_id' in vals
+            ):
+                dispatch_aircraft_ids.append(vals.get('aircraft_id', record.aircraft_id.id))
+
+        if len(dispatch_aircraft_ids) != len(set(dispatch_aircraft_ids)):
+            raise ValidationError(_('An aircraft cannot start more than one flight at a time.'))
+
+        for record in self:
+            if record.status == 'done' and protected_completed_fields.intersection(vals):
+                raise UserError(_('Completed flights cannot have their assigned resources or training data changed.'))
+
+            if 'aircraft_id' in vals and record.status == 'in_progress':
+                aircraft = self.env['fs.aircraft'].browse(vals['aircraft_id'])
+                aircraft._check_dispatchable_aircraft(
+                    expected_simulator=record._is_simulator_session(),
+                )
+
+            if 'status' in vals:
+                status = vals['status']
+            elif 'atd' in vals or 'ata' in vals:
+                status = record._compute_status_from_times(vals)
+            else:
+                continue
+
+            self._validate_lifecycle_state(
+                status,
+                record._is_time_set('atd', vals=vals),
+                record._is_time_set('ata', vals=vals),
+            )
+
+            if status == 'in_progress' and record.status != 'in_progress':
+                aircraft = self.env['fs.aircraft'].browse(vals.get('aircraft_id', record.aircraft_id.id))
+                aircraft._check_dispatchable_aircraft(
+                    expected_simulator=record._is_simulator_session(),
+                )
+
+    @api.model
+    def _validate_lifecycle_state(self, status, atd_present, ata_present):
+        """Ensure the state matches the persisted execution-time presence."""
+        if status == 'done' and not (atd_present and ata_present):
+            raise ValidationError(_('A completed flight requires both ATD and ATA.'))
+        if status == 'in_progress' and (not atd_present or ata_present):
+            raise ValidationError(_('An in-progress flight requires ATD and no ATA.'))
+        if status == 'scheduled' and (atd_present or ata_present):
+            raise ValidationError(_('A scheduled flight cannot have execution times.'))
+
+    def _reconcile_status_from_execution_times(self):
+        """Apply time-derived statuses in batch groups and return changed records."""
+        grouped_record_ids = {}
+        for record in self:
+            status = record._compute_status_from_times()
+            if status == record.status:
+                continue
+            key = (status, record.status == 'cancelled')
+            grouped_record_ids.setdefault(key, []).append(record.id)
+
+        reconciled_records = self.browse()
+        for (status, was_cancelled), record_ids in grouped_record_ids.items():
+            records = self.browse(record_ids)
+            status_vals: dict[str, Any] = {'status': status}
+            if was_cancelled and status != 'cancelled':
+                status_vals['cancellation_reason_id'] = False
+            records.write(status_vals)
+            reconciled_records |= records
+        return reconciled_records
 
     def _sync_linked_aircraft_statuses(self, aircraft_records=None):
         """Synchronize aircraft operational status from active flight execution."""
@@ -981,37 +1171,300 @@ class FsFlight(models.Model):
             elif aircraft.status == 'in_use':
                 aircraft.sudo().write({'status': 'available', 'status_reason': False})
 
-    def _compute_status_from_times_batch(self):
-        """Helper for batch status computation using context or record values.
+    def _get_operational_completion_keys(self):
+        """Return qualifying completed-flight keys indexed by flight ID.
 
-        Returns:
-            None: Updates Odoo records, computed fields, or wizard state in place.
+        A completion is tied to the active enrollment that supplies the
+        flight's stored student and training-class values. This matches hour
+        posting and prevents a flight from completing a different syllabus.
         """
-        has_atd_ctx = 'atd' in self.env.context
-        atd_ctx = self.env.context.get('atd')
-        has_ata_ctx = 'ata' in self.env.context
-        ata_ctx = self.env.context.get('ata')
-        status = self.env.context.get('status', self.status)
+        candidates = self.filtered(
+            lambda record: (
+                record.status == 'done'
+                and record.mission_id
+                and record.student_id
+                and record.training_class_id
+            ),
+        )
+        if not candidates:
+            return {}
 
-        atd_set = self._is_time_set('atd', atd_ctx, has_atd_ctx)
-        ata_set = self._is_time_set('ata', ata_ctx, has_ata_ctx)
+        enrollment_pairs = {
+            (record.student_id.id, record.training_class_id.id)
+            for record in candidates
+        }
+        enrollments = self.env['fs.student.enrollment'].search([
+            ('student_id', 'in', [pair[0] for pair in enrollment_pairs]),
+            ('training_class_id', 'in', [pair[1] for pair in enrollment_pairs]),
+            ('status', '=', 'active'),
+        ])
+        enrollment_by_pair = {
+            (enrollment.student_id.id, enrollment.training_class_id.id): enrollment
+            for enrollment in enrollments
+        }
 
-        if atd_set and ata_set:
-            return 'done'
-        if atd_set:
-            return 'in_progress'
-        return status if status == 'cancelled' else 'scheduled'
+        completion_keys = {}
+        for record in candidates:
+            enrollment = enrollment_by_pair.get((record.student_id.id, record.training_class_id.id))
+            if enrollment and record.mission_id.class_type_id == enrollment.training_class_id.class_type_id:
+                completion_keys[record.id] = (enrollment.id, record.mission_id.id)
+        return completion_keys
+
+    def _operational_completion_values(self):
+        """Build source metadata for the completion owned by this flight."""
+        self.ensure_one()
+        return {
+            'is_completed': True,
+            'completion_date': self.date,
+            'source': 'operational_flight',
+            'source_organization': False,
+            'source_reference': self.callsign,
+            'source_date': self.date,
+            'source_notes': self.notes,
+            'is_prior_experience': False,
+            'source_record_model': self._name,
+            'source_record_id': self.id,
+        }
+
+    def _completion_snapshot_values(self, mission_completion):
+        """Capture an externally owned completion before operational takeover."""
+        return {
+            'previous_completion_is_completed': mission_completion.is_completed,
+            'previous_completion_date': mission_completion.completion_date,
+            'previous_completion_source': mission_completion.source,
+            'previous_completion_source_organization': mission_completion.source_organization,
+            'previous_completion_source_reference': mission_completion.source_reference,
+            'previous_completion_source_date': mission_completion.source_date,
+            'previous_completion_source_notes': mission_completion.source_notes,
+            'previous_completion_is_prior_experience': mission_completion.is_prior_experience,
+            'previous_completion_source_record_model': mission_completion.source_record_model,
+            'previous_completion_source_record_id': mission_completion.source_record_id,
+        }
+
+    def _completion_restore_values(self):
+        """Return the source metadata captured before operational takeover."""
+        self.ensure_one()
+        return {
+            'is_completed': self.previous_completion_is_completed,
+            'completion_date': self.previous_completion_date,
+            'source': self.previous_completion_source or 'manual',
+            'source_organization': self.previous_completion_source_organization,
+            'source_reference': self.previous_completion_source_reference,
+            'source_date': self.previous_completion_source_date,
+            'source_notes': self.previous_completion_source_notes,
+            'is_prior_experience': self.previous_completion_is_prior_experience,
+            'source_record_model': self.previous_completion_source_record_model,
+            'source_record_id': self.previous_completion_source_record_id,
+        }
+
+    def _stored_completion_snapshot_values(self):
+        """Return this flight's raw snapshot fields for ownership transfer."""
+        self.ensure_one()
+        return {
+            'previous_completion_is_completed': self.previous_completion_is_completed,
+            'previous_completion_date': self.previous_completion_date,
+            'previous_completion_source': self.previous_completion_source,
+            'previous_completion_source_organization': self.previous_completion_source_organization,
+            'previous_completion_source_reference': self.previous_completion_source_reference,
+            'previous_completion_source_date': self.previous_completion_source_date,
+            'previous_completion_source_notes': self.previous_completion_source_notes,
+            'previous_completion_is_prior_experience': self.previous_completion_is_prior_experience,
+            'previous_completion_source_record_model': self.previous_completion_source_record_model,
+            'previous_completion_source_record_id': self.previous_completion_source_record_id,
+        }
+
+    def _mission_completion_tracking_values(self, mission_completion, was_created, snapshot_values=None):
+        """Return flight-local metadata needed to safely reverse a takeover."""
+        values = {
+            'mission_completion_id': mission_completion.id,
+            'mission_completion_was_created': was_created,
+        }
+        values.update(snapshot_values or {})
+        return values
+
+    def _write_mission_completion_tracking(self, values):
+        """Persist internal ownership metadata without recursively syncing."""
+        self.ensure_one()
+        self.with_context(skip_mission_completion_sync=True).write(values)
+
+    def _clear_mission_completion_tracking(self):
+        """Clear operational-completion ownership metadata from this flight."""
+        self.ensure_one()
+        self._write_mission_completion_tracking({
+            'mission_completion_id': False,
+            'mission_completion_was_created': False,
+            'previous_completion_is_completed': False,
+            'previous_completion_date': False,
+            'previous_completion_source': False,
+            'previous_completion_source_organization': False,
+            'previous_completion_source_reference': False,
+            'previous_completion_source_date': False,
+            'previous_completion_source_notes': False,
+            'previous_completion_is_prior_experience': False,
+            'previous_completion_source_record_model': False,
+            'previous_completion_source_record_id': False,
+        })
+
+    def _transfer_mission_completion_tracking(self, successor, mission_completion):
+        """Move a completion's reversible source snapshot to another done flight."""
+        self.ensure_one()
+        successor.ensure_one()
+        tracking_values = self._mission_completion_tracking_values(
+            mission_completion,
+            self.mission_completion_was_created,
+            self._stored_completion_snapshot_values(),
+        )
+        successor._write_mission_completion_tracking(tracking_values)
+        self._clear_mission_completion_tracking()
+
+    @api.model
+    def _sync_operational_mission_completions(self, completion_keys):
+        """Reconcile operational-flight ownership for enrollment mission completions.
+
+        The training model has one completion per enrollment/mission. The first
+        completed flight takes temporary ownership of manual/prior data and
+        stores a reversible snapshot. If retries exist, ownership moves to a
+        remaining completed flight before the original source is restored.
+        """
+        if not completion_keys:
+            return
+
+        enrollment_ids = {key[0] for key in completion_keys}
+        mission_ids = {key[1] for key in completion_keys}
+        enrollments = self.env['fs.student.enrollment'].browse(list(enrollment_ids)).exists()
+        enrollment_by_pair = {
+            (enrollment.student_id.id, enrollment.training_class_id.id): enrollment
+            for enrollment in enrollments
+        }
+        completion_model = self.env['fs.mission.completion'].sudo()
+        completions = completion_model.search([
+            ('enrollment_id', 'in', list(enrollment_ids)),
+            ('mission_id', 'in', list(mission_ids)),
+        ])
+        completion_by_key = {
+            (completion.enrollment_id.id, completion.mission_id.id): completion
+            for completion in completions
+        }
+
+        done_flights = self.search([
+            ('status', '=', 'done'),
+            ('mission_id', 'in', list(mission_ids)),
+            ('student_id', 'in', enrollments.mapped('student_id').ids),
+            ('training_class_id', 'in', enrollments.mapped('training_class_id').ids),
+        ], order='id')
+        flights_by_key = {}
+        for flight in done_flights:
+            enrollment = enrollment_by_pair.get((flight.student_id.id, flight.training_class_id.id))
+            key = (enrollment.id, flight.mission_id.id) if enrollment else False
+            if key in completion_keys and flight.mission_id.class_type_id == enrollment.training_class_id.class_type_id:
+                flights_by_key.setdefault(key, self.browse())
+                flights_by_key[key] |= flight
+
+        for completion_key in completion_keys:
+            mission_completion = completion_by_key.get(completion_key)
+            completed_flights = flights_by_key.get(completion_key, self.browse())
+            if completed_flights:
+                self._activate_operational_mission_completion(mission_completion, completed_flights)
+            elif mission_completion:
+                self._deactivate_operational_mission_completion(mission_completion)
+
+    @api.model
+    def _activate_operational_mission_completion(self, mission_completion, completed_flights):
+        """Assign or transfer a completion to one of its completed flights."""
+        completed_flights = completed_flights.sorted('id')
+        owner = self.browse()
+        if (
+            mission_completion
+            and mission_completion.source == 'operational_flight'
+            and mission_completion.source_record_model == self._name
+        ):
+            owner = completed_flights.filtered(
+                lambda flight: flight.id == mission_completion.source_record_id,
+            )
+            if owner:
+                owner = owner[:1]
+                mission_completion.write(owner._operational_completion_values())
+                return
+
+            previous_owner = self.browse(mission_completion.source_record_id).exists()
+            if previous_owner and previous_owner.mission_completion_id == mission_completion:
+                owner = completed_flights[:1]
+                previous_owner._transfer_mission_completion_tracking(owner, mission_completion)
+                mission_completion.write(owner._operational_completion_values())
+            return
+
+        tracked_flights = completed_flights.filtered(
+            lambda flight: flight.mission_completion_id == mission_completion,
+        )
+        if tracked_flights:
+            # An external manual/prior correction replaced the operational
+            # source. Its ownership must win over a later flight resync.
+            for flight in tracked_flights:
+                flight._clear_mission_completion_tracking()
+            return
+
+        owner = completed_flights[:1]
+        if mission_completion:
+            owner._write_mission_completion_tracking(
+                owner._mission_completion_tracking_values(
+                    mission_completion,
+                    was_created=False,
+                    snapshot_values=owner._completion_snapshot_values(mission_completion),
+                ),
+            )
+            mission_completion.write(owner._operational_completion_values())
+            return
+
+        enrollment_id, mission_id = owner._get_operational_completion_keys()[owner.id]
+        mission_completion = self.env['fs.mission.completion'].sudo().create({
+            'enrollment_id': enrollment_id,
+            'mission_id': mission_id,
+            **owner._operational_completion_values(),
+        })
+        owner._write_mission_completion_tracking(
+            owner._mission_completion_tracking_values(mission_completion, was_created=True),
+        )
+
+    @api.model
+    def _deactivate_operational_mission_completion(self, mission_completion):
+        """Restore or remove an operational completion only when still owned."""
+        if not (
+            mission_completion.source == 'operational_flight'
+            and mission_completion.source_record_model == self._name
+            and mission_completion.source_record_id
+        ):
+            tracked_flights = self.search([
+                ('mission_completion_id', '=', mission_completion.id),
+            ])
+            for flight in tracked_flights:
+                flight._clear_mission_completion_tracking()
+            return
+
+        owner = self.browse(mission_completion.source_record_id).exists()
+        if not owner or owner.mission_completion_id != mission_completion:
+            return
+        if owner.mission_completion_was_created:
+            mission_completion.unlink()
+        else:
+            mission_completion.write(owner._completion_restore_values())
+        owner._clear_mission_completion_tracking()
 
     def unlink(self):
-        """Override unlink to subtract hours if flight was completed.
+        """Delete only unfinished flights and reconcile their aircraft.
 
         Returns:
             bool: True when Odoo successfully deletes the records.
         """
-        for record in self:
-            if record.status == 'done' and record.distributed_hours > 0:
-                record._distribute_hours(-record.distributed_hours)
-        return super().unlink()
+        completed_flights = self.filtered(lambda record: record.status == 'done')
+        if completed_flights:
+            raise UserError(_('Completed flights cannot be deleted.'))
+
+        completion_keys = set(self._get_operational_completion_keys().values())
+        aircraft_records = self.mapped('aircraft_id')
+        result = super().unlink()
+        self._sync_linked_aircraft_statuses(aircraft_records)
+        self._sync_operational_mission_completions(completion_keys)
+        return result
 
     def _is_simulator_session(self):
         """Check if this is a simulator session.

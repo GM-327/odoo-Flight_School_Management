@@ -14,6 +14,7 @@
             <field name="code">SOLO</field>
             <field name="sequence">20</field>
             <field name="is_sim">False</field>
+            <field name="is_solo">True</field>
         </record>
 
         <record id="flight_type_sim" model="fs.flight.type">

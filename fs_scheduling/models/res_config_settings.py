@@ -15,7 +15,8 @@ Related Modules:
     Depends on: fs_core, fs_training, fs_fleet, fs_people, mail, web_timeline.
     fs_flights publishes scheduled plans to operations boards.
 """
-from odoo import fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class ResConfigSettings(models.TransientModel):
@@ -59,3 +60,22 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='flight_school.scheduling_time_slot_minutes',
         help="Default time slot increment for scheduling (e.g., 15 minutes).",
     )
+
+    @api.constrains('fs_scheduling_buffer_minutes')
+    def _check_scheduling_buffer_minutes(self):
+        """Keep the conflict buffer within a practical, non-negative range."""
+        for settings in self:
+            if not 0 <= settings.fs_scheduling_buffer_minutes <= 720:
+                raise ValidationError(_(
+                    "Scheduling buffer must be between 0 and 720 minutes."
+                ))
+
+    @api.constrains('fs_scheduling_time_slot_minutes')
+    def _check_scheduling_time_slot_minutes(self):
+        """Require a whole-hour divisor so generated times remain exact slots."""
+        for settings in self:
+            slot_minutes = settings.fs_scheduling_time_slot_minutes
+            if not 1 <= slot_minutes <= 60 or 60 % slot_minutes:
+                raise ValidationError(_(
+                    "Time slot granularity must be a divisor of 60 between 1 and 60 minutes."
+                ))

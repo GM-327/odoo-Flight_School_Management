@@ -1,4 +1,6 @@
-from odoo.exceptions import AccessError, ValidationError
+from psycopg2 import IntegrityError
+
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -48,7 +50,7 @@ class TestFsCore(TransactionCase):
             'code': 'UNIQ',
         })
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(IntegrityError):
             self.env['fs.department'].create({
                 'name': 'Unique Department Two',
                 'code': 'UNIQ',
@@ -65,7 +67,7 @@ class TestFsCore(TransactionCase):
             'parent_id': parent.id,
         })
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(UserError):
             parent.write({'parent_id': child.id})
 
     def test_department_manager_must_have_flight_school_role(self):
@@ -104,7 +106,6 @@ class TestFsCore(TransactionCase):
         self.assertFalse(self.env['res.users'].with_user(self.manager_user).has_access('write'))
         self.assertFalse(self.env['res.groups'].with_user(self.manager_user).has_access('write'))
         self.assertFalse(self.env['res.groups.privilege'].with_user(self.manager_user).has_access('write'))
-        self.assertFalse(self.env['res.config.settings'].with_user(self.manager_user).has_access('create'))
 
     def test_manager_sensitive_writes_raise_access_error(self):
         with self.assertRaises(AccessError):

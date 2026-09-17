@@ -16,6 +16,8 @@ Related Modules:
     fs_training enrolls people in classes.
 """
 from datetime import timedelta
+from html import escape
+
 from odoo import api, fields, models
 
 
@@ -103,7 +105,8 @@ class FsPilot(models.Model):
     qualification_badges = fields.Html(
         string='Qualification Badges',
         compute='_compute_qualification_badges',
-        sanitize=False,
+        sanitize=True,
+        sanitize_style=True,
     )
     has_expired_qualification = fields.Boolean(
         string='Has Expired Qualification',
@@ -111,7 +114,12 @@ class FsPilot(models.Model):
         store=True,
     )
 
-    @api.depends('qualification_ids', 'qualification_ids.qualification_code', 'qualification_ids.expiry_status')
+    @api.depends(
+        'qualification_ids',
+        'qualification_ids.qualification_id.code',
+        'qualification_ids.qualification_id.name',
+        'qualification_ids.expiry_status',
+    )
     def _compute_qualification_badges(self):
         """Compute HTML badges for qualifications with status-based colors.
 
@@ -130,12 +138,14 @@ class FsPilot(models.Model):
                 color = status_colors.get(
                     qual.expiry_status, '#6c757d')  # type: ignore
                 text_color = '#212529' if qual.expiry_status == 'expiring' else '#ffffff'  # type: ignore
+                qualification_label = escape(
+                    qual.qualification_code or qual.qualification_name or ''
+                )
                 badge_html = (
                     f'<span style="background-color: {color}; color: {text_color}; '
                     f'padding: 2px 8px; border-radius: 4px; margin-right: 4px; '
                     f'font-size: 12px; display: inline-block;">'
-                    # type: ignore
-                    f'{qual.qualification_code or qual.qualification_id.name}</span>'
+                    f'{qualification_label}</span>'
                 )
                 badges.append(badge_html)
             record.qualification_badges = ''.join(badges) if badges else ''

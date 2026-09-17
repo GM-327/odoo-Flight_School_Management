@@ -164,13 +164,9 @@
     padding: 0 !important;
 }
 
-/* AGGRESSIVELY HIDE REDUNDANT BUTTONS (Pencil/Download/Trash) in preview modal */
+/* Hide file replacement controls while retaining fallback downloads. */
 .o_document_portrait_view .o_select_file_button,
-.o_document_portrait_view .o_download_file_button,
-.o_document_portrait_view .o_remove_file_button,
-.o_document_portrait_view .o_field_binary .btn,
-.o_document_portrait_view .o_field_binary .btn-group,
-.o_document_portrait_view .o_field_binary .o_binary_buttons {
+.o_document_portrait_view .o_remove_file_button {
     display: none !important;
     visibility: hidden !important;
     height: 0 !important;

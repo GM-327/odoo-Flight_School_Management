@@ -183,7 +183,7 @@ class FsDocumentVersion(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        """Create version, auto-increment version number, and set as current.
+        """Create versions with server-managed metadata and one current version.
 
         Args:
             vals_list: List of value dictionaries passed to the multi-record create method.
@@ -191,36 +191,55 @@ class FsDocumentVersion(models.Model):
         Returns:
             models.Model: Odoo recordset returned by the ORM.
         """
-        # Detect document IDs being updated to unset their previous current versions
-        doc_ids_to_unset = set()
+        # Metadata identifies the upload event and must never come from a client.
+        upload_date = fields.Datetime.now()
+        document_ids = []
         next_version_by_doc = {}
+        normalized_vals_list = []
         for vals in vals_list:
-            doc_id = vals.get('document_id')
-            if doc_id:
-                doc_ids_to_unset.add(doc_id)
-                # Auto-set as current version
-                vals['is_current'] = True
+            normalized_vals = dict(vals)
+            doc_id = normalized_vals.get('document_id')
+            if not doc_id:
+                normalized_vals_list.append(normalized_vals)
+                continue
+            document_ids.append(doc_id)
+            if doc_id not in next_version_by_doc:
+                max_version = self.search([
+                    ('document_id', '=', doc_id),
+                ], order='version_number desc, id desc', limit=1)
+                next_version_by_doc[doc_id] = (
+                    max_version.version_number + 1 if max_version else 1
+                )
+            normalized_vals.update({
+                'version_number': next_version_by_doc[doc_id],
+                'upload_date': upload_date,
+                'uploaded_by_id': self.env.user.id,
+                # Only the final version created for a document is current.
+                'is_current': False,
+            })
+            next_version_by_doc[doc_id] += 1
+            normalized_vals_list.append(normalized_vals)
 
-                # Auto-calculate version number if not provided
-                if not vals.get('version_number'):
-                    if doc_id not in next_version_by_doc:
-                        max_version = self.search([
-                            ('document_id', '=', doc_id),
-                        ], order='version_number desc', limit=1)
-                        next_version_by_doc[doc_id] = (max_version.version_number + 1) if max_version else 1
-                    vals['version_number'] = next_version_by_doc[doc_id]
-                    next_version_by_doc[doc_id] += 1
+        # The last value submitted for a document is its newest version.
+        last_index_by_document = {
+            values['document_id']: index
+            for index, values in enumerate(normalized_vals_list)
+            if values.get('document_id')
+        }
+        for index in last_index_by_document.values():
+            normalized_vals_list[index]['is_current'] = True
 
-        # Unset current flag on existing versions for these documents
-        if doc_ids_to_unset:
+        # This transient state is kept inside the transaction and avoids a
+        # uniqueness violation while the replacement current version is made.
+        if document_ids:
             existing_current = self.search([
-                ('document_id', 'in', list(doc_ids_to_unset)),
+                ('document_id', 'in', list(set(document_ids))),
                 ('is_current', '=', True),
             ])
             if existing_current:
-                existing_current.write({'is_current': False})
+                super(FsDocumentVersion, existing_current).write({'is_current': False})
 
-        records = super().create(vals_list)
+        records = super().create(normalized_vals_list)
 
         # Sync expiry to parent document's related entity
         records.document_id.sync_expiry_to_related()  # type: ignore
@@ -228,7 +247,7 @@ class FsDocumentVersion(models.Model):
         return records
 
     def write(self, vals):
-        """Update version and sync if expiry changed.
+        """Update mutable version content without breaking current-version state.
 
         Args:
             vals: Field values to write or create, following Odoo ORM conventions.
@@ -236,29 +255,80 @@ class FsDocumentVersion(models.Model):
         Returns:
             bool: True when Odoo successfully writes the requested values.
         """
-        if vals.get('is_current'):
-            for record in self:
-                self.search([
-                    ('document_id', '=', record.document_id.id),
-                    ('id', '!=', record.id),
-                    ('is_current', '=', True),
-                ]).write({'is_current': False})
+        vals = dict(vals)
+        immutable_fields = {
+            'document_id', 'version_number', 'upload_date', 'uploaded_by_id',
+        }
+        attempted_fields = immutable_fields.intersection(vals)
+        if attempted_fields:
+            raise ValidationError(_(
+                "Document, version number, uploader, and upload date cannot be changed."
+            ))
+
+        current_value = vals.pop('is_current', None) if 'is_current' in vals else None
+        if current_value is False:
+            current_versions = self.filtered('is_current')
+            replacement_by_document = {}
+            for document in current_versions.document_id:
+                replacement = self.search([
+                    ('document_id', '=', document.id),
+                    ('id', 'not in', current_versions.ids),
+                ], order='version_number desc, id desc', limit=1)
+                if not replacement:
+                    raise ValidationError(_(
+                        "A document with versions must retain a current version."
+                    ))
+                replacement_by_document[document.id] = replacement
+        else:
+            replacement_by_document = {}
 
         result = super().write(vals)
+        if current_value is True:
+            if len(self) != len(self.document_id):
+                raise ValidationError(_(
+                    "Set one version at a time as the current version."
+                ))
+            self._set_as_current()
+        elif current_value is False and current_versions:
+            super(FsDocumentVersion, current_versions).write({'is_current': False})
+            self.browse([
+                version.id for version in replacement_by_document.values()
+            ])._set_as_current()
         if 'expiry_date' in vals:
             # If this is the current version, sync to related entity
             self.filtered('is_current').document_id.sync_expiry_to_related()  # type: ignore
         return result
 
     def unlink(self):
-        """Promote the latest remaining version if the current one is deleted."""
-        affected_documents = self.filtered('is_current').document_id
+        """Promote a remaining version after any version deletion."""
+        affected_documents = self.document_id
         result = super().unlink()
         for document in affected_documents.exists():
-            document.invalidate_recordset(['current_version_id', 'version_ids'])
-            if not document.current_version_id and document.version_ids:
-                document.version_ids[:1].action_set_as_current()
+            remaining_versions = self.search([
+                ('document_id', '=', document.id),
+            ], order='version_number desc, id desc')
+            if remaining_versions and not remaining_versions.filtered('is_current'):
+                remaining_versions[:1]._set_as_current()
         return result
+
+    def _set_as_current(self):
+        """Make one version per document current using only server-side writes."""
+        for document in self.document_id:
+            candidates = self.filtered(lambda version: version.document_id == document)
+            if len(candidates) != 1:
+                raise ValidationError(_(
+                    "Set one version at a time as the current version."
+                ))
+            current_version = candidates
+            siblings = self.search([
+                ('document_id', '=', document.id),
+                ('id', '!=', current_version.id),
+                ('is_current', '=', True),
+            ])
+            if siblings:
+                super(FsDocumentVersion, siblings).write({'is_current': False})
+            super(FsDocumentVersion, current_version).write({'is_current': True})
+            document.sync_expiry_to_related()
 
     def action_set_as_current(self):
         """Make this version the current one.
@@ -267,15 +337,7 @@ class FsDocumentVersion(models.Model):
             dict | None: Odoo action dictionary, or None when no action is needed.
         """
         self.ensure_one()
-        # Unset current on siblings
-        self.search([
-            ('document_id', '=', self.document_id.id),
-            ('is_current', '=', True),
-        ]).write({'is_current': False})
-        # Set this as current
-        self.is_current = True
-        # Sync expiry to related entity
-        self.document_id.sync_expiry_to_related()  # type: ignore
+        self._set_as_current()
 
     def action_open_preview(self):
         """Open a popup preview of this specific version.

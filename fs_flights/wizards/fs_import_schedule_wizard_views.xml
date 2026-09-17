@@ -46,6 +46,7 @@
     <menuitem id="menu_fs_import_schedule_wizard"
               name="Publish Schedule"
               parent="fs_scheduling.menu_fs_scheduling_root"
-              action="action_fs_import_schedule_wizard"
-              sequence="95"/>
+               action="action_fs_import_schedule_wizard"
+               groups="fs_core.group_flight_school_manager"
+               sequence="95"/>
 </odoo>

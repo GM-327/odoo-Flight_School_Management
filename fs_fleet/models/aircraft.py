@@ -438,7 +438,7 @@ class Aircraft(models.Model):
         for record in self:
             record.is_airworthy = record.status not in ('maintenance', 'grounded')
 
-    @api.depends('is_airworthy', 'status')
+    @api.depends('active', 'is_airworthy', 'status')
     def _compute_is_available_for_assignment(self):
         """Compute assignment availability values for the current recordset.
 
@@ -446,7 +446,9 @@ class Aircraft(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            record.is_available_for_assignment = record.is_airworthy and record.status == 'available'
+            record.is_available_for_assignment = (
+                record.active and record.is_airworthy and record.status == 'available'
+            )
 
     @api.depends('status')
     def _compute_airworthiness_blocker(self):
@@ -526,8 +528,15 @@ class Aircraft(models.Model):
         return super().create(normalized_vals_list)
 
     def write(self, vals):
-        """Normalize aircraft values before writing."""
-        return super().write(self._normalize_write_vals(vals))
+        """Normalize aircraft values and protect active-flight availability."""
+        normalized_vals = self._normalize_write_vals(vals)
+        if normalized_vals.get('status') == 'available':
+            active_aircraft = self._get_aircraft_with_active_flights()
+            if active_aircraft:
+                raise ValidationError(
+                    _('Aircraft with an active flight cannot be set to available.'),
+                )
+        return super().write(normalized_vals)
 
     @api.onchange('registration')
     def _onchange_registration_uppercase(self):
@@ -584,6 +593,11 @@ class Aircraft(models.Model):
             'grounded': _('grounded'),
         }
         for record in self:
+            if not record.active:
+                raise ValidationError(
+                    _("Archived aircraft '%(registration)s' cannot be scheduled or dispatched.",
+                      registration=record.registration),
+                )
             if not record.is_airworthy:
                 raise ValidationError(
                     _(
@@ -603,7 +617,15 @@ class Aircraft(models.Model):
     def _check_dispatchable_aircraft(self, expected_simulator=None):
         """Ensure aircraft can be assigned immediately to a flight."""
         self._check_schedulable_aircraft(expected_simulator=expected_simulator)
+        active_aircraft = self._get_aircraft_with_active_flights()
         for record in self:
+            if record in active_aircraft:
+                raise ValidationError(
+                    _(
+                        "Aircraft '%(registration)s' already has an active flight.",
+                        registration=record.registration,
+                    ),
+                )
             if not record.is_available_for_assignment:
                 raise ValidationError(
                     _(
@@ -611,6 +633,20 @@ class Aircraft(models.Model):
                         registration=record.registration,
                     ),
                 )
+
+    def _get_aircraft_with_active_flights(self):
+        """Return aircraft in this recordset assigned to active execution records.
+
+        Fleet is installable without flights, so the cross-module check remains
+        optional while becoming authoritative whenever ``fs_flights`` is loaded.
+        """
+        if 'fs.flight' not in self.env or not self.ids:
+            return self.browse()
+        active_flights = self.env['fs.flight'].sudo().search([
+            ('aircraft_id', 'in', self.ids),
+            ('status', '=', 'in_progress'),
+        ])
+        return self.browse(active_flights.mapped('aircraft_id').ids)
 
     @api.model
     def cron_refresh_aircraft_maintenance_status(self):

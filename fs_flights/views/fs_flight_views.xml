@@ -40,11 +40,14 @@
             <form string="Flight">
                 <header>
                     <button name="action_start_flight" string="Start Flight" type="object"
-                            class="btn-primary" invisible="status != 'scheduled'"/>
+                            class="btn-primary" invisible="status != 'scheduled'"
+                            groups="fs_core.group_flight_school_manager"/>
                     <button name="action_complete_flight" string="Complete Flight" type="object"
-                            class="btn-success" invisible="status != 'in_progress'"/>
+                            class="btn-success" invisible="status != 'in_progress'"
+                            groups="fs_core.group_flight_school_manager"/>
                     <button name="action_cancel_flight" string="Cancel Flight" type="object"
-                            class="btn-danger" invisible="status in ('done', 'cancelled')"/>
+                            class="btn-danger" invisible="status in ('done', 'cancelled')"
+                            groups="fs_core.group_flight_school_manager"/>
                     <field name="status" widget="statusbar" statusbar_visible="scheduled,in_progress,done"/>
                 </header>
                 <sheet>

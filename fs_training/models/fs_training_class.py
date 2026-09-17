@@ -26,6 +26,9 @@ if TYPE_CHECKING:
     from .fs_admin_task import FsAdminTask, FsClassTypeAdminTask
 
 
+_CLASS_LIFECYCLE_TOKEN = object()
+
+
 class FsTrainingClass(models.Model):
     """Training class instances.
 
@@ -367,6 +370,9 @@ class FsTrainingClass(models.Model):
         Returns:
             models.Model: Odoo recordset returned by the ORM.
         """
+        for vals in vals_list:
+            if vals.get('status', 'draft') != 'draft':
+                raise ValidationError('Training classes must be created in draft status.')
         records = super().create(vals_list)
         for record in records:
             # Create admin tasks from templates ONLY if none were provided via onchange/vals
@@ -386,59 +392,60 @@ class FsTrainingClass(models.Model):
         return records
 
     def write(self, vals):
-        """Handle status transitions and archiving side effects.
-
-        Args:
-            vals: Field values to write or create, following Odoo ORM conventions.
-
-        Returns:
-            bool: True when Odoo successfully writes the requested values.
-        """
-        # Detect status changes for side effects
+        """Apply only validated class lifecycle transitions."""
+        if 'class_type_id' in vals and any(
+            record.enrollment_ids and vals['class_type_id'] != record.class_type_id.id
+            for record in self
+        ):
+            raise ValidationError(
+                'A class type cannot be changed after enrollment requirement snapshots are created.'
+            )
         new_status = vals.get('status')
-        today = fields.Date.context_today(self)
-
-        for record in self:
-            if new_status and new_status != record.status:
-                # 1. Moving to In Progress (Start Class)
-                if new_status == 'in_progress':
-                    record.enrollment_ids.filtered_domain([('status', '=', 'enrolled')]).write({'status': 'active'})
-
-                # 2. Moving to Completed (Set End Date)
-                elif new_status == 'completed':
-                    if not vals.get('actual_end_date') and not record.actual_end_date:
-                        vals['actual_end_date'] = today
-                    # Graduate students if not already done
-                    active_enrollments = record.enrollment_ids.filtered_domain([
-                        ('status', 'not in', ['dropped', 'graduated'])
-                    ])
-                    active_enrollments.write({
-                        'status': 'graduated',
-                        'graduation_date': today,
-                    })
-
-                # 3. Moving to Cancelled
-                elif new_status == 'cancelled':
-                    if not vals.get('actual_end_date') and not record.actual_end_date:
-                        vals['actual_end_date'] = today
-                    record.enrollment_ids.filtered_domain([
-                        ('status', 'in', ['enrolled', 'active'])
-                    ]).write({'status': 'cancelled'})
-
-                # 4. Moving back to Draft
-                elif new_status == 'draft':
-                    vals['actual_end_date'] = False
-                    record.enrollment_ids.filtered_domain([('status', '=', 'active')]).write({'status': 'enrolled'})
-
-        result = super().write(vals)
-
-        # Original Archive logic
-        if 'active' in vals and not vals['active']:
+        if new_status and any(new_status != record.status for record in self):
+            if self.env.context.get('_fs_training_class_lifecycle_token') is not _CLASS_LIFECYCLE_TOKEN:
+                raise ValidationError('Use the class lifecycle actions to change class status.')
             for record in self:
-                students = record.enrollment_ids.mapped('student_id')
-                if students:
-                    students.write({'active': False})  # type: ignore
-        return result
+                if new_status == record.status:
+                    continue
+                allowed_statuses = {
+                    'draft': {'in_progress', 'cancelled'},
+                    'in_progress': {'draft', 'completed', 'cancelled'},
+                    'completed': set(),
+                    'cancelled': set(),
+                }
+                if new_status not in allowed_statuses[record.status]:
+                    raise ValidationError('This class status transition is not allowed.')
+                record._transition_enrollments(new_status)
+        return super().write(vals)
+
+    def _write_lifecycle_status(self, status, values=None):
+        """Write class status from an internal lifecycle action only."""
+        values = dict(values or {})
+        values['status'] = status
+        return self.with_context(
+            _fs_training_class_lifecycle_token=_CLASS_LIFECYCLE_TOKEN,
+        ).write(values)
+
+    def _transition_enrollments(self, new_status):
+        """Synchronize enrollment states while enforcing enrollment safeguards."""
+        self.ensure_one()
+        if new_status == 'in_progress':
+            self.enrollment_ids.action_activate()
+        elif new_status == 'completed':
+            to_graduate = self.enrollment_ids.filtered_domain([
+                ('status', 'in', ['enrolled', 'active']),
+            ])
+            for enrollment in to_graduate:
+                enrollment._check_graduation_eligibility()
+            to_graduate.action_graduate()
+        elif new_status == 'cancelled':
+            self.enrollment_ids.filtered_domain([
+                ('status', 'in', ['enrolled', 'active']),
+            ])._write_lifecycle_status('cancelled')
+        elif new_status == 'draft':
+            self.enrollment_ids.filtered_domain([
+                ('status', '=', 'active'),
+            ])._write_lifecycle_status('enrolled')
 
     def action_start_class(self):
         """Start the training class.
@@ -452,9 +459,7 @@ class FsTrainingClass(models.Model):
         for record in self:
             if record.status != 'draft':
                 raise ValidationError("Only draft classes can be started.")
-            record.status = 'in_progress'
-            # Update enrollment statuses
-            record.enrollment_ids.filtered_domain([('status', '=', 'enrolled')]).write({'status': 'active'})
+            record._write_lifecycle_status('in_progress')
 
     def action_set_draft(self):
         """Reset the training class to draft status.
@@ -466,12 +471,9 @@ class FsTrainingClass(models.Model):
             ValidationError: If record data violates a model constraint.
         """
         for record in self:
-            if record.status not in ('in_progress', 'cancelled', 'completed'):
-                raise ValidationError("Only in-progress, cancelled or completed classes can be set to draft.")
-            record.status = 'draft'
-            record.actual_end_date = False
-            # Revert active enrollments back to enrolled
-            record.enrollment_ids.filtered_domain([('status', '=', 'active')]).write({'status': 'enrolled'})
+            if record.status != 'in_progress':
+                raise ValidationError("Only in-progress classes can be set to draft.")
+            record._write_lifecycle_status('draft', {'actual_end_date': False})
 
     def action_complete_class(self):
         """Complete the training class.
@@ -482,32 +484,13 @@ class FsTrainingClass(models.Model):
         Raises:
             ValidationError: If record data violates a model constraint.
         """
-        today = fields.Date.context_today(self)
         for record in self:
             if record.status != 'in_progress':
                 raise ValidationError("Only in-progress classes can be completed.")
             if not record.actual_end_date:
                 raise ValidationError("Please set the actual end date before completing.")
 
-            # Check for students with low progression and log warning
-            active_enrollments = record.enrollment_ids.filtered_domain([
-                ('status', 'not in', ['dropped', 'graduated'])
-            ])
-            low_progression = active_enrollments.filtered(lambda e: e.progression < 100)  # type: ignore[attr-defined]
-            if low_progression:
-                warning_msg = "<b>⚠️ Low Progression Warning:</b><br/>The following students have not completed 100% of their requirements:<ul>"
-                for enrollment in low_progression:
-                    # type: ignore
-                    warning_msg += f"<li>{enrollment.student_id.display_name}: {enrollment.progression:.1f}%</li>"
-                warning_msg += "</ul>"
-                record.message_post(body=warning_msg, message_type='notification')  # type: ignore[attr-defined]
-
-            record.status = 'completed'
-            # Graduate all active enrollments (not dropped) and set graduation date
-            active_enrollments.write({
-                'status': 'graduated',
-                'graduation_date': today,
-            })
+            record._write_lifecycle_status('completed')
 
     def action_cancel_class(self):
         """Cancel the training class.
@@ -523,8 +506,6 @@ class FsTrainingClass(models.Model):
                 raise ValidationError("This class is already cancelled.")
             if not record.actual_end_date:
                 raise ValidationError("Please set the actual end date before cancelling.")
-            record.status = 'cancelled'
-            # Set all active/enrolled enrollments to cancelled
-            record.enrollment_ids.filtered_domain([
-                ('status', 'in', ['enrolled', 'active'])
-            ]).write({'status': 'cancelled'})
+            if record.status not in ('draft', 'in_progress'):
+                raise ValidationError("Only draft or in-progress classes can be cancelled.")
+            record._write_lifecycle_status('cancelled')

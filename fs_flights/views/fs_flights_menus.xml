@@ -11,8 +11,9 @@
     <menuitem id="menu_fs_operations_board"
               name="Operations Board"
               parent="menu_fs_flights_root"
-              action="action_open_operations_board"
-              sequence="10"/>
+               action="action_open_operations_board"
+               groups="fs_core.group_flight_school_manager"
+               sequence="10"/>
 
     <!-- Flight Logs Menu -->
     <menuitem id="menu_fs_flight_logs"
@@ -25,8 +26,9 @@
     <menuitem id="menu_fs_simulator_board"
               name="Simulator Board"
               parent="menu_fs_flights_root"
-              action="action_open_simulator_board"
-              sequence="20"/>
+               action="action_open_simulator_board"
+               groups="fs_core.group_flight_school_manager"
+               sequence="20"/>
 
     <!-- SIM Sessions Menu -->
     <menuitem id="menu_fs_sim_sessions"
@@ -47,7 +49,7 @@
               name="Recalculate Hours"
               parent="menu_fs_flights_root"
               action="action_fs_recalculate_hours_wizard"
-              groups="base.group_system,base.group_erp_manager"
+               groups="fs_core.group_flight_school_manager"
               sequence="99"/>
 
 </odoo>

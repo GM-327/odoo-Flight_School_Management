@@ -21,43 +21,50 @@
     <menuitem id="menu_fs_scheduling_wizard"
               name="Create Schedule"
               parent="menu_fs_scheduling_root"
-              action="action_fs_scheduling_wizard"
-              sequence="90"/>
+               action="action_fs_scheduling_wizard"
+               groups="fs_core.group_flight_school_instructor"
+               sequence="90"/>
 
     <!-- Configuration Submenus -->
     <menuitem id="menu_fs_scheduling_config"
               name="Configuration"
-              parent="menu_fs_scheduling_root"
-              sequence="100"/>
+               parent="menu_fs_scheduling_root"
+               groups="fs_core.group_flight_school_admin"
+               sequence="100"/>
 
     <menuitem id="menu_fs_cancellation_reason"
               name="Cancellation Reasons"
               parent="menu_fs_scheduling_config"
-              action="action_fs_cancellation_reason"
-              sequence="10"/>
+               action="action_fs_cancellation_reason"
+               groups="fs_core.group_flight_school_admin"
+               sequence="10"/>
 
     <menuitem id="menu_fs_custom_flight_type"
               name="Custom Flight Types"
               parent="menu_fs_scheduling_config"
-              action="action_fs_custom_flight_type"
-              sequence="20"/>
+               action="action_fs_custom_flight_type"
+               groups="fs_core.group_flight_school_admin"
+               sequence="20"/>
 
     <menuitem id="menu_fs_flight_route"
               name="Routes &amp; Areas"
               parent="menu_fs_scheduling_config"
-              action="action_fs_flight_route"
-              sequence="30"/>
+               action="action_fs_flight_route"
+               groups="fs_core.group_flight_school_admin"
+               sequence="30"/>
 
     <menuitem id="menu_fs_pilot_function"
               name="Pilot Functions"
               parent="menu_fs_scheduling_config"
-              action="action_fs_pilot_function"
-              sequence="40"/>
+               action="action_fs_pilot_function"
+               groups="fs_core.group_flight_school_admin"
+               sequence="40"/>
 
     <menuitem id="menu_fs_scheduling_settings"
               name="Settings"
               parent="menu_fs_scheduling_config"
-              action="action_fs_scheduling_config_settings"
-              sequence="100"/>
+               action="action_fs_scheduling_config_settings"
+               groups="fs_core.group_flight_school_admin"
+               sequence="100"/>
 </odoo>
 

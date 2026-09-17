@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -94,3 +94,119 @@ class TestFlightAircraftStatusSync(TransactionCase):
         flight_form.ata = 11.5
         flight_form._onchange_execution_times()
         self.assertEqual(flight_form.status, 'done')
+
+    def test_midnight_times_are_recorded_and_distributed(self):
+        aircraft = self._create_aircraft('TS-FLIGHT-05')
+        flight = self._create_flight('FLT9005', aircraft)
+
+        flight.write({'atd': 0.0})
+        self.assertTrue(flight.atd_present)
+        self.assertEqual(flight.status, 'in_progress')
+
+        flight.write({'ata': 1.5})
+        self.assertTrue(flight.ata_present)
+        self.assertEqual(flight.status, 'done')
+        self.assertEqual(flight.actual_duration, 1.5)
+        self.assertEqual(flight.distributed_hours, 1.5)
+        self.assertEqual(aircraft.total_hours, 1.5)
+
+    def test_batch_times_reconcile_statuses_and_hours(self):
+        first_aircraft = self._create_aircraft('TS-FLIGHT-06')
+        second_aircraft = self._create_aircraft('TS-FLIGHT-07')
+        flights = self._create_flight('FLT9006', first_aircraft) | self._create_flight(
+            'FLT9007', second_aircraft,
+        )
+
+        flights.write({'atd': 0.0})
+        self.assertEqual(set(flights.mapped('status')), {'in_progress'})
+        self.assertEqual(set(flights.mapped('atd_present')), {True})
+        self.assertEqual(first_aircraft.status, 'in_use')
+        self.assertEqual(second_aircraft.status, 'in_use')
+
+        flights.write({'ata': 1.0})
+        self.assertEqual(set(flights.mapped('status')), {'done'})
+        self.assertEqual(set(flights.mapped('distributed_hours')), {1.0})
+        self.assertEqual(first_aircraft.total_hours, 1.0)
+        self.assertEqual(second_aircraft.total_hours, 1.0)
+
+    def test_batch_start_rejects_duplicate_active_aircraft(self):
+        aircraft = self._create_aircraft('TS-FLIGHT-07A')
+        flights = self._create_flight('FLT9007A', aircraft) | self._create_flight(
+            'FLT9007B', aircraft,
+        )
+
+        with self.assertRaises(ValidationError):
+            flights.write({'atd': 0.0})
+
+        self.assertEqual(set(flights.mapped('status')), {'scheduled'})
+        self.assertEqual(aircraft.status, 'available')
+
+    def test_active_reassignment_requires_dispatchable_aircraft(self):
+        first_aircraft = self._create_aircraft('TS-FLIGHT-08')
+        second_aircraft = self._create_aircraft('TS-FLIGHT-09')
+        first_flight = self._create_flight('FLT9008', first_aircraft)
+        second_flight = self._create_flight('FLT9009', second_aircraft)
+
+        first_flight.action_start_flight()
+        second_flight.action_start_flight()
+
+        with self.assertRaises(ValidationError):
+            first_flight.write({'aircraft_id': second_aircraft.id})
+
+    def test_active_reassignment_updates_both_aircraft_statuses(self):
+        first_aircraft = self._create_aircraft('TS-FLIGHT-09A')
+        second_aircraft = self._create_aircraft('TS-FLIGHT-09B')
+        flight = self._create_flight('FLT9009A', first_aircraft)
+
+        flight.action_start_flight()
+        flight.write({'aircraft_id': second_aircraft.id})
+
+        self.assertEqual(first_aircraft.status, 'available')
+        self.assertEqual(second_aircraft.status, 'in_use')
+
+    def test_active_flight_prevents_manual_availability_and_unlink_reconciles(self):
+        aircraft = self._create_aircraft('TS-FLIGHT-10')
+        flight = self._create_flight('FLT9010', aircraft)
+
+        flight.action_start_flight()
+        self.assertEqual(flight.status, 'in_progress')
+        self.assertEqual(aircraft.status, 'in_use')
+        with self.assertRaises(ValidationError):
+            aircraft.action_set_available()
+
+        flight.unlink()
+        self.assertEqual(aircraft.status, 'available')
+
+    def test_completed_flight_lifecycle_and_unlink_are_guarded(self):
+        aircraft = self._create_aircraft('TS-FLIGHT-11')
+        flight = self._create_flight('FLT9011', aircraft)
+
+        with self.assertRaises(ValidationError):
+            flight.write({'status': 'done'})
+
+        flight.write({'atd': 9.0, 'ata': 10.0, 'status': 'done'})
+        with self.assertRaises(UserError):
+            flight.unlink()
+        flight.write({'status': 'cancelled'})
+        self.assertEqual(flight.status, 'cancelled')
+
+    def test_publication_is_idempotent(self):
+        aircraft = self._create_aircraft('TS-FLIGHT-12')
+        route = self.env['fs.flight.route'].create({'name': 'Publication Test Route'})
+        schedule = self.env['fs.scheduled.flight'].create({
+            'callsign': 'FLT9012',
+            'date': date.today(),
+            'start_time': 8.0,
+            'duration': 1.0,
+            'flight_category': 'staff_training',
+            'aircraft_id': aircraft.id,
+            'route_id': route.id,
+        })
+
+        scheduled_flights = self.env['fs.scheduled.flight']
+        self.assertEqual(scheduled_flights.action_publish_day(schedule.date), 1)
+        self.assertEqual(scheduled_flights.action_publish_day(schedule.date), 0)
+        self.assertEqual(
+            self.env['fs.flight'].search_count([('scheduled_flight_id', '=', schedule.id)]),
+            1,
+        )

@@ -16,8 +16,9 @@
     <menuitem id="menu_training_dashboard"
               name="Dashboard"
               parent="menu_training_root"
-              action="action_fs_training_dashboard"
-              sequence="1"/>
+               action="action_fs_training_dashboard"
+               groups="fs_core.group_flight_school_manager"
+               sequence="1"/>
 
     <!-- Main menu items -->
     <menuitem id="menu_training_classes"

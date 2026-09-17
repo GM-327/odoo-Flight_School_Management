@@ -99,7 +99,8 @@
                     <!-- Action Buttons -->
                     <div class="row mb-2 px-3">
                         <div class="col text-center">
-                            <button name="action_add_flight" type="object" class="btn btn-primary btn-lg me-2">
+                            <button name="action_add_flight" type="object" class="btn btn-primary btn-lg me-2"
+                                    groups="fs_core.group_flight_school_manager">
                                 <i class="fa fa-plus"/> Add Flight
                             </button>
                             <field name="refresh_dummy" widget="soft_refresh" nolabel="1" class="d-inline-block me-2"/>

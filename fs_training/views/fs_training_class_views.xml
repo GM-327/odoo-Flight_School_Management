@@ -50,7 +50,7 @@
                     <button name="action_cancel_class" string="Cancel" type="object"
                             class="btn-danger" invisible="status == 'cancelled'"
                             confirm="Are you sure you want to cancel this class?"/>
-                    <field name="status" widget="statusbar" statusbar_visible="draft,in_progress,completed"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,in_progress,completed" readonly="1"/>
                 </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>

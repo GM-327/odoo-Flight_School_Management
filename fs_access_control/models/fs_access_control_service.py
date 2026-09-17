@@ -591,10 +591,10 @@ class FsAccessService(models.AbstractModel):
 
     @api.model
     def _is_system_bypass(self, user):
+        """Limit dynamic-policy bypasses to Odoo's actual privileged environments."""
         return (
             user.id == SUPERUSER_ID
             or (self.env.su and self.env.user.id == user.id)
-            or bool(self.env.context.get('fs_access_trusted_system'))
         )
 
     @api.model

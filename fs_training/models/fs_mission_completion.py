@@ -16,6 +16,7 @@ Related Modules:
     fs_scheduling schedules training missions.
 """
 from odoo import api, fields, models
+from odoo.exceptions import AccessError, ValidationError
 
 
 class FsMissionCompletion(models.Model):
@@ -39,6 +40,8 @@ class FsMissionCompletion(models.Model):
     _description = 'Mission Completion'
     _order = 'completion_date desc, id desc'
     _rec_name = 'display_name'
+
+    _instructor_progress_fields = {'is_completed', 'completion_date', 'notes'}
 
     enrollment_id = fields.Many2one(
         'fs.student.enrollment',
@@ -131,6 +134,36 @@ class FsMissionCompletion(models.Model):
         'A mission can only be tracked once per enrollment.',
     )
 
+    def _is_restricted_instructor(self):
+        """Return whether the current user has instructor-only access."""
+        return (
+            self.env.user.has_group('fs_core.group_flight_school_instructor')
+            and not self.env.user.has_group('fs_core.group_flight_school_manager')
+        )
+
+    def write(self, vals):
+        """Limit instructors to manual progress on their assigned enrollments."""
+        if self._is_restricted_instructor():
+            disallowed_fields = set(vals) - self._instructor_progress_fields
+            if disallowed_fields:
+                raise AccessError('Instructors may only update mission completion progress fields.')
+            if self.filtered(lambda completion: completion.source != 'manual'):
+                raise AccessError('Instructors cannot alter system-recorded mission completions.')
+        return super().write(vals)
+
+    @api.constrains('enrollment_id', 'mission_id')
+    def _check_mission_belongs_to_enrollment_class_type(self):
+        """Keep completion records within the enrollment's syllabus."""
+        for record in self:
+            if (
+                record.enrollment_id
+                and record.mission_id
+                and record.mission_id.class_type_id != record.enrollment_id.training_class_id.class_type_id
+            ):
+                raise ValidationError(
+                    'A mission completion must belong to the enrollment class type.'
+                )
+
     @api.depends('enrollment_id.student_id.display_name', 'mission_id.name')
     def _compute_display_name(self):
         """Compute display name values for the current recordset.
@@ -165,7 +198,6 @@ class FsMissionCompletion(models.Model):
             record.write({
                 'is_completed': True,
                 'completion_date': fields.Date.context_today(self),
-                'source': record.source or 'manual',
             })
 
     def action_mark_incomplete(self):

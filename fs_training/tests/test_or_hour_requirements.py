@@ -55,25 +55,21 @@ class TestOrHourRequirements(TransactionCase):
         self.assertEqual(class_type.total_required_aircraft_hours, 2.0)
         self.assertEqual(class_type.total_required_simulator_hours, 5.0)
 
-    def test_same_activity_can_be_used_in_multiple_or_groups(self):
+    def test_same_activity_cannot_be_used_in_multiple_or_groups(self):
         class_type = self._create_or_class_type('ORREQ2')
 
-        class_type.write({
-            'hour_requirement_group_ids': [(0, 0, {
-                'name': 'Second Alternatives',
-                'minimum_hours': 3.0,
-                'count_as': 'aircraft',
-                'hour_requirement_ids': [
-                    (0, 0, {'activity_id': self.activity_vsv_sim.id}),
-                    (0, 0, {'activity_id': self.activity_nav_dual.id}),
-                ],
-            })],
-        })
-
-        self.assertEqual(len(class_type.hour_requirement_group_ids), 2)
-        self.assertEqual(class_type.total_required_hours, 10.0)
-        self.assertEqual(class_type.total_required_aircraft_hours, 5.0)
-        self.assertEqual(class_type.total_required_simulator_hours, 5.0)
+        with self.assertRaises(ValidationError):
+            class_type.write({
+                'hour_requirement_group_ids': [(0, 0, {
+                    'name': 'Second Alternatives',
+                    'minimum_hours': 3.0,
+                    'count_as': 'aircraft',
+                    'hour_requirement_ids': [
+                        (0, 0, {'activity_id': self.activity_vsv_sim.id}),
+                        (0, 0, {'activity_id': self.activity_nav_dual.id}),
+                    ],
+                })],
+            })
 
     def test_duplicate_activity_in_same_or_group_is_rejected(self):
         class_type = self._create_or_class_type('ORREQ3')
