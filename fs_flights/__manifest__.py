@@ -4,7 +4,7 @@
 
 {
     'name': 'Flight School Flights',
-    'version': '19.0.1.2.0',
+    'version': '19.0.1.2.1',
     'category': 'Aviation/Flight School',
     'summary': 'Daily flight operations monitoring and execution logging',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',

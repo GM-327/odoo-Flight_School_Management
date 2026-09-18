@@ -2,6 +2,7 @@
 # Part of Flight School Management System
 
 from datetime import timedelta
+from unittest.mock import patch
 
 from odoo import fields
 from odoo.tests.common import TransactionCase
@@ -121,6 +122,185 @@ class TestFsAccessControl(TransactionCase):
         self.assertEqual(self.service.get_effective_context(self.user)['highest_rank'], 10)
         assignment.write({'role_id': self.role_user.id})
         self.assertEqual(self.service.get_effective_context(self.user)['highest_rank'], 20)
+
+    def test_effective_context_cache_tracks_assignment_validity_window(self):
+        now = fields.Datetime.now()
+        self.env['fs.access.assignment'].create({
+            'user_id': self.user.id,
+            'role_id': self.role_viewer.id,
+            'scope': 'global',
+            'state': 'active',
+            'valid_from': now - timedelta(hours=2),
+            'valid_to': now + timedelta(hours=1),
+        })
+
+        self.assertEqual(self.service.get_effective_context(self.user)['highest_rank'], 10)
+        with patch.object(fields.Datetime, 'now', return_value=now + timedelta(hours=2)):
+            self.assertEqual(self.service.get_effective_context(self.user)['highest_rank'], 0)
+
+    def test_dashboard_and_user_assignment_counts_only_current_assignments(self):
+        now = fields.Datetime.now()
+        self.env['fs.access.assignment'].create([
+            {
+                'user_id': self.user.id,
+                'role_id': self.role_viewer.id,
+                'scope': 'global',
+                'state': 'active',
+                'valid_from': now - timedelta(hours=1),
+                'valid_to': now + timedelta(hours=1),
+            },
+            {
+                'user_id': self.user.id,
+                'role_id': self.role_viewer.id,
+                'scope': 'global',
+                'state': 'active',
+                'valid_from': now + timedelta(hours=1),
+                'valid_to': now + timedelta(hours=2),
+            },
+            {
+                'user_id': self.user.id,
+                'role_id': self.role_viewer.id,
+                'scope': 'global',
+                'state': 'active',
+                'valid_from': now - timedelta(hours=2),
+                'valid_to': now - timedelta(hours=1),
+            },
+            {
+                'user_id': self.user.id,
+                'role_id': self.role_viewer.id,
+                'scope': 'global',
+                'state': 'draft',
+                'valid_from': now - timedelta(hours=1),
+                'valid_to': now + timedelta(hours=1),
+            },
+        ])
+
+        dashboard = self.env['fs.access.dashboard'].new({})
+        dashboard._compute_counts()
+        self.user._compute_fs_access_summary()
+
+        self.assertEqual(dashboard.active_assignment_count, 1)
+        self.assertEqual(self.user.fs_access_assignment_count, 1)
+
+    def test_matching_grant_filters_record_scope_before_limit(self):
+        assignment_model = self.env['ir.model']._get('fs.access.assignment')
+        target_assignment = self.env['fs.access.assignment'].create({
+            'user_id': self.user.id,
+            'role_id': self.role_viewer.id,
+            'department_id': self.parent_department.id,
+            'scope': 'assigned',
+            'state': 'draft',
+        })
+        other_assignment = self.env['fs.access.assignment'].create({
+            'user_id': self.user.id,
+            'role_id': self.role_viewer.id,
+            'department_id': self.parent_department.id,
+            'scope': 'assigned',
+            'state': 'draft',
+        })
+        now = fields.Datetime.now()
+        matching_grant = self.env['fs.access.grant'].create({
+            'user_id': self.user.id,
+            'model_id': assignment_model.id,
+            'operation': 'write',
+            'level_id': self.role_viewer.level_id.id,
+            'department_id': self.parent_department.id,
+            'valid_from': now,
+            'valid_to': now + timedelta(hours=2),
+            'reason': 'Matching assignment grant.',
+        })
+        self.env['fs.access.grant'].create({
+            'user_id': self.user.id,
+            'model_id': assignment_model.id,
+            'res_id': other_assignment.id,
+            'operation': 'write',
+            'level_id': self.role_viewer.level_id.id,
+            'department_id': self.parent_department.id,
+            'valid_from': now,
+            'valid_to': now + timedelta(hours=1),
+            'reason': 'Unrelated assignment grant.',
+        })
+
+        grant = self.service._matching_grant(
+            self.user,
+            'fs.access.assignment',
+            'write',
+            record=target_assignment,
+        )
+
+        self.assertEqual(grant.id, matching_grant.id)
+
+    def test_matching_grant_filters_department_scope_before_limit(self):
+        assignment_model = self.env['ir.model']._get('fs.access.assignment')
+        target_assignment = self.env['fs.access.assignment'].create({
+            'user_id': self.user.id,
+            'role_id': self.role_viewer.id,
+            'department_id': self.parent_department.id,
+            'scope': 'assigned',
+            'state': 'draft',
+        })
+        now = fields.Datetime.now()
+        matching_grant = self.env['fs.access.grant'].create({
+            'user_id': self.user.id,
+            'model_id': assignment_model.id,
+            'res_id': target_assignment.id,
+            'operation': 'write',
+            'level_id': self.role_viewer.level_id.id,
+            'department_id': self.parent_department.id,
+            'valid_from': now,
+            'valid_to': now + timedelta(hours=2),
+            'reason': 'Matching department grant.',
+        })
+        self.env['fs.access.grant'].create({
+            'user_id': self.user.id,
+            'model_id': assignment_model.id,
+            'res_id': target_assignment.id,
+            'operation': 'write',
+            'level_id': self.role_viewer.level_id.id,
+            'department_id': self.other_department.id,
+            'valid_from': now,
+            'valid_to': now + timedelta(hours=1),
+            'reason': 'Unrelated department grant.',
+        })
+
+        grant = self.service._matching_grant(
+            self.user,
+            'fs.access.assignment',
+            'write',
+            record=target_assignment,
+        )
+
+        self.assertEqual(grant.id, matching_grant.id)
+
+    def test_domain_for_excludes_records_matching_conditional_deny(self):
+        self.env['fs.access.assignment'].create({
+            'user_id': self.user.id,
+            'role_id': self.role_viewer.id,
+            'scope': 'global',
+            'state': 'active',
+        })
+        self.env['fs.access.policy'].create({
+            'name': 'Allow all department reads',
+            'policy_type': 'model',
+            'model_id': self.department_model.id,
+            'operation': 'read',
+            'effect': 'allow',
+            'department_scope': 'none',
+        })
+        self.env['fs.access.policy'].create({
+            'name': 'Deny selected department reads',
+            'policy_type': 'record',
+            'model_id': self.department_model.id,
+            'operation': 'read',
+            'effect': 'deny',
+            'department_scope': 'none',
+            'custom_domain': "[('code', '=', 'ACL-PAR')]",
+        })
+
+        access_domain = self.service.domain_for(self.user, 'fs.department', 'read')
+
+        self.assertFalse(self.parent_department.filtered_domain(access_domain))
+        self.assertTrue(self.other_department.filtered_domain(access_domain))
 
     def test_menu_policy_uses_bootstrap_admin_group(self):
         menu = self.env.ref('fs_access_control.menu_access_levels')

@@ -214,6 +214,19 @@ class FsSimulatorOperations(models.Model):
         relation='fs_sim_ops_paginated_sessions_rel',
     )
 
+    @api.model
+    def get_carousel_interval(self):
+        """Return the configured carousel interval for the board widget."""
+        self.check_access_rights('read')
+        value = self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.operations_carousel_interval',
+            '10',
+        )
+        try:
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 10
+
     @api.depends('session_ids', 'session_ids.status', 'session_ids.actual_duration', 'session_ids.aircraft_id')
     def _compute_kpis(self):
         """Compute summary KPIs for today's simulator sessions.
@@ -425,6 +438,23 @@ class FsSimulatorOperations(models.Model):
         return {
             'type': 'ir.actions.client',
             'tag': 'reload',
+        }
+
+    def action_open_simulator_board(self):
+        """Open today's simulator board using the user's contextual date."""
+        today = fields.Date.context_today(self)
+        record = self.search([('date', '=', today)], limit=1)
+        if not record:
+            record = self.create({'date': today})
+
+        return {
+            'name': _('Simulator Operations Board'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'fs.simulator.operations',
+            'res_id': record.id,
+            'view_mode': 'form',
+            'target': 'main',
+            'context': {'form_view_initial_mode': 'edit'},
         }
 
     # === Pagination Navigation ===

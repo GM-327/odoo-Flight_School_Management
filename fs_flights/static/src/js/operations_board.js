@@ -1,40 +1,41 @@
 /** @odoo-module **/
 
-import { Component, onMounted, onWillUnmount } from "@odoo/owl";
-import { registry } from "@web/core/registry";
+let clockIntervalId = null;
+let clockObserver = null;
 
-/**
- * Live clock component for Operations Board
- * Updates every second to show current UTC time
- */
-export class OperationsBoardClock extends Component {
-    static template = "fs_flights.OperationsBoardClock";
-    static props = {};
+function updateClocks() {
+    const now = new Date();
+    const value = `${String(now.getUTCHours()).padStart(2, '0')}:` +
+        `${String(now.getUTCMinutes()).padStart(2, '0')} Z`;
+    document.querySelectorAll('.fs_operations_board #live_clock').forEach((element) => {
+        element.textContent = value;
+    });
+}
 
-    setup() {
-        this.intervalId = null;
-
-        onMounted(() => {
-            this.updateClock();
-            this.intervalId = setInterval(() => this.updateClock(), 1000);
-        });
-
-        onWillUnmount(() => {
-            if (this.intervalId) {
-                clearInterval(this.intervalId);
-            }
-        });
+function syncClockTimer() {
+    const boardIsMounted = document.querySelector('.fs_operations_board #live_clock');
+    if (boardIsMounted && !clockIntervalId) {
+        updateClocks();
+        clockIntervalId = setInterval(updateClocks, 1000);
+    } else if (!boardIsMounted && clockIntervalId) {
+        clearInterval(clockIntervalId);
+        clockIntervalId = null;
     }
+}
 
-    updateClock() {
-        const clockElement = document.getElementById('live_clock');
-        if (clockElement) {
-            const now = new Date();
-            const hours = String(now.getUTCHours()).padStart(2, '0');
-            const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-            clockElement.textContent = `${hours}:${minutes} Z`;
-        }
+function setupClockTimer() {
+    syncClockTimer();
+    if (clockObserver || !document.body) {
+        return;
     }
+    clockObserver = new MutationObserver(syncClockTimer);
+    clockObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupClockTimer, { once: true });
+} else {
+    setupClockTimer();
 }
 
 /**
@@ -116,40 +117,5 @@ function updateFullscreenButton() {
         }
     }
 }
-
-// Initialize clock when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    const updateClock = () => {
-        const clockElement = document.getElementById('live_clock');
-        if (clockElement) {
-            const now = new Date();
-            const hours = String(now.getUTCHours()).padStart(2, '0');
-            const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-            clockElement.textContent = `${hours}:${minutes} Z`;
-        }
-    };
-
-    // Update immediately and then every second
-    updateClock();
-    setInterval(updateClock, 1000);
-});
-
-// Handle manual clock updates for non-OWL context
-if (typeof owl !== 'undefined') {
-    owl.whenReady(() => {
-        const updateClock = () => {
-            const clockElement = document.getElementById('live_clock');
-            if (clockElement) {
-                const now = new Date();
-                const hours = String(now.getUTCHours()).padStart(2, '0');
-                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
-                clockElement.textContent = `${hours}:${minutes} Z`;
-            }
-        };
-        updateClock();
-        setInterval(updateClock, 1000);
-    });
-}
-
 
 

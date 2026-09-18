@@ -15,7 +15,6 @@ Related Modules:
     Depends on: fs_core, fs_people, fs_fleet, mail.
     fs_scheduling schedules training missions.
 """
-from datetime import date
 import json
 from odoo import api, fields, models
 
@@ -104,7 +103,7 @@ class FsTrainingDashboard(models.TransientModel):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         TrainingClass = self.env['fs.training.class']
-        today = date.today()
+        today = fields.Date.context_today(self)
         for record in self:
             record.class_total = TrainingClass.search_count([
                 ('status', 'in', ['draft', 'in_progress']),
@@ -147,8 +146,19 @@ class FsTrainingDashboard(models.TransientModel):
         for record in self:
             record.enrolment_total = Enrollment.search_count([])
             classes = Class.search([('status', '=', 'in_progress')])
-            if classes:
-                record.class_progression = sum(classes.mapped('progress_percentage')) / len(classes)
+            enrollments = classes.mapped('enrollment_ids').filtered_domain([
+                ('status', 'not in', ['dropped', 'cancelled']),
+            ])
+            total_required = 0.0
+            total_progress = 0.0
+            for enrollment in enrollments:
+                progress_values = enrollment._get_requirement_progress_values()
+                total_required += progress_values['total_required']
+                total_progress += progress_values['total_progress']
+            if total_required > 0.0:
+                record.class_progression = total_progress / total_required * 100.0
+            elif enrollments:
+                record.class_progression = sum(enrollments.mapped('progression')) / len(enrollments)
             else:
                 record.class_progression = 0.0
 
@@ -234,7 +244,7 @@ class FsTrainingDashboard(models.TransientModel):
         Returns:
             dict | None: Odoo action dictionary, or None when no action is needed.
         """
-        today = date.today()
+        today = fields.Date.context_today(self)
         return {
             'name': 'Overdue Classes',
             'type': 'ir.actions.act_window',

@@ -129,7 +129,7 @@
                                                 <div class="rounded-circle bg-danger-light p-2 me-3" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
                                                     <i class="fa fa-times text-danger" title="Expired"/>
                                                 </div>
-                                                <span class="text-muted">Expired Documents</span>
+                                                <span class="text-muted">Missing or Expired Documents</span>
                                             </div>
                                             <span class="badge rounded-pill bg-danger shadow-sm"><field name="cert_expired"/></span>
                                         </button>

@@ -75,7 +75,7 @@ class FsDailyOperations(models.Model):
 
     date = fields.Date(
         string='Date',
-        default=fields.Date.today,
+        default=fields.Date.context_today,
     )
     date_display = fields.Char(
         string='Date Display',
@@ -238,6 +238,23 @@ class FsDailyOperations(models.Model):
         compute='_compute_paginated_flights',
         relation='fs_daily_ops_paginated_flights_rel',
     )
+
+    @api.model
+    def get_carousel_interval(self):
+        """Return the configured carousel interval for the board widget.
+
+        The setting is read with narrowly scoped elevation because regular
+        users can view the board but do not have access to system parameters.
+        """
+        self.check_access_rights('read')
+        value = self.env['ir.config_parameter'].sudo().get_param(
+            'flight_school.operations_carousel_interval',
+            '10',
+        )
+        try:
+            return max(0, int(value))
+        except (TypeError, ValueError):
+            return 10
 
     @api.depends(
         'flight_log_ids',

@@ -70,11 +70,19 @@ class FsDepartment(models.Model):
     def create(self, vals_list):
         """Normalize department values before creation."""
         normalized_vals_list = [self._normalize_write_vals(vals) for vals in vals_list]
-        return super().create(normalized_vals_list)
+        records = super().create(normalized_vals_list)
+        access_service = self.env.get('fs.access.service')
+        if access_service:
+            access_service.invalidate_security_cache()
+        return records
 
     def write(self, vals):
         """Normalize department values before writing."""
-        return super().write(self._normalize_write_vals(vals))
+        result = super().write(self._normalize_write_vals(vals))
+        access_service = self.env.get('fs.access.service')
+        if access_service:
+            access_service.invalidate_security_cache()
+        return result
 
     @api.constrains('code')
     def _check_code(self):

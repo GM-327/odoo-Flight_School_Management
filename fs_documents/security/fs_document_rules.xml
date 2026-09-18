@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Personal document owners can see their own records and common class-type material. -->
+    <!-- Base users read their own records and common class-type material only. -->
     <record id="rule_fs_document_user_own_or_common" model="ir.rule">
         <field name="name">Documents: own or common class-type records</field>
         <field name="model_id" ref="model_fs_document"/>
         <field name="groups" eval="[(4, ref('fs_core.group_flight_school_user'))]"/>
         <field name="domain_force">['|', '|', '|', ('student_id.user_id', '=', user.id), ('instructor_id.user_id', '=', user.id), ('pilot_id.user_id', '=', user.id), ('class_type_id', '!=', False)]</field>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
-    <!-- Instructors additionally see documents for students and classes assigned to them. -->
+    <!-- Instructors can write/create owned or assigned records; class-type material stays read-only. -->
     <record id="rule_fs_document_instructor_assigned" model="ir.rule">
         <field name="name">Documents: instructor assigned entities</field>
         <field name="model_id" ref="model_fs_document"/>
         <field name="groups" eval="[(4, ref('fs_core.group_flight_school_instructor'))]"/>
-        <field name="domain_force">['|', '|', '|', '|', '|', '|', ('student_id.user_id', '=', user.id), ('instructor_id.user_id', '=', user.id), ('pilot_id.user_id', '=', user.id), ('class_type_id', '!=', False), ('student_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('admin_task_id.training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', '|', '|', '|', ('student_id.user_id', '=', user.id), ('instructor_id.user_id', '=', user.id), ('pilot_id.user_id', '=', user.id), ('student_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('admin_task_id.training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
     <!-- Managers are limited to departments they manage, in addition to personal/common records. -->
@@ -47,26 +47,28 @@
         <field name="perm_unlink" eval="True"/>
     </record>
 
+    <!-- Base users read their own versions and common class-type material only. -->
     <record id="rule_fs_document_version_user_own_or_common" model="ir.rule">
         <field name="name">Document versions: own or common class-type records</field>
         <field name="model_id" ref="model_fs_document_version"/>
         <field name="groups" eval="[(4, ref('fs_core.group_flight_school_user'))]"/>
         <field name="domain_force">['|', '|', '|', ('document_id.student_id.user_id', '=', user.id), ('document_id.instructor_id.user_id', '=', user.id), ('document_id.pilot_id.user_id', '=', user.id), ('document_id.class_type_id', '!=', False)]</field>
         <field name="perm_read" eval="True"/>
-        <field name="perm_write" eval="True"/>
-        <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Instructors can write/create versions for owned or assigned documents only. -->
     <record id="rule_fs_document_version_instructor_assigned" model="ir.rule">
         <field name="name">Document versions: instructor assigned entities</field>
         <field name="model_id" ref="model_fs_document_version"/>
         <field name="groups" eval="[(4, ref('fs_core.group_flight_school_instructor'))]"/>
-        <field name="domain_force">['|', '|', '|', '|', '|', '|', ('document_id.student_id.user_id', '=', user.id), ('document_id.instructor_id.user_id', '=', user.id), ('document_id.pilot_id.user_id', '=', user.id), ('document_id.class_type_id', '!=', False), ('document_id.student_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('document_id.training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('document_id.admin_task_id.training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id)]</field>
+        <field name="domain_force">['|', '|', '|', '|', '|', ('document_id.student_id.user_id', '=', user.id), ('document_id.instructor_id.user_id', '=', user.id), ('document_id.pilot_id.user_id', '=', user.id), ('document_id.student_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('document_id.training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id), ('document_id.admin_task_id.training_class_id.enrollment_ids.instructor_id.user_id', '=', user.id)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="True"/>
         <field name="perm_create" eval="True"/>
-        <field name="perm_unlink" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
     <record id="rule_fs_document_version_manager_department" model="ir.rule">

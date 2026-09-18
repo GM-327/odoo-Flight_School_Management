@@ -15,9 +15,20 @@ Related Modules:
     Depends on: fs_core, mail.
     fs_training enrolls people in classes.
 """
+from collections import defaultdict
 from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+
+
+COMPLIANCE_WARNING_DEFAULTS = {
+    'medical_warning_days': 35,
+    'license_warning_days': 35,
+    'english_warning_days': 60,
+    'security_warning_days': 60,
+    'insurance_warning_days': 14,
+}
+COMPLIANCE_BATCH_SIZE = 1000
 
 
 class FsPerson(models.AbstractModel):
@@ -430,8 +441,7 @@ class FsPerson(models.AbstractModel):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.medical_warning_days', '30'))
+        warning_days = self._get_compliance_warning_days('medical_warning_days')
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
 
@@ -444,6 +454,78 @@ class FsPerson(models.AbstractModel):
                 record.medical_status = 'expiring'
             else:
                 record.medical_status = 'valid'
+
+    @api.model
+    def _get_compliance_warning_days(self, setting_name):
+        """Return a safe warning window using the settings module defaults."""
+        default_days = COMPLIANCE_WARNING_DEFAULTS[setting_name]
+        raw_value = self.env['ir.config_parameter'].sudo().get_param(
+            f'flight_school.{setting_name}', str(default_days),
+        )
+        try:
+            return max(int(raw_value), 0)
+        except (TypeError, ValueError):
+            return default_days
+
+    @api.model
+    def _recompute_compliance_statuses(self, full=False, today=None):
+        """Refresh stored date-relative statuses without rebuilding every row daily."""
+        today = today or fields.Date.context_today(self)
+        touched_ids = defaultdict(set)
+        status_specs = (
+            ('fs.student', 'medical_expiry', '_compute_medical_status', 'medical_warning_days'),
+            ('fs.student', 'license_expiry', '_compute_license_expiry_status', 'license_warning_days'),
+            ('fs.student', 'security_clearance_expiry', '_compute_security_clearance_status', 'security_warning_days'),
+            ('fs.student', 'insurance_expiry', '_compute_insurance_status', 'insurance_warning_days'),
+            ('fs.instructor', 'medical_expiry', '_compute_medical_status', 'medical_warning_days'),
+            ('fs.instructor', 'english_expiry', '_compute_english_status', 'english_warning_days'),
+            ('fs.pilot', 'medical_expiry', '_compute_medical_status', 'medical_warning_days'),
+            ('fs.pilot', 'english_expiry', '_compute_english_status', 'english_warning_days'),
+            ('fs.pilot', 'security_clearance_expiry', '_compute_security_clearance_status', 'security_warning_days'),
+            ('fs.pilot', 'insurance_expiry', '_compute_insurance_status', 'insurance_warning_days'),
+            ('fs.person.qualification', 'expiry_date', '_compute_expiry_status', 'license_warning_days'),
+        )
+        for model_name, expiry_field, compute_method, setting_name in status_specs:
+            model = self.env[model_name].sudo()
+            domain = []
+            if not full:
+                warning_days = self._get_compliance_warning_days(setting_name)
+                domain = [
+                    (expiry_field, '>=', today - timedelta(days=1)),
+                    (expiry_field, '<=', today + timedelta(days=warning_days)),
+                ]
+            last_id = 0
+            while True:
+                batch = model.search(
+                    domain + [('id', '>', last_id)],
+                    order='id',
+                    limit=COMPLIANCE_BATCH_SIZE,
+                )
+                if not batch:
+                    break
+                getattr(batch, compute_method)()
+                last_id = batch[-1].id
+                if model_name == 'fs.person.qualification':
+                    touched_ids['fs.instructor'].update(batch.mapped('instructor_id').ids)
+                    touched_ids['fs.pilot'].update(batch.mapped('pilot_id').ids)
+                else:
+                    touched_ids[model_name].update(batch.ids)
+
+        aggregate_methods = {
+            'fs.student': '_compute_has_expired_status',
+            'fs.instructor': '_compute_has_expired_qualification',
+            'fs.pilot': '_compute_has_expired_qualification',
+        }
+        for model_name, compute_method in aggregate_methods.items():
+            record_ids = touched_ids[model_name]
+            if record_ids:
+                getattr(self.env[model_name].sudo().browse(record_ids), compute_method)()
+        return True
+
+    @api.model
+    def cron_refresh_compliance_statuses(self):
+        """Refresh status values at the daily date-relative boundaries."""
+        return self.env['fs.person']._recompute_compliance_statuses()
 
     @api.depends('user_id')
     def _compute_has_user(self):

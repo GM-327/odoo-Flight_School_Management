@@ -15,7 +15,7 @@ Related Modules:
     fs_flights publishes scheduled plans to operations boards.
 """
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -1198,6 +1198,15 @@ class FsScheduledFlight(models.Model):
             next_day += timedelta(days=1)
         return next_day
 
+    @staticmethod
+    def _normalize_timeline_datetime(value):
+        """Convert timeline datetimes to Odoo's naive UTC representation."""
+        if isinstance(value, str):
+            value = datetime.fromisoformat(value.replace('Z', '+00:00'))
+        if value.tzinfo is not None:
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value
+
     def write(self, vals):
         """Handle timeline drag/drop by converting datetime fields to date + start_time.
 
@@ -1208,18 +1217,13 @@ class FsScheduledFlight(models.Model):
             bool: True when Odoo successfully writes the requested values.
         """
         if 'start_datetime' in vals and vals['start_datetime']:
-            start_dt = vals['start_datetime']
-            if isinstance(start_dt, str):
-                start_dt = datetime.fromisoformat(
-                    start_dt.replace('Z', '+00:00'))
+            start_dt = self._normalize_timeline_datetime(vals['start_datetime'])
             vals['date'] = start_dt.date()
             vals['start_time'] = start_dt.hour + start_dt.minute / 60.0
             del vals['start_datetime']
 
         if 'end_datetime' in vals and vals['end_datetime']:
-            end_dt = vals['end_datetime']
-            if isinstance(end_dt, str):
-                end_dt = datetime.fromisoformat(end_dt.replace('Z', '+00:00'))
+            end_dt = self._normalize_timeline_datetime(vals['end_datetime'])
             if 'start_time' in vals and 'date' in vals:
                 start_dt = datetime.combine(vals['date'], datetime.min.time())
                 start_dt = start_dt.replace(

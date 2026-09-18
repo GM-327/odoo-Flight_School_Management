@@ -1174,9 +1174,10 @@ class FsFlight(models.Model):
     def _get_operational_completion_keys(self):
         """Return qualifying completed-flight keys indexed by flight ID.
 
-        A completion is tied to the active enrollment that supplies the
-        flight's stored student and training-class values. This matches hour
-        posting and prevents a flight from completing a different syllabus.
+        A completion is tied to the enrollment that supplies the flight's
+        stored student and training-class values. This matches hour posting,
+        including reversal after the enrollment has graduated or been dropped,
+        and prevents a flight from completing a different syllabus.
         """
         candidates = self.filtered(
             lambda record: (
@@ -1196,7 +1197,6 @@ class FsFlight(models.Model):
         enrollments = self.env['fs.student.enrollment'].search([
             ('student_id', 'in', [pair[0] for pair in enrollment_pairs]),
             ('training_class_id', 'in', [pair[1] for pair in enrollment_pairs]),
-            ('status', '=', 'active'),
         ])
         enrollment_by_pair = {
             (enrollment.student_id.id, enrollment.training_class_id.id): enrollment
@@ -1663,7 +1663,6 @@ class FsFlight(models.Model):
         enrollment = self.env['fs.student.enrollment'].search([
             ('student_id', '=', self.student_id.id),
             ('training_class_id', '=', self.training_class_id.id),
-            ('status', '=', 'active'),
         ], limit=1)
 
         if not enrollment:

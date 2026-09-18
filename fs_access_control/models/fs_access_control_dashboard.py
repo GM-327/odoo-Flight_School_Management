@@ -26,8 +26,11 @@ class FsAccessDashboard(models.TransientModel):
         Audit = self.env['fs.access.audit.log'].sudo()
         for dashboard in self:
             dashboard.active_assignment_count = Assignment.search_count([
+                ('user_id.active', '=', True),
                 ('active', '=', True),
                 ('state', '=', 'active'),
+                '|', ('valid_from', '=', False), ('valid_from', '<=', now),
+                '|', ('valid_to', '=', False), ('valid_to', '>=', now),
             ])
             dashboard.active_policy_count = Policy.search_count([('active', '=', True)])
             dashboard.active_grant_count = Grant.search_count([

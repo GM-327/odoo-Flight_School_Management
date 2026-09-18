@@ -1374,6 +1374,20 @@ class FsSchedulingWizard(models.TransientModel):
         if not self.line_ids:
             raise UserError(_("No flights to schedule."))
 
+        missing_aircraft_lines = self.line_ids.filtered(
+            lambda line: not line.aircraft_id
+        )
+        if missing_aircraft_lines:
+            missing_flights = ', '.join(
+                line.callsign_display or _("line %s") % line.sequence
+                for line in missing_aircraft_lines
+            )
+            raise UserError(_(
+                "Please assign an aircraft to every flight before scheduling. "
+                "Missing aircraft: %(flights)s.",
+                flights=missing_flights,
+            ))
+
         self._check_line_instructor_availability()
 
         _logger.info(

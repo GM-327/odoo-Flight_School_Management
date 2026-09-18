@@ -4,12 +4,6 @@
    HORIZONTAL SCROLL FIX - TARGETED APPROACH
    ============================================ */
 
-/* Global overflow prevention - only when operations board is present */
-html,
-body {
-    overflow-x: hidden;
-}
-
 /* Main board container - flex layout with fixed header and scrollable list */
 .fs_operations_board {
     background-color: #f8f9fa;

@@ -30,28 +30,40 @@ class FsAccessService(models.AbstractModel):
     def get_effective_context(self, user):
         """Return cached role, rank, and department scope for a user."""
         user = self._coerce_user(user)
-        context = self._get_effective_context_cached(user.id)
+        assignment_cache_key = self._effective_assignment_cache_key(user.id)
+        context = self._get_effective_context_cached(user.id, assignment_cache_key)
         return {
             key: value.copy() if isinstance(value, dict) else list(value) if isinstance(value, list) else value
             for key, value in context.items()
         }
 
     @api.model
-    @tools.ormcache('user_id')
-    def _get_effective_context_cached(self, user_id):
+    def _effective_assignment_cache_key(self, user_id):
         user = self.env['res.users'].sudo().browse(user_id).exists()
-        if not user or not user.active:
-            return self._empty_effective_context(user_id)
-
+        if not user:
+            return False, ()
         now = fields.Datetime.now()
-        assignments = self.env['fs.access.assignment'].sudo().search([
+        assignment_ids = self.env['fs.access.assignment'].sudo().search([
             ('user_id', '=', user.id),
             ('user_id.active', '=', True),
             ('active', '=', True),
             ('state', '=', 'active'),
+            ('role_id.active', '=', True),
+            ('level_id.active', '=', True),
             '|', ('valid_from', '=', False), ('valid_from', '<=', now),
             '|', ('valid_to', '=', False), ('valid_to', '>=', now),
-        ])
+        ]).ids
+        return user.active, tuple(assignment_ids)
+
+    @api.model
+    @tools.ormcache('user_id', 'assignment_cache_key')
+    def _get_effective_context_cached(self, user_id, assignment_cache_key):
+        user = self.env['res.users'].sudo().browse(user_id).exists()
+        user_is_active, assignment_ids = assignment_cache_key
+        if not user or not user_is_active:
+            return self._empty_effective_context(user_id)
+
+        assignments = self.env['fs.access.assignment'].sudo().browse(assignment_ids).exists()
 
         department_rank_by_id = {}
         assignment_department_ids = set()
@@ -221,44 +233,48 @@ class FsAccessService(models.AbstractModel):
         policies = self._candidate_policies(model_name, operation).filtered(
             lambda policy: policy.policy_type in ('model', 'record')
         )
-        deny_policies = policies.filtered(lambda policy: policy.effect == 'deny')
-        for policy in deny_policies:
-            if (
-                policy.department_scope in ('none', 'global')
-                and not policy.custom_domain
-                and self._policy_matches_user(policy, user, context, model_name, operation)
-            ):
+        deny_domains = []
+        for policy in policies.filtered(lambda candidate: candidate.effect == 'deny'):
+            policy_domain = self._policy_domain(policy, user, context, model_name, operation)
+            if policy_domain is Domain.TRUE:
                 return list(Domain.FALSE)
+            if policy_domain is not Domain.FALSE:
+                deny_domains.append(policy_domain)
 
         allow_domains = []
         for grant in self._matching_grants(user, model_name, operation):
             grant_domain = self._grant_domain(model_name, grant)
             if grant_domain is Domain.TRUE:
-                return []
+                allow_domains.append(Domain.TRUE)
+                continue
             if grant_domain is not Domain.FALSE:
                 allow_domains.append(grant_domain)
 
         for policy in policies.filtered(lambda candidate: candidate.effect == 'allow'):
             policy_domain = self._policy_domain(policy, user, context, model_name, operation)
-            if policy_domain is Domain.TRUE:
-                return []
             if policy_domain is not Domain.FALSE:
                 allow_domains.append(policy_domain)
 
         if not allow_domains:
             return list(Domain.FALSE)
-        return list(Domain.OR(allow_domains))
+        access_domain = Domain.OR(allow_domains)
+        if deny_domains:
+            access_domain &= ~Domain.OR(deny_domains)
+        return list(access_domain)
 
     @api.model
     def visible_menus(self, user, menus):
         """Apply configured menu policies to a native Odoo visible menu recordset."""
         if not menus:
             return menus
+        now = fields.Datetime.now()
         controlled_menu_ids = set(self.env['fs.access.policy'].sudo().search([
             ('active', '=', True),
             ('policy_type', '=', 'menu'),
             ('operation', '=', 'show_menu'),
             ('menu_id', 'in', menus.ids),
+            '|', ('valid_from', '=', False), ('valid_from', '<=', now),
+            '|', ('valid_to', '=', False), ('valid_to', '>=', now),
         ]).mapped('menu_id').ids)
         if not controlled_menu_ids:
             return menus
@@ -289,11 +305,14 @@ class FsAccessService(models.AbstractModel):
     @api.model
     def filter_view_buttons(self, user, model_name, arch, view_id=None):
         """Remove buttons denied by active button policies from a view architecture."""
+        now = fields.Datetime.now()
         if not arch or not self.env['fs.access.policy'].sudo().search_count([
             ('active', '=', True),
             ('policy_type', '=', 'button'),
             ('operation', '=', 'show_button'),
             ('model_id.model', '=', model_name),
+            '|', ('valid_from', '=', False), ('valid_from', '<=', now),
+            '|', ('valid_to', '=', False), ('valid_to', '>=', now),
         ]):
             return arch
 
@@ -316,12 +335,15 @@ class FsAccessService(models.AbstractModel):
     @api.model
     def check_field_write(self, user, model_name, field_names, records=None):
         """Check only configured field write policies; uncontrolled fields remain governed by model write."""
+        now = fields.Datetime.now()
         controlled_fields = self.env['fs.access.policy'].sudo().search([
             ('active', '=', True),
             ('policy_type', '=', 'field'),
             ('operation', '=', 'write_field'),
             ('model_id.model', '=', model_name),
             ('field_name', 'in', list(field_names)),
+            '|', ('valid_from', '=', False), ('valid_from', '<=', now),
+            '|', ('valid_to', '=', False), ('valid_to', '>=', now),
         ]).mapped('field_name')
         for field_name in controlled_fields:
             target_records = records or self.env[model_name]
@@ -361,6 +383,10 @@ class FsAccessService(models.AbstractModel):
             domain.append(('menu_id', '=', kwargs['menu'].id))
         if kwargs.get('report'):
             domain.append(('report_id', '=', kwargs['report'].id))
+        if kwargs.get('view_id'):
+            domain.extend(['|', ('view_id', '=', False), ('view_id', '=', kwargs['view_id'])])
+        if kwargs.get('action_id'):
+            domain.append(('action_id', '=', kwargs['action_id']))
         if kwargs.get('button_name'):
             domain.extend(['|', ('button_name', '=', kwargs['button_name']), ('button_name', '=', False)])
         if kwargs.get('button_method'):
@@ -394,6 +420,10 @@ class FsAccessService(models.AbstractModel):
         if kwargs.get('button_name') and policy.button_name and policy.button_name != kwargs['button_name']:
             return False
         if kwargs.get('button_method') and policy.button_method and policy.button_method != kwargs['button_method']:
+            return False
+        if kwargs.get('view_id') and policy.view_id and policy.view_id.id != kwargs['view_id']:
+            return False
+        if kwargs.get('action_id') and policy.action_id and policy.action_id.id != kwargs['action_id']:
             return False
         if policy.custom_domain and record and not self._record_matches_custom_domain(record, policy.custom_domain):
             return False
@@ -443,20 +473,31 @@ class FsAccessService(models.AbstractModel):
         if not model:
             return self.env['fs.access.grant']
         now = fields.Datetime.now()
-        grants = self.env['fs.access.grant'].sudo().search([
+        domain = [
             ('user_id', '=', user.id),
+            ('user_id.active', '=', True),
             ('state', '=', 'active'),
             ('model_id', '=', model.id),
             ('operation', '=', operation),
+            ('level_id.active', '=', True),
             ('valid_from', '<=', now),
             ('valid_to', '>=', now),
-        ], order='res_id desc, valid_to', limit=limit)
-        if not record:
-            return grants
-        department_id = self._record_department_id(record)
-        return grants.filtered(
-            lambda grant: (not grant.res_id or grant.res_id == record.id)
-            and (not grant.department_id or grant.department_id.id == department_id)
+        ]
+        if record:
+            department_id = self._record_department_id(record)
+            domain.extend([
+                '|', ('res_id', '=', False), ('res_id', '=', record.id),
+            ])
+            if department_id:
+                domain.extend([
+                    '|', ('department_id', '=', False), ('department_id', '=', department_id),
+                ])
+            else:
+                domain.append(('department_id', '=', False))
+        return self.env['fs.access.grant'].sudo().search(
+            domain,
+            order='res_id desc, valid_to',
+            limit=limit,
         )
 
     @api.model
@@ -494,10 +535,6 @@ class FsAccessService(models.AbstractModel):
 
     @api.model
     def _grant_domain(self, model_name, grant):
-        if grant.res_id:
-            return Domain('id', '=', grant.res_id)
-        if not grant.department_id:
-            return Domain.TRUE
         model = self.env.get(model_name)
         if not model:
             return Domain.FALSE
@@ -508,7 +545,12 @@ class FsAccessService(models.AbstractModel):
         )
         if department_field not in model._fields:
             return Domain.FALSE
-        return Domain(department_field, '=', grant.department_id.id)
+        domain = Domain.TRUE
+        if grant.res_id:
+            domain &= Domain('id', '=', grant.res_id)
+        if grant.department_id:
+            domain &= Domain(department_field, '=', grant.department_id.id)
+        return domain
 
     @api.model
     def _custom_domain(self, policy):
@@ -627,9 +669,11 @@ class FsAccessService(models.AbstractModel):
         if request and getattr(request, 'httprequest', None):
             request_ip = request.httprequest.remote_addr
             request_user_agent = request.httprequest.user_agent.string
-        self.env['fs.access.audit.log'].sudo().create({
+        values = {
             'event_type': event_type,
             'user_id': user_id or self.env.user.id,
+            'subject_user_id': user_id or False,
+            'actor_id': self.env.user.id,
             'target_model': target_model,
             'target_res_id': target_res_id or 0,
             'operation': operation,
@@ -641,4 +685,19 @@ class FsAccessService(models.AbstractModel):
             'reason': reason,
             'ip_address': request_ip,
             'user_agent': request_user_agent,
-        })
+        }
+        if decision == 'denied':
+            # Denials are raised immediately after logging. Persist them in a
+            # short independent transaction so the caller rollback cannot
+            # erase the audit trail. Audit failure must never replace the
+            # original access decision.
+            try:
+                with self.env.registry.cursor() as audit_cursor:
+                    audit_env = api.Environment(audit_cursor, SUPERUSER_ID, {})
+                    audit_env['fs.access.audit.log'].create(values)
+                    audit_cursor.commit()
+            except Exception:
+                return False
+        else:
+            self.env['fs.access.audit.log'].sudo().create(values)
+        return True

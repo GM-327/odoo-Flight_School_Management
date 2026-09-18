@@ -173,7 +173,10 @@ class FsAccessPolicy(models.Model):
             if record.valid_from and record.valid_to and record.valid_to <= record.valid_from:
                 raise ValidationError(_('Policy expiry must be after the start date.'))
 
-    @api.constrains('policy_type', 'model_id', 'field_name', 'menu_id', 'button_name', 'button_method', 'report_id')
+    @api.constrains(
+        'policy_type', 'model_id', 'field_name', 'menu_id', 'button_name',
+        'button_method', 'view_id', 'action_id', 'report_id',
+    )
     def _check_policy_target(self):
         for record in self:
             if record.policy_type in ('model', 'record', 'field', 'action', 'button') and not record.model_id:
@@ -186,6 +189,8 @@ class FsAccessPolicy(models.Model):
                 raise ValidationError(_('A button name or method is required for button policies.'))
             if record.policy_type == 'report' and not record.report_id:
                 raise ValidationError(_('A report is required for report policies.'))
+            if record.policy_type == 'action' and not record.action_id:
+                raise ValidationError(_('An action is required for action policies.'))
 
     @api.constrains('custom_domain')
     def _check_custom_domain(self):

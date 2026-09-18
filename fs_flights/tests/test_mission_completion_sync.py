@@ -152,3 +152,41 @@ class TestOperationalMissionCompletionSync(TransactionCase):
 
         second_flight.write({'status': 'cancelled'})
         self.assertFalse(completion.exists())
+
+    def test_reversal_after_graduation_restores_source_and_hours(self):
+        enrollment, mission, crew = self._create_training_context('OPGRAD')
+        completion = self.env['fs.mission.completion'].create({
+            'enrollment_id': enrollment.id,
+            'mission_id': mission.id,
+            'is_completed': False,
+            'source': 'manual',
+            'source_reference': 'MANUAL-BEFORE-GRADUATION',
+        })
+        flight = self._create_flight('OP1005', mission, crew)
+
+        self._complete(flight)
+        self.assertEqual(enrollment.total_hours, 1.0)
+        enrollment.training_class_id.actual_end_date = date.today()
+        enrollment.training_class_id.action_complete_class()
+        self.assertEqual(enrollment.status, 'graduated')
+
+        flight.write({'status': 'cancelled'})
+        self.assertTrue(completion.exists())
+        self.assertFalse(completion.is_completed)
+        self.assertEqual(completion.source, 'manual')
+        self.assertEqual(completion.source_reference, 'MANUAL-BEFORE-GRADUATION')
+        self.assertEqual(enrollment.total_hours, 0.0)
+
+    def test_reversal_after_drop_removes_completion_and_hours(self):
+        enrollment, mission, crew = self._create_training_context('OPDROP')
+        flight = self._create_flight('OP1006', mission, crew)
+
+        self._complete(flight)
+        completion = self._completion(enrollment, mission)
+        self.assertEqual(enrollment.total_hours, 1.0)
+        enrollment.action_drop()
+        self.assertEqual(enrollment.status, 'dropped')
+
+        flight.write({'status': 'cancelled'})
+        self.assertFalse(completion.exists())
+        self.assertEqual(enrollment.total_hours, 0.0)

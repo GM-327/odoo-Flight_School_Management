@@ -15,7 +15,7 @@ Related Modules:
     Depends on: fs_core, mail.
     fs_training defines aircraft-type requirements.
 """
-from datetime import date, timedelta
+from datetime import timedelta
 import json
 from odoo import api, fields, models
 
@@ -127,7 +127,7 @@ class FsFleetDashboard(models.TransientModel):
         for record in self:
             record.fleet_total = total
             available = status_counts.get('available', 0)
-            record.fleet_availability = (available / total * 100) if total > 0 else 100.0
+            record.fleet_availability = (available / total * 100) if total > 0 else 0.0
 
     def _compute_aircraft_kpis(self):
         """Compute aircraft status statistics.
@@ -161,14 +161,17 @@ class FsFleetDashboard(models.TransientModel):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         Aircraft = self.env['fs.aircraft']
-        today = date.today()
+        today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=30)
         for record in self:
-            # Expired: any of insurance, C of A, or ARC expired
+            # Missing or expired: every aircraft must have all three documents.
             record.cert_expired = Aircraft.search_count([
-                '|', '|',
+                '|', '|', '|', '|', '|',
+                ('insurance_expiry', '=', False),
                 ('insurance_expiry', '<', today),
+                ('cof_a_expiry', '=', False),
                 ('cof_a_expiry', '<', today),
+                ('arc_expiry', '=', False),
                 ('arc_expiry', '<', today),
             ])
             # Expiring soon: within 30 days but not expired
@@ -322,16 +325,19 @@ class FsFleetDashboard(models.TransientModel):
         Returns:
             dict | None: Odoo action dictionary, or None when no action is needed.
         """
-        today = date.today()
+        today = fields.Date.context_today(self)
         return {
-            'name': 'Expired Certificates',
+            'name': 'Missing or Expired Certificates',
             'type': 'ir.actions.act_window',
             'res_model': 'fs.aircraft',
             'view_mode': 'list,form',
             'domain': [
-                '|', '|',
+                '|', '|', '|', '|', '|',
+                ('insurance_expiry', '=', False),
                 ('insurance_expiry', '<', today),
+                ('cof_a_expiry', '=', False),
                 ('cof_a_expiry', '<', today),
+                ('arc_expiry', '=', False),
                 ('arc_expiry', '<', today),
             ],
         }
@@ -342,7 +348,7 @@ class FsFleetDashboard(models.TransientModel):
         Returns:
             dict | None: Odoo action dictionary, or None when no action is needed.
         """
-        today = date.today()
+        today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=30)
         return {
             'name': 'Certificates Expiring Soon',

@@ -15,7 +15,7 @@ Related Modules:
     Depends on: web, fs_core, fs_people, fs_training.
     fs_people and fs_training provide the related business entities whose files are managed here.
 """
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsClassType(models.Model):
@@ -56,6 +56,7 @@ class FsClassType(models.Model):
         compute='_compute_document_count',
     )
 
+    @api.depends('reference_document_id')
     def _compute_document_count(self):
         """Count documents related to this class type.
 

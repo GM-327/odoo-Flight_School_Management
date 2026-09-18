@@ -217,8 +217,12 @@ class FsDocument(models.Model):
     )
 
     @api.depends(
-        'student_id', 'instructor_id', 'pilot_id', 'training_class_id',
-        'admin_task_id', 'class_type_id', 'class_type_id.name'
+        'student_id.display_name', 'student_id.name',
+        'instructor_id.display_name', 'instructor_id.name', 'instructor_id.callsign',
+        'pilot_id.display_name', 'pilot_id.name', 'pilot_id.callsign',
+        'training_class_id.display_name', 'training_class_id.name',
+        'admin_task_id.display_name', 'admin_task_id.name',
+        'class_type_id.display_name', 'class_type_id.name',
     )
     def _compute_related_entity_info(self):
         """Compute the name and type of the related entity for unified display.
@@ -388,11 +392,8 @@ class FsDocument(models.Model):
         param_name = self.EXPIRY_FIELD_WARNING_PARAMS.get(expiry_field)
         if not param_name:
             return 30
-        raw_value = self.env['ir.config_parameter'].sudo().get_param(param_name, '30')  # type: ignore
-        try:
-            return max(int(raw_value), 0)
-        except (TypeError, ValueError):
-            return 30
+        setting_name = param_name.removeprefix('flight_school.')
+        return self.env['fs.person']._get_compliance_warning_days(setting_name)
 
     @api.model
     def cron_refresh_expiry_status(self):
@@ -424,30 +425,70 @@ class FsDocument(models.Model):
         Returns:
             bool: True when Odoo successfully writes the requested values.
         """
+        sync_fields = {
+            'expiry_date', 'current_version_id', 'document_type_id',
+            *self.ENTITY_FIELD_TO_TYPE,
+        }
+        previous_sync_by_document = {}
+        if sync_fields.intersection(vals):
+            previous_sync_by_document = {
+                record.id: record._get_expiry_sync_state()
+                for record in self
+            }
+
         result = super().write(vals)
-        if 'expiry_date' in vals or 'current_version_id' in vals:
-            self.sync_expiry_to_related()
+        if previous_sync_by_document:
+            self.sync_expiry_to_related(previous_sync_by_document)
         return result
 
-    def sync_expiry_to_related(self):
+    def _get_expiry_sync_state(self):
+        """Return the current expiry target and value for this document."""
+        self.ensure_one()
+        entity_field = self._get_entity_field()
+        related_entity = self[entity_field] if entity_field else False
+        expiry_field = self.document_type_id.expiry_field
+        return related_entity, expiry_field, self.expiry_date
+
+    def sync_expiry_to_related(self, previous_sync_by_document=None):
         """Sync document expiry date to the related entity's field.
+
+        Old targets are cleared when the entity, expiry field, or current
+        expiry changes.  This prevents stale dates from remaining on an
+        entity after a document is moved or its current version is cleared.
 
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
+        previous_sync_by_document = previous_sync_by_document or {}
         for record in self:
-            doc_type = record.document_type_id
-            if not doc_type.expiry_field or not record.expiry_date:  # type: ignore
-                continue
+            related_entity, expiry_field, expiry_date = record._get_expiry_sync_state()
+            previous_state = previous_sync_by_document.get(record.id)
 
-            related_entity = (
-                record.student_id or
-                record.instructor_id or
-                record.pilot_id or
-                record.training_class_id
-            )
-            if related_entity and hasattr(related_entity, doc_type.expiry_field):  # type: ignore
-                related_entity.write({doc_type.expiry_field: record.expiry_date})  # type: ignore
+            if previous_state:
+                old_entity, old_expiry_field, old_expiry_date = previous_state
+                target_changed = (
+                    old_entity != related_entity
+                    or old_expiry_field != expiry_field
+                    or not expiry_date
+                )
+                if (
+                    old_entity
+                    and old_expiry_field
+                    and old_expiry_field in old_entity._fields
+                    and target_changed
+                    and (
+                        not old_expiry_date
+                        or old_entity[old_expiry_field] == old_expiry_date
+                    )
+                ):
+                    old_entity.write({old_expiry_field: False})
+
+            if (
+                related_entity
+                and expiry_field
+                and expiry_field in related_entity._fields
+            ):
+                related_entity.write({expiry_field: expiry_date or False})
 
     def action_view_versions(self):
         """View version history for this document.

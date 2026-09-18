@@ -755,7 +755,12 @@ class FsStudentEnrollment(models.Model):
         for record in self:
             record.is_active = record.status == 'active'
 
-    @api.depends('required_hour_ids.hours_logged', 'extra_hour_ids.hours_logged')
+    @api.depends(
+        'required_hour_ids.hours_logged',
+        'required_hour_ids.is_extra',
+        'extra_hour_ids.hours_logged',
+        'extra_hour_ids.is_extra',
+    )
     def _compute_total_hours(self):
         """Compute total hours from all hour records (required + extra).
 
@@ -840,8 +845,10 @@ class FsStudentEnrollment(models.Model):
         'required_hour_ids.hours_logged',
         'required_hour_ids.minimum_hours',
         'required_hour_ids.activity_id',
+        'required_hour_ids.is_extra',
         'extra_hour_ids.hours_logged',
         'extra_hour_ids.activity_id',
+        'extra_hour_ids.is_extra',
         'requirement_group_ids.minimum_hours',
         'requirement_group_ids.alternative_activity_ids',
     )
@@ -859,6 +866,8 @@ class FsStudentEnrollment(models.Model):
         'required_hour_ids.minimum_hours',
         'extra_hour_ids.hours_logged',
         'extra_hour_ids.activity_id',
+        'required_hour_ids.is_extra',
+        'extra_hour_ids.is_extra',
         'requirement_group_ids.minimum_hours',
         'requirement_group_ids.alternative_activity_ids',
     )
@@ -875,8 +884,10 @@ class FsStudentEnrollment(models.Model):
         'required_hour_ids.hours_logged',
         'required_hour_ids.minimum_hours',
         'required_hour_ids.activity_id',
+        'required_hour_ids.is_extra',
         'extra_hour_ids.hours_logged',
         'extra_hour_ids.activity_id',
+        'extra_hour_ids.is_extra',
         'requirement_group_ids.name',
         'requirement_group_ids.minimum_hours',
         'requirement_group_ids.alternative_activity_ids',
@@ -1266,8 +1277,10 @@ class FsEnrollmentHoursGroup(models.Model):
         'alternative_activity_ids',
         'enrollment_id.required_hour_ids.hours_logged',
         'enrollment_id.required_hour_ids.activity_id',
+        'enrollment_id.required_hour_ids.is_extra',
         'enrollment_id.extra_hour_ids.hours_logged',
         'enrollment_id.extra_hour_ids.activity_id',
+        'enrollment_id.extra_hour_ids.is_extra',
     )
     def _compute_progress_fields(self):
         """Compute OR-group logged, remaining, and percentage values."""

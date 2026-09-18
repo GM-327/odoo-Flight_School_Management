@@ -67,6 +67,7 @@ class FsInstructor(models.Model):
         compute='_compute_document_shortcuts',
     )
 
+    @api.depends('document_ids')
     def _compute_document_count(self):
         """Compute the number of documents.
 

@@ -11,6 +11,7 @@ export class CarouselControl extends Component {
 
     setup() {
         this.orm = useService("orm");
+        this.isUnmounted = false;
         this.state = useState({
             isPlaying: true, // Default to playing
             interval: 10,
@@ -19,9 +20,23 @@ export class CarouselControl extends Component {
         });
 
         onMounted(async () => {
-            // Get interval from config
-            const result = await this.orm.call("ir.config_parameter", "get_param", ["flight_school.operations_carousel_interval", 10]);
-            this.state.interval = parseInt(result) || 10;
+            let interval = 10;
+            try {
+                const result = await this.orm.call(
+                    this.props.record.resModel,
+                    "get_carousel_interval",
+                    [],
+                );
+                const configuredInterval = Number.parseInt(result, 10);
+                if (Number.isInteger(configuredInterval) && configuredInterval >= 0) {
+                    interval = configuredInterval;
+                }
+            } catch (error) {
+                console.warn("CarouselControl: failed to read interval; using default", error);
+            }
+
+            if (this.isUnmounted) return;
+            this.state.interval = interval;
 
             if (this.state.interval > 0) {
                 this.startTimer();
@@ -31,12 +46,13 @@ export class CarouselControl extends Component {
         });
 
         onWillUnmount(() => {
+            this.isUnmounted = true;
             this.stopTimer();
         });
     }
 
     startTimer() {
-        if (this.state.timerId) return;
+        if (this.state.timerId || this.state.interval <= 0) return;
 
         // Use a simple Interval to trigger next page
         this.state.timerId = setInterval(() => {
@@ -55,6 +71,7 @@ export class CarouselControl extends Component {
     }
 
     togglePlay() {
+        if (this.state.interval <= 0) return;
         if (this.state.isPlaying) {
             this.stopTimer();
         } else {

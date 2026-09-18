@@ -15,7 +15,7 @@ Related Modules:
     Depends on: web, fs_core, fs_people, fs_training.
     fs_people and fs_training provide the related business entities whose files are managed here.
 """
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class FsAdminTask(models.Model):
@@ -55,6 +55,7 @@ class FsAdminTask(models.Model):
         help="Filename of the linked document.",
     )
 
+    @api.depends('document_ids')
     def _compute_document_count(self):
         """Count documents related to this admin task.
 

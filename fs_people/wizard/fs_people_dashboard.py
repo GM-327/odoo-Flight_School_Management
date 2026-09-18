@@ -121,9 +121,10 @@ class FsPeopleDashboard(models.TransientModel):
             ])
             # Expiring: medical or english expiring (not expired)
             record.instructor_expiring = Instructor.search_count([
-                '|',
+                '|', '|',
                 ('medical_status', '=', 'expiring'),
                 ('english_status', '=', 'expiring'),
+                ('qualification_ids.expiry_status', '=', 'expiring'),
             ])
 
     def _compute_student_kpis(self):
@@ -163,11 +164,12 @@ class FsPeopleDashboard(models.TransientModel):
             ])
             # Any status expiring
             record.pilot_expiring = Pilot.search_count([
-                '|', '|', '|',
+                '|', '|', '|', '|',
                 ('medical_status', '=', 'expiring'),
                 ('english_status', '=', 'expiring'),
                 ('security_clearance_status', '=', 'expiring'),
                 ('insurance_status', '=', 'expiring'),
+                ('qualification_ids.expiry_status', '=', 'expiring'),
             ])
 
     def _compute_summary_kpis(self):
@@ -299,9 +301,10 @@ class FsPeopleDashboard(models.TransientModel):
             'res_model': 'fs.instructor',
             'view_mode': 'list,form',
             'domain': [
-                '|',
+                '|', '|',
                 ('medical_status', '=', 'expiring'),
                 ('english_status', '=', 'expiring'),
+                ('qualification_ids.expiry_status', '=', 'expiring'),
             ],
         }
 
@@ -391,10 +394,11 @@ class FsPeopleDashboard(models.TransientModel):
             'res_model': 'fs.pilot',
             'view_mode': 'list,form',
             'domain': [
-                '|', '|', '|',
+                '|', '|', '|', '|',
                 ('medical_status', '=', 'expiring'),
                 ('english_status', '=', 'expiring'),
                 ('security_clearance_status', '=', 'expiring'),
                 ('insurance_status', '=', 'expiring'),
+                ('qualification_ids.expiry_status', '=', 'expiring'),
             ],
         }

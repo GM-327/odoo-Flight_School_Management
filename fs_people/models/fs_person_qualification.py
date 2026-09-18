@@ -131,8 +131,7 @@ class FsPersonQualification(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.license_warning_days', '30'))
+        warning_days = self.env['fs.person']._get_compliance_warning_days('license_warning_days')
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
 

@@ -11,7 +11,7 @@
                         type="action"
                         class="oe_stat_button"
                         icon="fa-calendar"
-                        context="{'search_default_enrollment_id': id}">
+                        domain="['|', ('pilot1_crew_id.enrollment_id', '=', id), ('pilot2_crew_id.enrollment_id', '=', id)]">
                     <field name="scheduled_count" widget="statinfo" string="Flights"/>
                 </button>
             </xpath>
@@ -29,7 +29,7 @@
                         type="action"
                         class="oe_stat_button"
                         icon="fa-calendar"
-                        context="{'search_default_instructor_id': id}">
+                        domain="['|', '&amp;', ('pilot1_crew_id.source_model', '=', 'fs.instructor'), ('pilot1_crew_id.source_id', '=', id), '&amp;', ('pilot2_crew_id.source_model', '=', 'fs.instructor'), ('pilot2_crew_id.source_id', '=', id)]">
                     <field name="scheduled_count" widget="statinfo" string="Flights"/>
                 </button>
             </xpath>
@@ -48,7 +48,7 @@
                             type="action"
                             class="oe_stat_button"
                             icon="fa-calendar"
-                            context="{'search_default_aircraft_id': id}">
+                            domain="[('aircraft_id', '=', id)]">
                         <field name="scheduled_count" widget="statinfo" string="Flights"/>
                     </button>
                 </div>

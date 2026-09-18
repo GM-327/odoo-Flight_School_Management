@@ -17,6 +17,7 @@ Related Modules:
 """
 import re
 from odoo import api, fields, models
+from odoo.tools.float_utils import float_compare
 
 
 class FsFlightMission(models.Model):
@@ -96,6 +97,13 @@ class FsFlightMission(models.Model):
         readonly=False,
         help="Expected duration. Defaults from discipline.",
     )
+    duration_hours_manual = fields.Boolean(
+        string='Manual Duration',
+        default=False,
+        readonly=True,
+        copy=True,
+        help="Whether the duration was explicitly provided instead of inherited from the discipline.",
+    )
     sequence = fields.Integer(
         string='Sequence',
         default=10,
@@ -113,7 +121,13 @@ class FsFlightMission(models.Model):
         default=True,
     )
 
-    @api.depends('activity_id', 'discipline_id')
+    @api.depends(
+        'activity_id',
+        'activity_id.discipline_id.default_flight_duration',
+        'discipline_id',
+        'discipline_id.default_flight_duration',
+        'duration_hours_manual',
+    )
     def _compute_duration_hours(self):
         """Default duration from discipline.
 
@@ -121,10 +135,24 @@ class FsFlightMission(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            if record.discipline_id and not record.duration_hours:
-                record.duration_hours = record.discipline_id.default_flight_duration  # type: ignore
-            elif not record.duration_hours:
-                record.duration_hours = 1.0
+            if record.duration_hours_manual:
+                continue
+            record.duration_hours = (
+                record.discipline_id.default_flight_duration
+                if record.discipline_id
+                else 1.0
+            )
+
+    @api.model_create_multi
+    def create(self, values_list):
+        """Mark explicitly supplied durations so defaults can refresh safely."""
+        normalized_values_list = []
+        for values in values_list:
+            normalized_values = dict(values)
+            if 'duration_hours' in normalized_values:
+                normalized_values['duration_hours_manual'] = True
+            normalized_values_list.append(normalized_values)
+        return super().create(normalized_values_list)
 
     @api.onchange('activity_id')
     def _onchange_activity_id(self):
@@ -135,6 +163,30 @@ class FsFlightMission(models.Model):
         """
         if self.activity_id and self.activity_id.discipline_id:  # type: ignore
             self.duration_hours = self.activity_id.discipline_id.default_flight_duration  # type: ignore
+
+    def write(self, values):
+        """Track explicit duration edits while allowing computed refreshes."""
+        duration_is_activity_default = False
+        if 'duration_hours' in values and 'activity_id' in values:
+            activity = self.env['fs.flight.activity'].browse(values['activity_id']).exists()
+            default_duration = (
+                activity.discipline_id.default_flight_duration
+                if activity and activity.discipline_id
+                else 1.0
+            )
+            duration_is_activity_default = float_compare(
+                values['duration_hours'],
+                default_duration,
+                precision_digits=6,
+            ) == 0
+        if (
+            'duration_hours' in values
+            and 'duration_hours_manual' not in values
+            and (('activity_id' not in values) or not duration_is_activity_default)
+        ):
+            values = dict(values)
+            values['duration_hours_manual'] = True
+        return super().write(values)
 
     def action_duplicate_mission(self):
         """Duplicate mission with incremented name and sequence.

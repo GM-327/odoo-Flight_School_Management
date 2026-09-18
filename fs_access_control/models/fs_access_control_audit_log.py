@@ -13,6 +13,20 @@ class FsAccessAuditLog(models.Model):
     _order = 'create_date desc, id desc'
 
     event_type = fields.Char(required=True, index=True)
+    actor_id = fields.Many2one(
+        'res.users',
+        string='Actor',
+        index=True,
+        ondelete='set null',
+        help='User or system principal that performed the action.',
+    )
+    subject_user_id = fields.Many2one(
+        'res.users',
+        string='Subject User',
+        index=True,
+        ondelete='set null',
+        help='User whose access or assignment was affected.',
+    )
     user_id = fields.Many2one('res.users', index=True, ondelete='set null')
     target_model = fields.Char(index=True)
     target_res_id = fields.Integer(index=True)

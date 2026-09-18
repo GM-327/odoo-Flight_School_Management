@@ -122,6 +122,72 @@ class TestTrainingP0Remediation(TransactionCase):
         self.assertFalse(training_class.active)
         self.assertTrue(student.active)
 
+    def test_class_progress_excludes_dropped_enrollments(self):
+        class_type = self._create_class_type(
+            'PROGRESS',
+            hour_requirement_ids=[(0, 0, {
+                'activity_id': self.activity_man_dual.id,
+                'minimum_hours': 10.0,
+            })],
+        )
+        training_class = self._create_class(class_type, 'PROGRESS')
+        active_enrollment = self._create_enrollment(
+            training_class, self._create_student('PROGRESS-ACTIVE'),
+        )
+        dropped_enrollment = self._create_enrollment(
+            training_class, self._create_student('PROGRESS-DROPPED'),
+        )
+        active_enrollment.required_hour_ids.hours_logged = 5.0
+        dropped_enrollment.required_hour_ids.hours_logged = 10.0
+        dropped_enrollment.action_drop()
+
+        training_class._compute_progress_percentage()
+
+        self.assertEqual(training_class.progress_percentage, 50.0)
+
+    def test_dashboard_progress_is_weighted_by_required_hours(self):
+        small_type = self._create_class_type(
+            'WEIGHT-SMALL',
+            hour_requirement_ids=[(0, 0, {
+                'activity_id': self.activity_man_dual.id,
+                'minimum_hours': 1.0,
+            })],
+        )
+        large_type = self._create_class_type(
+            'WEIGHT-LARGE',
+            hour_requirement_ids=[(0, 0, {
+                'activity_id': self.activity_man_dual.id,
+                'minimum_hours': 9.0,
+            })],
+        )
+        small_class = self._create_class(small_type, 'WEIGHT-SMALL')
+        large_class = self._create_class(large_type, 'WEIGHT-LARGE')
+        small_enrollment = self._create_enrollment(
+            small_class, self._create_student('WEIGHT-SMALL'),
+        )
+        self._create_enrollment(large_class, self._create_student('WEIGHT-LARGE'))
+        small_class.action_start_class()
+        large_class.action_start_class()
+        small_enrollment.required_hour_ids.hours_logged = 1.0
+
+        dashboard = self.env['fs.training.dashboard'].new({})
+        dashboard._compute_summary_kpis()
+
+        in_progress = self.env['fs.training.class'].search([('status', '=', 'in_progress')])
+        enrollments = in_progress.mapped('enrollment_ids').filtered_domain([
+            ('status', 'not in', ['dropped', 'cancelled']),
+        ])
+        total_required = sum(
+            enrollment._get_requirement_progress_values()['total_required']
+            for enrollment in enrollments
+        )
+        total_progress = sum(
+            enrollment._get_requirement_progress_values()['total_progress']
+            for enrollment in enrollments
+        )
+        expected_progress = total_progress / total_required * 100.0
+        self.assertAlmostEqual(dashboard.class_progression, expected_progress)
+
     def test_extra_hour_posting_remains_available_to_flight_integrations(self):
         class_type = self._create_class_type('HOURS')
         training_class = self._create_class(class_type, 'HOURS')

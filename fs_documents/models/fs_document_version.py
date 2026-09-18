@@ -309,6 +309,8 @@ class FsDocumentVersion(models.Model):
             ], order='version_number desc, id desc')
             if remaining_versions and not remaining_versions.filtered('is_current'):
                 remaining_versions[:1]._set_as_current()
+            else:
+                document.sync_expiry_to_related()
         return result
 
     def _set_as_current(self):

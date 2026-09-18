@@ -4,7 +4,7 @@
 
 {
     'name': 'Access Control',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Aviation/Flight School',
     'summary': 'Dynamic role-level and department access control for Flight School modules',
     'author': 'Ghazi Marzouk, Odoo Community Association (OCA)',

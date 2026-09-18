@@ -240,8 +240,7 @@ class FsInstructor(models.Model):
         Returns:
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
-        warning_days = int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.english_warning_days', '30'))
+        warning_days = self.env['fs.person']._get_compliance_warning_days('english_warning_days')
         today = fields.Date.context_today(self)
         warning_date = today + timedelta(days=warning_days)
 
@@ -259,7 +258,7 @@ class FsInstructor(models.Model):
     max_students = fields.Integer(
         string='Max Students',
         default=lambda self: int(self.env['ir.config_parameter'].sudo().get_param(  # type: ignore
-            'flight_school.default_max_students', '8')),
+            'flight_school.default_max_students', '6')),
         help="Maximum number of students this instructor can have.",
         readonly=True,
     )

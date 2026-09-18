@@ -40,6 +40,8 @@ class ResUsers(models.Model):
     @api.depends(
         'fs_access_assignment_ids.active',
         'fs_access_assignment_ids.state',
+        'fs_access_assignment_ids.valid_from',
+        'fs_access_assignment_ids.valid_to',
         'fs_access_assignment_ids.level_id',
         'fs_access_assignment_ids.department_id',
         'fs_access_grant_ids.state',
@@ -57,7 +59,11 @@ class ResUsers(models.Model):
             user.fs_access_department_summary = ', '.join(departments.mapped('display_name')) or 'Global/None'
             user.fs_access_assignment_count = self.env['fs.access.assignment'].sudo().search_count([
                 ('user_id', '=', user.id),
+                ('user_id.active', '=', True),
                 ('active', '=', True),
+                ('state', '=', 'active'),
+                '|', ('valid_from', '=', False), ('valid_from', '<=', now),
+                '|', ('valid_to', '=', False), ('valid_to', '>=', now),
             ])
             user.fs_access_active_grant_count = self.env['fs.access.grant'].sudo().search_count([
                 ('user_id', '=', user.id),

@@ -101,3 +101,25 @@ class TestFleetAircraft(TransactionCase):
         self.assertIn('Insurance has expired.', aircraft.operational_warning)
         self.assertIn('Certificate of Airworthiness expiry date is missing.', aircraft.operational_warning)
         self.assertIn('ARC expiry date is missing.', aircraft.operational_warning)
+
+    def test_fleet_dashboard_counts_missing_certificates(self):
+        aircraft = self._create_aircraft('TS-TEST-07')
+        dashboard = self.env['fs.fleet.dashboard'].new({})
+        dashboard._compute_certificate_kpis()
+
+        self.assertIn(
+            aircraft,
+            self.env['fs.aircraft'].search(
+                dashboard.action_view_cert_expired()['domain'],
+            ),
+        )
+        self.assertGreaterEqual(dashboard.cert_expired, 1)
+
+    def test_empty_fleet_reports_zero_availability(self):
+        aircraft_model = self.env['fs.aircraft']
+        aircraft_model.with_context(active_test=False).search([]).write({'active': False})
+        dashboard = self.env['fs.fleet.dashboard'].new({})
+        dashboard._compute_summary_kpis()
+
+        self.assertEqual(dashboard.fleet_total, 0)
+        self.assertEqual(dashboard.fleet_availability, 0.0)

@@ -219,22 +219,8 @@
         <field name="model_id" ref="model_fs_daily_operations"/>
         <field name="state">code</field>
         <field name="code">
-today = datetime.date.today()
-
-record = model.search([('date', '=', today)], limit=1)
-if not record:
-    record = model.create({'date': today})
-
-action = {
-    'name': 'Flight Operations Board',
-    'type': 'ir.actions.act_window',
-    'res_model': 'fs.daily.operations',
-    'res_id': record.id,
-    'view_mode': 'form',
-    'view_id': env.ref('fs_flights.view_fs_daily_operations_form').id,
-    'target': 'main',
-    'context': {'form_view_initial_mode': 'edit'},
-}
+action = model.action_open_operations_board()
+action['view_id'] = env.ref('fs_flights.view_fs_daily_operations_form').id
         </field>
     </record>
 

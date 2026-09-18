@@ -96,6 +96,12 @@ class FsAccessAssignment(models.Model):
         return records
 
     def write(self, vals):
+        if vals.get('state') == 'active':
+            invalid_records = self.filtered(lambda assignment: assignment.state in ('expired', 'revoked'))
+            if invalid_records:
+                raise UserError(_(
+                    'Expired or revoked assignments cannot be reactivated. Create a new assignment instead.'
+                ))
         result = super().write(vals)
         self._log_assignment_change('assignment_write')
         self._invalidate_assignment_users()
@@ -112,6 +118,13 @@ class FsAccessAssignment(models.Model):
         return result
 
     def action_activate(self):
+        if any(assignment.state in ('expired', 'revoked') for assignment in self):
+            raise UserError(_(
+                'Expired or revoked assignments cannot be reactivated. Create a new assignment instead.'
+            ))
+        now = fields.Datetime.now()
+        if any(assignment.valid_to and assignment.valid_to <= now for assignment in self):
+            raise UserError(_('An assignment cannot be activated after its expiry date.'))
         self.write({'state': 'active', 'active': True})
         return True
 

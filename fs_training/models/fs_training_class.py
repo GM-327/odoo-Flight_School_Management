@@ -325,7 +325,7 @@ class FsTrainingClass(models.Model):
             record.graduated_count = len(enrollments.filtered_domain([('status', '=', 'graduated')]))
             record.dropped_count = len(enrollments.filtered_domain([('status', '=', 'dropped')]))
 
-    @api.depends('enrollment_ids.progression')
+    @api.depends('enrollment_ids.progression', 'enrollment_ids.status')
     def _compute_progress_percentage(self):
         """Compute progress percentage values for the current recordset.
 
@@ -333,9 +333,19 @@ class FsTrainingClass(models.Model):
             None: Updates Odoo records, computed fields, or wizard state in place.
         """
         for record in self:
-            progressions = record.enrollment_ids.mapped('progression')
-            if progressions:
-                record.progress_percentage = sum(progressions) / len(progressions)
+            enrollments = record.enrollment_ids.filtered_domain([
+                ('status', 'not in', ['dropped', 'cancelled']),
+            ])
+            total_required = 0.0
+            total_progress = 0.0
+            for enrollment in enrollments:
+                progress_values = enrollment._get_requirement_progress_values()
+                total_required += progress_values['total_required']
+                total_progress += progress_values['total_progress']
+            if total_required > 0.0:
+                record.progress_percentage = total_progress / total_required * 100.0
+            elif enrollments:
+                record.progress_percentage = sum(enrollments.mapped('progression')) / len(enrollments)
             else:
                 record.progress_percentage = 0.0
 
